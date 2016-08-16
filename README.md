@@ -3,6 +3,14 @@
 
 Swathe is a 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see why. Contributions welcome!
 
+Browsers support any ES5 spec compliant, such as IE9+ and Safari 6+. Firefox, Chrome and Edge.
+
+
+## Use ##
+- Install `npm swathe`
+- Include `<script src="swathe.min.js"></script>`
+
+
 ## Model ##
 ### Swathe.controller ###
 **Parameters**
@@ -19,6 +27,7 @@ An instance of `Swathe.controller`.
 - `model`: The observed object. Get `model.data`. Set `model.data = 'text'`
 - `elements`: The observed elements.
 
+
 ## View ##
 ### Attributes ###
 - `data-bind`: Single attribute for all operations.
@@ -34,8 +43,10 @@ An instance of `Swathe.controller`.
 <input data-bind="value: i.am.deep" value="Initial"/>
 ```
 
+
 ## Examples ##
 Check out the demo directory. More examples coming soon.
+
 
 ## License ##
 Licensed Under MPL 2.0
