@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Swathe Basics</title>
+</head>
+<body>
+
+	<a href="#" data-bind="href: i.am.deep">Link</a>
+	<div data-bind="innerText: i.am.deep"></div>
+	<input data-bind="value: i.am.deep" value="Initial"/>
+
+	<script src="../swathe.js"></script>
+
+	<script>
+		window.addEventListener('DOMContentLoaded', function () {
+
+			var model = {
+				color: 'blue',
+				i: {
+					hello: 'world',
+					am: {
+						deep: false
+					}
+				}
+			};
+
+			var Controller = Swathe.controller('body', model);
+
+
+			setTimeout(function () {
+
+				Controller.model.i.am.deep = 'cool';
+
+			}, 3000);
+		});
+	</script>
+</body>
+</html>

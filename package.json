@@ -1,0 +1,32 @@
+{
+  "name": "swathe",
+  "version": "1.0.0",
+  "description": "Swathe - Powerful, Small, 2 Way Data Binding",
+  "main": "swathe.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexanderElias/swathe.git"
+  },
+  "keywords": [
+    "data",
+    "bind",
+    "binding",
+    "data-binding",
+    "observe",
+    "observables",
+    "observeable",
+    "object",
+    "2-way",
+    "2",
+    "way"
+  ],
+  "author": "Alexander Elias",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/AlexanderElias/swathe/issues"
+  },
+  "homepage": "https://github.com/AlexanderElias/swathe#readme"
+}
