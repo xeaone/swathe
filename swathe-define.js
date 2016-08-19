@@ -1,22 +1,22 @@
 
-// swathe 1.0.1
 (function() {
 	'use strict';
 
 	function SyncView (data, valueBind) {
 		var dataBindElements = document.querySelectorAll('[data-bind~=\"' + valueBind + '\"]');
 
-		dataBindElements.forEach(function (dataBindElement) {
-			var keyBindElement = dataBindElement.getAttribute('data-bind').split(':')[0].trim();
-			var valueBindElement = dataBindElement.getAttribute('data-bind').split(':')[1].trim();
-			if (valueBind === valueBindElement) dataBindElement[keyBindElement] = data;
-		});
+		for (var i = 0; i < dataBindElements.length; i++) {
+			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
+			var valueBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[1].trim();
+			if (valueBind === valueBindElement) dataBindElements[i][keyBindElement] = data;
+		}
 	}
 
 	// might want to change to MutationObserver
 	function ObserveElements (elements, callback) {
-		elements.forEach(function (element) {
-			element.addEventListener('change', function (e) { // only works input, select textarea
+
+		for (var i = 0; i < elements.length; i++) {
+			elements[i].addEventListener('input', function (e) { // only works input, select textarea
 				var target = e.target;
 				var value = target.value;
 				var dataBind = target.getAttribute('data-bind');
@@ -26,7 +26,7 @@
 
 				callback(value, keyBind, valueBind);
 			}, false);
-		});
+		}
 
 		return elements;
 	}
@@ -76,8 +76,8 @@
 		});
 
 		self.view = new ObserveElements (self._elements, function (value, keyBind, valueBind) {
-			console.log(value);
-			eval('self.model.' + valueBind + ' = value');
+			// console.log(value);
+			eval('self.model.' + valueBind + ' = value'); //TODO: change from eval
 		});
 	}
 
@@ -98,48 +98,3 @@
 	}
 
 }());
-
-
-
-// function ObserveObject(object, callback, prefix) {
-// 	if (!prefix) prefix = '';
-//
-// 	return new Proxy(object, {
-// 		set: function(target, property, value) {
-// 			if (target[property] === value) return true; // do not send change if value is not different
-// 			target[property] = value;
-// 			callback(prefix + property, value);
-// 			return true;
-// 		},
-// 		get: function(target, property) {
-// 			if (isObject(target[property])) return ObserveObject(target[property], callback, prefix + property + '.');
-// 			else return target[property];
-// 		}
-// 	});
-// }
-
-
-// function getByPath(object, path) {
-// 	var keys = path.split('.');
-//
-// 	for (var i = 0; i < keys.length; i++) {
-// 		object = object[keys[i]];
-// 		if (object === undefined) return undefined;
-// 	}
-//
-// 	return object;
-// }
-//
-// function setByPath(object, path, value) {
-// 	if (typeof path === 'string') path = path.split('.');
-//
-// 	if (path.length > 1) {
-// 		var e = path.shift();
-// 		object[e] = Object.prototype.toString.call(object[e]) === '[object Object]' ? object[e] : {};
-// 		setByPath(object[e], path, value);
-// 	} else {
-// 		object[path[0]] = value;
-// 	}
-//
-// 	return object;
-// }

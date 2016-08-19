@@ -1,0 +1,21 @@
+{
+	"extends": "eslint:recommended",
+	"env": {
+		"browser": true,
+		"es6": true
+	},
+	"globals": {
+		"Swathe": false
+	},
+	"rules": {
+		"strict": 0,
+		"no-undef": 1,
+		"no-console": 0,
+		"no-extra-semi": 1,
+		"no-unused-vars": 1,
+		"indent": [1, "tab", { "SwitchCase": 1 }],
+		"semi": [1, "always"],
+		"quotes": [1, "single", "avoid-escape"],
+		"comma-spacing": [1, { "before": false, "after": true }]
+	}
+}
