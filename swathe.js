@@ -4,18 +4,15 @@
 
 	function SyncView (data, valueBind) {
 		var dataBindElements = document.querySelectorAll('[data-bind~=\"' + valueBind + '\"]');
-		var i = 0;
 
-		for (i; i < dataBindElements.length; i++) {
+		for (var i = 0; i < dataBindElements.length; i++) {
 			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
 			dataBindElements[i][keyBindElement] = data;
 		}
 	}
 
 	function ObserveElements (elements, callback) {
-		var i = 0;
-
-		for (i; i < elements.length; i++) {
+		for (var i = 0; i < elements.length; i++) {
 			elements[i].addEventListener('input', function (e) { // input, select, textarea
 				var target = e.target;
 				var value = target.value;
@@ -32,19 +29,23 @@
 	}
 
 	function ObserveObjects (model, callback, path) {
-		var self = this;
+		var self = {};
 
 		var Options = function(m, k, p) {
-			this.configurable = true;
-			this.enumerable = true;
-			this.get = function () {
+			var t = {};
+
+			t.configurable = true;
+			t.enumerable = true;
+			t.get = function () {
 				return m[k];
 			};
-			this.set = function (nv) {
+			t.set = function (nv) {
 				if (nv === m[k]) return null;
 				m[k] = nv;
 				callback(nv, p);
 			};
+
+			return t;
 		};
 
 		for (var key in model) {
@@ -52,13 +53,15 @@
 			var pathObject = !path ? key : path + '.' + key;
 			var pathVariable = !path ? key : path + '.' + key;
 
-			if (isObject(value)) self[key] = new ObserveObjects(value, callback, pathObject);
-			else Object.defineProperty(self, key, new Options(model, key, pathVariable));
+			if (isObject(value)) self[key] = ObserveObjects(value, callback, pathObject);
+			else Object.defineProperty(self, key, Options(model, key, pathVariable));
 		}
+
+		return self;
 	}
 
 	function Controller(scope, model) {
-		var self = this;
+		var self = {};
 
 		if (!scope) throw new Error('Controller: scope parameter required');
 		if (!model) throw new Error('Controller: model parameter required');
@@ -69,20 +72,19 @@
 		self._model = model;
 		self._elements = scope.querySelectorAll('[data-bind^=\"value\"]');
 
-		self.model = new ObserveObjects (self._model, function (value, path) {
+		self.model = ObserveObjects (self._model, function (value, path) {
 			SyncView(value, path);
 		});
 
-		self.view = new ObserveElements (self._elements, function (value, keyBind, valueBind) {
+		self.view = ObserveElements (self._elements, function (value, keyBind, valueBind) {
 			setByPath(valueBind, value);
 
 			function setByPath (path, value) {
 				var schema = self.model;  // moving reference
 				var pathList = path.split('.');
 				var last = pathList.length - 1;
-				var i = 0;
 
-				for(i; i < last; i++) {
+				for (var i = 0; i < last; i++) {
 					var item = pathList[i];
 					if(!schema[item]) schema[item] = {};
 					schema = schema[item];
@@ -91,14 +93,12 @@
 				schema[ pathList[ last ] ] = value;
 			}
 		});
+
+		return self;
 	}
 
 
-	window.Swathe = {
-		controller: function (scope, model) {
-			return new Controller(scope, model);
-		}
-	};
+	window.Swathe = Controller;
 
 	/*
 		internal

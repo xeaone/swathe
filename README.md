@@ -5,6 +5,11 @@ Swathe is a 2 way data binding library. It is extremely small and extremely powe
 
 Browsers support any ES5 spec compliant, such as IE9+ and Safari 6+. Firefox, Chrome and Edge.
 
+
+## Size ##
+**s (2.68KB uncompressed)**
+
+
 ## Performance ##
 Performance seems to be pretty good. I am not sure how it compares to other frameworks though. Running Chrome with a single bi-directional element changing **25,000** divs simultaneously the UI lag is only slightly apparent. When using 50/50 div and bi-directional inputs **10,000** begins to have noticeable lag. Check out the example  directory and see for your self.
 
@@ -16,13 +21,40 @@ Performance seems to be pretty good. I am not sure how it compares to other fram
 - Minify `swathe.js` or bundle `proxy.min.js` and `swathe-next.js` then Minify
 
 
+## View Example ##
+```HTML
+<a href="#" data-bind="href: i.am.nested">Link</a>
+<input class="input" data-bind="value: i.am.nested" value="Initial"/>
+<div class="data" data-bind="innerText: i.am.nested">None</div>
+```
+
+
+## Model Examples ##
+```JavaScript
+var model = {
+	color: 'blue',
+	i: {
+		am: {
+			nested: 'no'
+		}
+	}
+};
+
+var controller = Swathe('body', model);
+
+setTimeout(function () {
+	controller.model.i.am.nested = 'YES';
+}, 1500);
+```
+
+
 ## Model ##
-### Swathe.controller ###
+### Swathe ###
 **Parameters**
-- `scope`: Object `window.document` or querySelector string `body`
+- `scope`: Object `window.document` or querySelector string such as `body`
 - `model`: Object `{}` (define all properties that will be observed)
 
-**Return**
+**Returns**
 - `controller`: A controller instance.
 
 ### Controller ###
@@ -41,19 +73,8 @@ An instance of `Swathe.controller`.
 - `key:`: Maps to JavaScript property of DOM element e.g. `innerText:`.
 - `value`: Maps to path of model object `i.am.a.path`
 
-### View Example ###
-```HTML
-<a href="#" data-bind="href: i.am.deep">Link</a>
-<div data-bind="innerText: i.am.deep"></div>
-<input data-bind="value: i.am.deep" value="Initial"/>
-```
-
-
-## Examples ##
-Check out the demo directory. More examples coming soon.
-
 
 ## License ##
 Licensed Under MPL 2.0
 
-Copyright (c) 2016 [Alexander Elias](https://github.com/AlexanderElias/)
+Copyright 2016 [Alexander Elias](https://github.com/AlexanderElias/)

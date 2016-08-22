@@ -5,16 +5,19 @@
 	<title>Swathe</title>
 
 	<!-- <script src="../proxy.min.js"></script> -->
-	<script src="../swathe.js"></script>
-	<!-- <script src="../swathe-next.js"></script> -->
+	<!-- <script src="../swathe.js"></script> -->
+	<script src="../swathe-next.js"></script>
 </head>
 <body>
 
-	<a href="#" data-bind="href: i.am.deep">Link</a>
-	<input class="input" data-bind="value: i.am.deep" value="Initial"/>
+	<input data-bind="value: color" value="Color"/>
+	<div data-bind="innerText: color">None</div>
+
+	<a href="#" data-bind="href: i.am.nested">Link</a>
+	<input class="input" data-bind="value: i.am.nested" value="Initial"/>
 
 	<div class="container">
-		<div class="data" data-bind="innerText: i.am.deep">None</div>
+		<div class="data" data-bind="innerText: i.am.nested">None</div>
 	</div>
 
 	<script>
@@ -27,23 +30,21 @@
 			document.querySelector('.container').appendChild(dataClone);
 		}
 
-		window.addEventListener('load', function () {
-			var model = {
-				color: 'blue',
-				i: {
-					hello: 'world',
-					am: {
-						deep: false
-					}
+		var scope = 'body';
+		var model = {
+			color: 'blue',
+			i: {
+				am: {
+					nested: 'NO'
 				}
-			};
+			}
+		};
 
-			var Controller = Swathe.controller('body', model);
+		var controller = Swathe('body', model);
 
-			setTimeout(function () {
-				Controller.model.i.am.deep = 'TIME OUT VALUE';
-			}, 1500);
-		});
+		setTimeout(function () {
+			controller.model.i.am.nested = 'YES';
+		}, 1500);
 	</script>
 </body>
 </html>
