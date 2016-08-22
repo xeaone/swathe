@@ -1,7 +1,7 @@
 # Swathe #
 **Swathe - Powerful, Small, 2 Way Data Binding**
 
-Swathe is a 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see for your self. Contributions suggestions welcome and appreciated! 2 Way data binding can be costly thus only elements with value properties are bi-directionally watched using the Input Event. I am thinking of changing to MutationObservers for the DOM changes. But that would require another pollyfill.
+Swathe is a 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see for your self. Contributions suggestions welcome and appreciated! 2 Way data binding can be costly thus only elements with value properties are bi-directionally watched using the Input Event.
 
 Browsers support any ES5 spec compliant, such as IE9+ and Safari 6+. Firefox, Chrome and Edge.
 
@@ -13,9 +13,9 @@ Improvements can be made currently `eval` is being used to map the string path t
 
 ## Use ##
 - Install `npm swathe`
-- Chose either `swathe-define.js` or `swathe-proxy.js`
-- If using `swathe-proxy.js` you will need to include the `proxy.min.js`
-- Minify `swathe-define.js` or bundle `proxy.min.js` and `swathe-proxy.js` then Minify
+- Chose either `swathe.js` or `swathe-next.js`
+- If using `swathe-next.js` you will need to include the `proxy.min.js`
+- Minify `swathe.js` or bundle `proxy.min.js` and `swathe-next.js` then Minify
 
 
 ## Model ##

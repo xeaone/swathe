@@ -3,19 +3,20 @@
 	'use strict';
 
 	function SyncView (data, valueBind) {
-		var dataBindElements = document.querySelectorAll('[data-bind~=\"' + valueBind + '\"]');
+		var dataBindElements = document.querySelectorAll('[data-bind~="' + valueBind + '"]');
+		var i = 0;
 
-		for (var i = 0; i < dataBindElements.length; i++) {
+		for (i; i < dataBindElements.length; i++) {
 			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
-			var valueBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[1].trim();
-			if (valueBind === valueBindElement) dataBindElements[i][keyBindElement] = data;
+			dataBindElements[i][keyBindElement] = data;
 		}
 	}
 
-	// might want to change to MutationObserver
 	function ObserveElements (elements, callback) {
-		for (var i = 0; i < elements.length; i++) {
-			elements[i].addEventListener('input', function (e) { // only works input, select textarea
+		var i = 0;
+
+		for (i; i < elements.length; i++) {
+			elements[i].addEventListener('input', function (e) { // input, select, textarea
 				var target = e.target;
 				var value = target.value;
 				var dataBind = target.getAttribute('data-bind');
@@ -57,15 +58,14 @@
 
 		self._scope = scope;
 		self._model = model;
-		self._elements = scope.querySelectorAll('[data-bind^=\"value\"]');
+		self._elements = scope.querySelectorAll('input[data-bind^="value"]');
 
 		self.model = new ObserveObjects (self._model, function (value, path) {
 			SyncView(value, path);
 		});
 
 		self.view = new ObserveElements (self._elements, function (value, keyBind, valueBind) {
-			// console.log(value);
-			eval('self.model.' + valueBind + ' = value'); //TODO: change from eval
+			eval('self.model.' + valueBind + ' = value');
 		});
 	}
 
@@ -83,29 +83,6 @@
 	function isObject (value) {
 		if (value === null || value === undefined) return false;
 		else return value.constructor === Object;
-	}
-
-	function getByPath(object, path) {
-		var keys = path.split('.');
-
-		for (var i = 0; i < keys.length; i++) {
-			object = object[keys[i]];
-			if (object === undefined) return undefined;
-		}
-
-		return object;
-	}
-
-	function setByPath(object, path, value) {
-		if (typeof path === 'string') path = path.split('.');
-
-		if (path.length > 1) {
-			var e = path.shift();
-			object[e] = Object.prototype.toString.call(object[e]) === '[object Object]' ? object[e] : {};
-			setByPath(object[e], path, value);
-		} else {
-			object[path[0]] = value;
-		}
 	}
 
 }());

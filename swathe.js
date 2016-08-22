@@ -4,19 +4,19 @@
 
 	function SyncView (data, valueBind) {
 		var dataBindElements = document.querySelectorAll('[data-bind~=\"' + valueBind + '\"]');
+		var i = 0;
 
-		for (var i = 0; i < dataBindElements.length; i++) {
+		for (i; i < dataBindElements.length; i++) {
 			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
-			var valueBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[1].trim();
-			if (valueBind === valueBindElement) dataBindElements[i][keyBindElement] = data;
+			dataBindElements[i][keyBindElement] = data;
 		}
 	}
 
-	// might want to change to MutationObserver
 	function ObserveElements (elements, callback) {
+		var i = 0;
 
-		for (var i = 0; i < elements.length; i++) {
-			elements[i].addEventListener('input', function (e) { // only works input, select textarea
+		for (i; i < elements.length; i++) {
+			elements[i].addEventListener('input', function (e) { // input, select, textarea
 				var target = e.target;
 				var value = target.value;
 				var dataBind = target.getAttribute('data-bind');
@@ -48,14 +48,12 @@
 		};
 
 		for (var key in model) {
-			if (model.hasOwnProperty(key)) {
-				var value = model[key];
-				var pathObject = !path ? key : path + '.' + key;
-				var pathVariable = !path ? key : path + '.' + key;
+			var value = model[key];
+			var pathObject = !path ? key : path + '.' + key;
+			var pathVariable = !path ? key : path + '.' + key;
 
-				if (isObject(value)) self[key] = new ObserveObjects(value, callback, pathObject);
-				else Object.defineProperty(self, key, new Options(model, key, pathVariable));
-			}
+			if (isObject(value)) self[key] = new ObserveObjects(value, callback, pathObject);
+			else Object.defineProperty(self, key, new Options(model, key, pathVariable));
 		}
 	}
 
@@ -76,8 +74,7 @@
 		});
 
 		self.view = new ObserveElements (self._elements, function (value, keyBind, valueBind) {
-			// console.log(value);
-			eval('self.model.' + valueBind + ' = value'); //TODO: change from eval
+			eval('self.model.' + valueBind + ' = value');
 		});
 	}
 

@@ -1,10 +1,10 @@
 {
   "name": "swathe",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Swathe - Powerful, Small, 2 Way Data Binding",
   "main": "swathe.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "http-serve ."
   },
   "repository": {
     "type": "git",

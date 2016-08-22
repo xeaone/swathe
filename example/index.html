@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Swathe</title>
+
+	<!-- <script src="../proxy.min.js"></script> -->
+	<!-- <script src="../swathe.js"></script> -->
+	<script src="../swathe-next.js"></script>
+</head>
+<body>
+
+	<a href="#" data-bind="href: i.am.deep">Link</a>
+	<input class="input" data-bind="value: i.am.deep" value="Initial"/>
+
+	<div class="container">
+		<div class="data" data-bind="innerText: i.am.deep">None</div>
+	</div>
+
+	<script>
+
+		for (var i = 0; i < 25000; i++) {
+			var input = document.querySelector('.input');
+			var data = document.querySelector('.data');
+			var inputClone = input.cloneNode(true);
+			var dataClone = data.cloneNode(true);
+			document.querySelector('.container').appendChild(dataClone);
+		}
+
+		window.addEventListener('load', function () {
+			var model = {
+				color: 'blue',
+				i: {
+					hello: 'world',
+					am: {
+						deep: false
+					}
+				}
+			};
+
+			var Controller = Swathe.controller('body', model);
+
+			setTimeout(function () {
+				Controller.model.i.am.deep = 'TIME OUT VALUE';
+			}, 1500);
+		});
+	</script>
+</body>
+</html>
