@@ -7,7 +7,7 @@ Browsers support any ES5 spec compliant, such as IE9+ and Safari 6+. Firefox, Ch
 
 
 ## Size ##
-**s (2.68KB uncompressed)**
+**1.24KB gzipped (2.68KB uncompressed)**
 
 
 ## Performance ##
