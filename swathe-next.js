@@ -65,7 +65,22 @@
 		});
 
 		self.view = new ObserveElements (self._elements, function (value, keyBind, valueBind) {
-			eval('self.model.' + valueBind + ' = value');
+			setByPath(valueBind, value);
+
+			function setByPath (path, value) {
+				var schema = self.model;  // moving reference
+				var pathList = path.split('.');
+				var last = pathList.length - 1;
+				var i = 0;
+
+				for(i; i < last; i++) {
+					var item = pathList[i];
+					if(!schema[item]) schema[item] = {};
+					schema = schema[item];
+				}
+
+				schema[ pathList[ last ] ] = value;
+			}
 		});
 	}
 

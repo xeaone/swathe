@@ -6,9 +6,7 @@ Swathe is a 2 way data binding library. It is extremely small and extremely powe
 Browsers support any ES5 spec compliant, such as IE9+ and Safari 6+. Firefox, Chrome and Edge.
 
 ## Performance ##
-Performance seems to be pretty good. I am not sure how it compares to other frameworks though. Running Chrome with a single bi-directional element changing **25,000** divs simultaneously changing the UI lag is only slightly apparent. When using 50/50 div and bi-directional inputs **10,000** has minor lag. check out the demo directory and see for your self.
-
-Improvements can be made currently `eval` is being used to map the string path to an object. This is not ideal, suggestions would be great. I was thinking of maybe creating an object which maps to the model object using string keys. Them using `Object.defineProperty` to be able to interact get/set the model.
+Performance seems to be pretty good. I am not sure how it compares to other frameworks though. Running Chrome with a single bi-directional element changing **25,000** divs simultaneously the UI lag is only slightly apparent. When using 50/50 div and bi-directional inputs **10,000** begins to have noticeable lag. Check out the example  directory and see for your self.
 
 
 ## Use ##
