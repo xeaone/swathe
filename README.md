@@ -23,13 +23,13 @@ Performance seems to be pretty good. I am not sure how it compares to other fram
 
 ## View Example ##
 ```HTML
-<div data-bind="style.background: color">Color Me!</div>
-<input data-bind="value: color" value="Color"/>
-<div data-bind="innerText: color">None</div>
+<div data-s="style.background: color">Color Me!</div>
+<input data-s="value: color" value="Color"/>
+<div data-s="innerText: color">None</div>
 
-<a href="#" data-bind="href: i.am.nested">Link</a>
-<input class="input" data-bind="value: i.am.nested" value="Initial"/>
-<div class="data" data-bind="innerText: i.am.nested">None</div>
+<a href="#" data-s="href: i.am.nested">Link</a>
+<input class="input" data-s="value: i.am.nested" value="Initial"/>
+<div class="data" data-s="innerText: i.am.nested">None</div>
 ```
 
 
@@ -71,7 +71,7 @@ An instance of `Swathe`. The return value.
 
 ## View ##
 ### Attributes ###
-- `data-bind`: Single attribute for all operations.
+- `data-s`: Single attribute for all operations.
 
 ### Values ###
 - `key:`: Maps to JavaScript property of DOM element e.g. `innerText:`.

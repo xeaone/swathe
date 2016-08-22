@@ -7,12 +7,12 @@
 			elements[i].addEventListener('input', function (e) { // input, select, textarea
 				var target = e.target;
 				var value = target.value;
-				var dataBind = target.getAttribute('data-bind');
+				var dataS = target.getAttribute('data-s');
 
-				var keyBind = dataBind.split(':')[0].trim();
-				var valueBind = dataBind.split(':')[1].trim();
+				var keyS = dataS.split(':')[0].trim();
+				var valueS = dataS.split(':')[1].trim();
 
-				callback(value, keyBind, valueBind);
+				callback(value, keyS, valueS);
 			}, false);
 		}
 
@@ -61,14 +61,14 @@
 
 		self._scope = scope;
 		self._model = model;
-		self._elements = scope.querySelectorAll('[data-bind^=\"value\"]');
+		self._elements = scope.querySelectorAll('[data-s^=\"value\"]');
 
 		self.model = ObserveObjects (self._model, function (value, path) {
 			updateView(value, path);
 		});
 
-		self.view = ObserveElements (self._elements, function (value, keyBind, valueBind) {
-			setByPath(self.model, valueBind, value);
+		self.view = ObserveElements (self._elements, function (value, keyS, valueS) {
+			setByPath(self.model, valueS, value);
 		});
 
 		initView(self.model);
@@ -84,22 +84,22 @@
 	*/
 
 	function initView (model) {
-		var dataBindElements = document.querySelectorAll('[data-bind]');
+		var dataSElements = document.querySelectorAll('[data-s]');
 
-		for (var i = 0; i < dataBindElements.length; i++) {
-			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
-			var valueBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[1].trim();
-			var value = getByPath(model, valueBindElement);
-			if (keyBindElement !== 'value') setByPath(dataBindElements[i], keyBindElement, value);
+		for (var i = 0; i < dataSElements.length; i++) {
+			var keySElement = dataSElements[i].getAttribute('data-s').split(':')[0].trim();
+			var valueSElement = dataSElements[i].getAttribute('data-s').split(':')[1].trim();
+			var value = getByPath(model, valueSElement);
+			if (keySElement !== 'value') setByPath(dataSElements[i], keySElement, value);
 		}
 	}
 
-	function updateView (data, valueBind) {
-		var dataBindElements = document.querySelectorAll('[data-bind~="' + valueBind + '"]');
+	function updateView (data, valueS) {
+		var dataSElements = document.querySelectorAll('[data-s~="' + valueS + '"]');
 
-		for (var i = 0; i < dataBindElements.length; i++) {
-			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
-			if (keyBindElement !== 'value') setByPath(dataBindElements[i], keyBindElement, data);
+		for (var i = 0; i < dataSElements.length; i++) {
+			var keySElement = dataSElements[i].getAttribute('data-s').split(':')[0].trim();
+			if (keySElement !== 'value') setByPath(dataSElements[i], keySElement, data);
 		}
 	}
 

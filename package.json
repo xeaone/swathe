@@ -1,6 +1,6 @@
 {
   "name": "swathe",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Swathe - Powerful, Small, 2 Way Data Binding",
   "main": "swathe.js",
   "scripts": {
