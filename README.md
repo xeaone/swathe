@@ -7,7 +7,7 @@ Browsers support any ES5 spec compliant, such as IE9+ and Safari 6+. Firefox, Ch
 
 
 ## Size ##
-**1.24KB gzipped (2.68KB uncompressed)**
+Approximately 670 bytes gzipped (1.35KB uncompressed).
 
 
 ## Performance ##
@@ -23,13 +23,17 @@ Performance seems to be pretty good. I am not sure how it compares to other fram
 
 ## View Example ##
 ```HTML
+<div data-bind="style.background: color">Color Me!</div>
+<input data-bind="value: color" value="Color"/>
+<div data-bind="innerText: color">None</div>
+
 <a href="#" data-bind="href: i.am.nested">Link</a>
 <input class="input" data-bind="value: i.am.nested" value="Initial"/>
 <div class="data" data-bind="innerText: i.am.nested">None</div>
 ```
 
 
-## Model Examples ##
+## Model Example ##
 ```JavaScript
 var model = {
 	color: 'blue',
@@ -51,14 +55,14 @@ setTimeout(function () {
 ## Model ##
 ### Swathe ###
 **Parameters**
-- `scope`: Object `window.document` or querySelector string such as `body`
+- `scope`: Object `window.document` or querySelector string e.g. `body`
 - `model`: Object `{}` (define all properties that will be observed)
 
 **Returns**
 - `controller`: A controller instance.
 
 ### Controller ###
-An instance of `Swathe.controller`.
+An instance of `Swathe`. The return value.
 
 **Properties**
 - `model`: The observed object. Get `model.data`. Set `model.data = 'text'`

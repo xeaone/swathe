@@ -2,15 +2,6 @@
 (function() {
 	'use strict';
 
-	function SyncView (data, valueBind) {
-		var dataBindElements = document.querySelectorAll('[data-bind~=\"' + valueBind + '\"]');
-
-		for (var i = 0; i < dataBindElements.length; i++) {
-			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
-			dataBindElements[i][keyBindElement] = data;
-		}
-	}
-
 	function ObserveElements (elements, callback) {
 		for (var i = 0; i < elements.length; i++) {
 			elements[i].addEventListener('input', function (e) { // input, select, textarea
@@ -73,26 +64,14 @@
 		self._elements = scope.querySelectorAll('[data-bind^=\"value\"]');
 
 		self.model = ObserveObjects (self._model, function (value, path) {
-			SyncView(value, path);
+			updateView(value, path);
 		});
 
 		self.view = ObserveElements (self._elements, function (value, keyBind, valueBind) {
-			setByPath(valueBind, value);
-
-			function setByPath (path, value) {
-				var schema = self.model;  // moving reference
-				var pathList = path.split('.');
-				var last = pathList.length - 1;
-
-				for (var i = 0; i < last; i++) {
-					var item = pathList[i];
-					if(!schema[item]) schema[item] = {};
-					schema = schema[item];
-				}
-
-				schema[ pathList[ last ] ] = value;
-			}
+			setByPath(self.model, valueBind, value);
 		});
+
+		initView(self.model);
 
 		return self;
 	}
@@ -103,6 +82,52 @@
 	/*
 		internal
 	*/
+
+	function initView (model) {
+		var dataBindElements = document.querySelectorAll('[data-bind]');
+
+		for (var i = 0; i < dataBindElements.length; i++) {
+			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
+			var valueBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[1].trim();
+			var value = getByPath(model, valueBindElement);
+			if (keyBindElement !== 'value') setByPath(dataBindElements[i], keyBindElement, value);
+		}
+	}
+
+	function updateView (data, valueBind) {
+		var dataBindElements = document.querySelectorAll('[data-bind~="' + valueBind + '"]');
+
+		for (var i = 0; i < dataBindElements.length; i++) {
+			var keyBindElement = dataBindElements[i].getAttribute('data-bind').split(':')[0].trim();
+			if (keyBindElement !== 'value') setByPath(dataBindElements[i], keyBindElement, data);
+		}
+	}
+
+	function getByPath (schema, path) {
+		var pathList = path.split('.');
+		var last = pathList.length - 1;
+
+		for (var i = 0; i < last; i++) {
+			var item = pathList[i];
+			if(!schema[item]) schema[item] = {};
+			schema = schema[item];
+		}
+
+		return schema[ pathList[ last ] ];
+	}
+
+	function setByPath (schema, path, value) {
+		var pathList = path.split('.');
+		var last = pathList.length - 1;
+
+		for (var i = 0; i < last; i++) {
+			var item = pathList[i];
+			if(!schema[item]) schema[item] = {};
+			schema = schema[item];
+		}
+
+		schema[ pathList[ last ] ] = value;
+	}
 
 	function isObject (value) {
 		if (value === null || value === undefined) return false;
