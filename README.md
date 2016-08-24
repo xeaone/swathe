@@ -3,7 +3,7 @@
 
 Swathe is a 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see for your self. Contributions suggestions welcome and appreciated! 2 Way data binding can be costly thus only elements with value properties are bi-directionally watched using the Input Event.
 
-Browsers support any ES5 spec compliant, such as IE9+ and Safari 6+. Firefox, Chrome and Edge.
+**CAUTION this project/docs is still under the final stages of development. The API should be finalized soon**
 
 
 ## Size ##
@@ -12,6 +12,18 @@ Approximately 670 bytes gzipped (1.35KB uncompressed).
 
 ## Performance ##
 Performance seems to be pretty good. I am not sure how it compares to other frameworks though. Running Chrome with a single bi-directional element changing **25,000** divs simultaneously the UI lag is only slightly apparent. When using 50/50 div and bi-directional inputs **10,000** begins to have noticeable lag. Check out the example  directory and see for your self.
+
+
+## Browser Support ##
+- IE 9+
+- Edge
+- Safari 6+
+- Firefox
+- Chrome
+
+
+## TODO ##
+- each render
 
 
 ## Use ##
