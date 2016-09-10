@@ -78,16 +78,22 @@ An instance of `Swathe`. The return value.
 
 **Properties**
 - `model`: The observed object. Get `model.data`. Set `model.data = 'text'`
-- `elements`: The observed elements.
+- `elements`: The observed elements. All elements that have a `input` event attached.
 
 
 ## View ##
 ### Attributes ###
 - `data-s`: Single attribute for all operations.
 
-### Values ###
-- `key:`: Maps to JavaScript property of DOM element e.g. `innerText:`.
-- `value`: Maps to path of model object `i.am.a.path`
+### Attribute Value ###
+- `key: value`
+	- `key:`: Maps to JavaScript property of DOM element e.g. `innerText:` or `style.background:`.
+	- `value`: Maps to path of model e.g. `i.am.a.path`
+
+- `for: variable of iterable`
+	- `for:`: Clones first child element and loops through an array.
+	- `variable`: The value for the child element to use in its `data-s`.
+	- `iterable`: The path to an array/iterable on the model.
 
 
 ## License ##

@@ -10,42 +10,59 @@
 </head>
 <body>
 
+
 	<div data-s="style.background: color">Color Me!</div>
 	<input data-s="value: color" value="Color"/>
 	<div data-s="innerText: color">None</div>
 
+
 	<a href="#" data-s="href: i.am.nested">Link</a>
 	<input class="input" data-s="value: i.am.nested" value="Initial"/>
+
 
 	<div class="container">
 		<div class="data" data-s="innerText: i.am.nested">None</div>
 	</div>
 
-	<script>
+	<input type="text" data-s="value: iterable.0">
+	<div data-s="for: variable of iterable">
+		<div>
+			<div data-s="innerText: variable"></div>
+			<div data-s="innerText: i.am.nested"></div>
+		</div>
+	</div>
 
-		for (var i = 0; i < 25000; i++) {
-			var input = document.querySelector('.input');
-			var data = document.querySelector('.data');
-			var inputClone = input.cloneNode(true);
-			var dataClone = data.cloneNode(true);
-			document.querySelector('.container').appendChild(dataClone);
-		}
 
-		var scope = 'body';
-		var model = {
-			color: 'blue',
-			i: {
-				am: {
-					nested: 'NO'
-				}
+<script>
+
+	// for (var i = 0; i < 25000; i++) {
+	// 	var input = document.querySelector('.input');
+	// 	var data = document.querySelector('.data');
+	// 	var inputClone = input.cloneNode(true);
+	// 	var dataClone = data.cloneNode(true);
+	// 	document.querySelector('.container').appendChild(dataClone);
+	// }
+
+	var scope = 'body';
+	var model = {
+		color: 'blue',
+		i: {
+			am: {
+				nested: 'NO'
 			}
-		};
+		},
+		iterable: ['zero', 'one', 'two', 'three']
+	};
 
-		var controller = Swathe('body', model);
+	var controller = Swathe('body', model);
 
-		setTimeout(function () {
-			controller.model.i.am.nested = 'YES';
-		}, 1500);
-	</script>
+	setTimeout(function () {
+		var i = controller.model.iterable;
+		i.push('four');
+
+		controller.model.iterable = i;
+		console.log(controller.model.iterable);
+	}, 1500);
+</script>
 </body>
 </html>

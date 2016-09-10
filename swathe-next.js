@@ -3,18 +3,17 @@
 	'use strict';
 
 	function ObserveElements (elements, callback) {
-		for (var i = 0; i < elements.length; i++) {
-			elements[i].addEventListener('input', function (e) { // input, select, textarea
+		each(elements, function (element) {
+			element.addEventListener('input', function (e) { // event input works on: input, select, textarea
 				var target = e.target;
 				var value = target.value;
-				var dataS = target.getAttribute('data-s');
+				var attribute = target.getAttribute('data-s');
 
-				var keyS = dataS.split(':')[0].trim();
-				var valueS = dataS.split(':')[1].trim();
+				var sValue = attribute.split(':')[1].trim();
 
-				callback(value, keyS, valueS);
+				callback(value, sValue);
 			}, false);
-		}
+		});
 
 		return elements;
 	}
@@ -30,7 +29,7 @@
 				return true;
 			},
 			get: function(target, property) {
-				if (isObject(target[property])) return ObserveObjects(target[property], callback, prefix + property + '.');
+				if (isObject(target[property]) || isArray(target[property])) return ObserveObjects(target[property], callback, prefix + property + '.');
 				else return target[property];
 			}
 		});
@@ -46,21 +45,20 @@
 
 		self._scope = scope;
 		self._model = model;
-		self._elements = scope.querySelectorAll('[data-s^="value"]');
+		self._elements = scope.querySelectorAll('input[data-s^="value:"], select[data-s^="value:"], textarea[data-s^="value:"]');
 
 		self.model = ObserveObjects (self._model, function (value, path) {
-			updateView(value, path);
+			updateElementsValueByPath(self.model, value, path);
 		});
 
-		self.view = ObserveElements (self._elements, function (value, keyS, valueS) {
-			setByPath(self.model, valueS, value);
+		self.view = ObserveElements (self._elements, function (value, path) {
+			setByPath(self.model, path, value);
 		});
 
-		initView(self.model);
+		updateView(self.model);
 
 		return self;
 	}
-
 
 	window.Swathe = Controller;
 
@@ -68,55 +66,134 @@
 		internal
 	*/
 
-	function initView (model) {
-		var dataSElements = document.querySelectorAll('[data-s]');
+	function updateElementsValueByPath (model, value, path) {
+		var elements = null;
+		var query = null;
 
-		for (var i = 0; i < dataSElements.length; i++) {
-			var keySElement = dataSElements[i].getAttribute('data-s').split(':')[0].trim();
-			var valueSElement = dataSElements[i].getAttribute('data-s').split(':')[1].trim();
-			var value = getByPath(model, valueSElement);
-			if (keySElement !== 'value') setByPath(dataSElements[i], keySElement, value);
+		if (isObject(value) || isArray(value)) {
+			// query = '[data-s~="' + path + '"]';
+			// elements = document.querySelectorAll(query);
+			// updateView(model, elements);
 		}
+
+		query = '[data-s~="' + path + '"]:not(input):not(select):not(textarea):not([data-s^="for:"])';
+		elements = document.querySelectorAll(query);
+
+		each(elements, function (element) {
+			var sKey = element.getSwatheKey();
+			setByPath(element, sKey, value);
+		});
 	}
 
-	function updateView (data, valueS) {
-		var dataSElements = document.querySelectorAll('[data-s~="' + valueS + '"]');
+	function updateView (model, scope) {
 
-		for (var i = 0; i < dataSElements.length; i++) {
-			var keySElement = dataSElements[i].getAttribute('data-s').split(':')[0].trim();
-			if (keySElement !== 'value') setByPath(dataSElements[i], keySElement, data);
-		}
+		var forElements = document.querySelectorAll('[data-s^="for:"]');
+
+		each(forElements, function (element) {
+			var sKey = element.getSwatheKey();
+			var sValue = element.getSwatheValue();
+			initalizeForChildren(model, element, sKey, sValue);
+		});
+
+		scope = (scope) ? scope : document;
+		var elements = scope.querySelectorAll('[data-s]:not(input):not(select):not(textarea):not([data-s^="for:"])');
+
+		each(elements, function (element) {
+			var sKey = element.getSwatheKey();
+			var sValue = element.getSwatheValue();
+
+			var mValue = getByPath(model, sValue);
+			setByPath(element, sKey, mValue);
+		});
 	}
 
-	function getByPath (schema, path) {
-		var pathList = path.split('.');
-		var last = pathList.length - 1;
+	function initalizeForChildren (model, element, sKey, sValue) {
+		var sVariable = sValue.split('of')[0].trim();
+		var sIterable = sValue.split('of')[1].trim();
+
+		var mValues = getByPath(model, sIterable);
+		var children = element.cloneNode(true).children;
+
+		// clone child elements
+		each(mValues, function (mValue, index) {
+			if (index === 0) return 'continue';
+
+			each(children, function (child) {
+				element.appendChild(child.cloneNode(true));
+			});
+		});
+
+		// update child element's sVariable
+		each(element.querySelectorAll('[data-s$="'+ sVariable +'"]'), function (elementChild, index) {
+			var elementChildKey = elementChild.getSwatheKey();
+			var elementChildAttribute = elementChildKey +': '+ sIterable +'.'+ index;
+			elementChild.setAttribute('data-s', elementChildAttribute);
+		});
+	}
+
+	/*
+		utilities
+	*/
+
+	function getByPath(object, path) {
+		var keys = path.getSwathePathKeys();
+		var last = keys.length - 1;
+		var obj = object;
 
 		for (var i = 0; i < last; i++) {
-			var item = pathList[i];
-			if(!schema[item]) schema[item] = {};
-			schema = schema[item];
+			var prop = keys[i];
+			if (!obj[prop]) return undefined;
+			obj = obj[prop];
 		}
 
-		return schema[ pathList[ last ] ];
+		return obj[keys[last]];
 	}
 
-	function setByPath (schema, path, value) {
-		var pathList = path.split('.');
-		var last = pathList.length - 1;
+	function setByPath(object, path, value) {
+		var keys = path.getSwathePathKeys();
+		var last = keys.length - 1;
+		var obj = object;
 
 		for (var i = 0; i < last; i++) {
-			var item = pathList[i];
-			if(!schema[item]) schema[item] = {};
-			schema = schema[item];
+			var prop = keys[i];
+			if (!obj[prop]) obj[prop] = {};
+			obj = obj[prop];
 		}
 
-		schema[ pathList[ last ] ] = value;
+		obj[keys[last]] = value;
+		return object;
+	}
+
+	function each (array, callback, scope) {
+		for (var i = 0, l = array.length; i < l; i++) {
+			var statment = callback.call(scope, array[i], i);
+			if (statment === 'break') break;
+			else if (statment === 'continue') continue;
+		}
 	}
 
 	function isObject (value) {
 		if (value === null || value === undefined) return false;
 		else return value.constructor === Object;
 	}
+
+	function isArray (value) {
+		if (value === null || value === undefined) return false;
+		else return value.constructor === Array;
+	}
+
+	HTMLElement.prototype.getSwatheKey = function () {
+		try { return this.getAttribute('data-s').split(':')[0].trim(); }
+		catch (e) { return null; }
+	};
+
+	HTMLElement.prototype.getSwatheValue = function () {
+		try { return this.getAttribute('data-s').split(':')[1].trim(); }
+		catch (e) { return null; }
+	};
+
+	String.prototype.getSwathePathKeys = function () {
+		return this.replace('[', '.').replace(']', '').split('.');
+	};
 
 }());

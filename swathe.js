@@ -3,16 +3,15 @@
 	'use strict';
 
 	function ObserveElements (elements, callback) {
-		for (var i = 0; i < elements.length; i++) {
+		for (var i = 0, l = elements.length; i < l; i++) {
 			elements[i].addEventListener('input', function (e) { // input, select, textarea
 				var target = e.target;
 				var value = target.value;
-				var dataS = target.getAttribute('data-s');
+				var attribute = target.getAttribute('data-s');
 
-				var keyS = dataS.split(':')[0].trim();
-				var valueS = dataS.split(':')[1].trim();
+				var sValue = attribute.split(':')[1].trim();
 
-				callback(value, keyS, valueS);
+				callback(value, sValue);
 			}, false);
 		}
 
@@ -61,21 +60,20 @@
 
 		self._scope = scope;
 		self._model = model;
-		self._elements = scope.querySelectorAll('[data-s^=\"value\"]');
+		self._elements = scope.querySelectorAll('input[data-s^="value:"], select[data-s^="value:"], textarea[data-s^="value:"]');
 
 		self.model = ObserveObjects (self._model, function (value, path) {
 			updateView(value, path);
 		});
 
-		self.view = ObserveElements (self._elements, function (value, keyS, valueS) {
-			setByPath(self.model, valueS, value);
+		self.view = ObserveElements (self._elements, function (value, path) {
+			setByPath(self.model, path, value);
 		});
 
-		initView(self.model);
+		initalizeView(self.model);
 
 		return self;
 	}
-
 
 	window.Swathe = Controller;
 
@@ -83,55 +81,70 @@
 		internal
 	*/
 
-	function initView (model) {
-		var dataSElements = document.querySelectorAll('[data-s]');
+	function initalizeView (model) {
+		var elements = document.querySelectorAll('[data-s]:not(input):not(select):not(textarea)');
 
-		for (var i = 0; i < dataSElements.length; i++) {
-			var keySElement = dataSElements[i].getAttribute('data-s').split(':')[0].trim();
-			var valueSElement = dataSElements[i].getAttribute('data-s').split(':')[1].trim();
-			var value = getByPath(model, valueSElement);
-			if (keySElement !== 'value') setByPath(dataSElements[i], keySElement, value);
+		for (var i = 0, l = elements.length; i < l; i++) {
+			var sKey = elements[i].getSwatheKey();
+			var sValue = elements[i].getSwatheValue();
+			var value = getByPath(model, sValue);
+			setByPath(elements[i], sKey, value);
 		}
 	}
 
 	function updateView (data, valueS) {
-		var dataSElements = document.querySelectorAll('[data-s~="' + valueS + '"]');
+		var elements = document.querySelectorAll('[data-s~="' + valueS + '"]:not(input):not(select):not(textarea)');
 
-		for (var i = 0; i < dataSElements.length; i++) {
-			var keySElement = dataSElements[i].getAttribute('data-s').split(':')[0].trim();
-			if (keySElement !== 'value') setByPath(dataSElements[i], keySElement, data);
+		for (var i = 0, l = elements.length; i < l; i++) {
+			var sKey = elements[i].getSwatheKey();
+			setByPath(elements[i], sKey, data);
 		}
 	}
 
-	function getByPath (schema, path) {
-		var pathList = path.split('.');
-		var last = pathList.length - 1;
+	function getByPath(object, path) {
+		var keys = path.getSwathePathKeys();
+		var last = keys.length - 1;
+		var obj = object;
 
 		for (var i = 0; i < last; i++) {
-			var item = pathList[i];
-			if(!schema[item]) schema[item] = {};
-			schema = schema[item];
+			var prop = keys[i];
+			if (!obj[prop]) return undefined;
+			obj = obj[prop];
 		}
 
-		return schema[ pathList[ last ] ];
+		return obj[keys[last]];
 	}
 
-	function setByPath (schema, path, value) {
-		var pathList = path.split('.');
-		var last = pathList.length - 1;
+	function setByPath(object, path, value) {
+		var keys = path.getSwathePathKeys();
+		var last = keys.length - 1;
+		var obj = object;
 
 		for (var i = 0; i < last; i++) {
-			var item = pathList[i];
-			if(!schema[item]) schema[item] = {};
-			schema = schema[item];
+			var prop = keys[i];
+			if (!obj[prop]) obj[prop] = {};
+			obj = obj[prop];
 		}
 
-		schema[ pathList[ last ] ] = value;
+		obj[keys[last]] = value;
+		return object;
 	}
 
 	function isObject (value) {
 		if (value === null || value === undefined) return false;
 		else return value.constructor === Object;
 	}
+
+	HTMLElement.prototype.getSwatheKey = function () {
+		return this.getAttribute('data-s').split(':')[0].trim();
+	};
+
+	HTMLElement.prototype.getSwatheValue = function () {
+		return this.getAttribute('data-s').split(':')[1].trim();
+	};
+
+	String.prototype.getSwathePathKeys = function () {
+		return this.replace('[', '.').replace(']', '').split('.');
+	};
 
 }());
