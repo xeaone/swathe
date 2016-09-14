@@ -10,19 +10,17 @@
 </head>
 <body>
 
-
 	<div data-s="style.background: color">Color Me!</div>
 	<input data-s="value: color" value="Color"/>
-	<div data-s="innerText: color">None</div>
 
+	<div data-s="innerText: color">Empty</div>
+	<a href="#" data-s="href: color">Link</a>
 
-	<a href="#" data-s="href: i.am.nested">Link</a>
-	<input class="input" data-s="value: i.am.nested" value="Initial"/>
-
-
-	<div class="container">
+	<!-- <div class="container">
+		<input class="input" data-s="value: i.am.nested" value="None"/>
 		<div class="data" data-s="innerText: i.am.nested">None</div>
-	</div>
+	</div> -->
+
 
 	<input type="text" data-s="value: iterable.0">
 	<div data-s="for: variable of iterable">
@@ -32,15 +30,29 @@
 		</div>
 	</div>
 
+<!-- <script src="../dev.js"></script> -->
 
 <script>
 
-	// for (var i = 0; i < 25000; i++) {
+	// window.addEventListener('DOMContentLoaded', function () {
+	// 	var scope = 'body';
+	// 	var callback = function (mutaions) {
+	// 		console.log(mutaions);
+	// 	};
+	//
+	// 	var observedDom = ObserveDom(scope, callback);
+	//
+	// 	document.body.appendChild(document.createElement('div'));
+	//
+	// });
+
+	// for (var i = 0; i < 10000; i++) {
+	// 	// var data = document.querySelector('.data');
+	// 	// var dataClone = data.cloneNode(true);
+	// 	// document.querySelector('.container').appendChild(dataClone);
 	// 	var input = document.querySelector('.input');
-	// 	var data = document.querySelector('.data');
 	// 	var inputClone = input.cloneNode(true);
-	// 	var dataClone = data.cloneNode(true);
-	// 	document.querySelector('.container').appendChild(dataClone);
+	// 	document.querySelector('.container').appendChild(inputClone);
 	// }
 
 	var scope = 'body';
@@ -54,14 +66,14 @@
 		iterable: ['zero', 'one', 'two', 'three']
 	};
 
-	var controller = Swathe('body', model);
+	var controller = Swathe.controller('body', model);
 
 	setTimeout(function () {
-		var i = controller.model.iterable;
-		i.push('four');
-
-		controller.model.iterable = i;
-		console.log(controller.model.iterable);
+		// var i = controller.model.iterable;
+		// i.push('four');
+		//
+		// controller.model.iterable = i;
+		console.log(controller.model);
 	}, 1500);
 </script>
 </body>
