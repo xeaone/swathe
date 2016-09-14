@@ -297,6 +297,10 @@
 			var path = child.swathe.parameterLast;
 			var value = getByPath(model, path);
 			self.renderSingle(model, child, path, value);
+
+			// add to sElements
+			if (!self.sElements[path]) self.sElements[path] = [];
+			self.sElements[path].push(child);
 		});
 
 		element.swathe.removeChildren();
