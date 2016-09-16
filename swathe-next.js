@@ -78,7 +78,7 @@
 				data: {
 					value: function (key, value) {
 						if (!value) return element.swatheData[key];
-						else return element.swatheData[key] = value;
+						else element.swatheData[key] = value;
 					}
 				},
 				removeChildren: {
@@ -320,16 +320,6 @@
 
 }());
 
-
-
-
-// var children = document.body.children;
-//
-// function find (uid) {
-//     for (var i = 0, l = children.length; i < l; i++) {
-//         if (children[i].swathe.uid === uid) return children[i];
-//     }
-// }
 
 // function flattenObject (object) {
 // 	var flatObject = {};
