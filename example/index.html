@@ -30,7 +30,9 @@
 		</div>
 	</div>
 
-<!-- <script src="../dev.js"></script> -->
+	<button class="button" type="button" data-s="onClick: say('hello')">Say Hello</button>
+
+	<!-- <script src="../dev.js"></script> -->
 
 <script>
 
@@ -63,7 +65,11 @@
 				nested: 'NO'
 			}
 		},
-		iterable: ['zero', 'one', 'two', 'three']
+		iterable: ['zero', 'one', 'two', 'three'],
+		say: function (args, e) {
+			console.log(args);
+			console.log(e);
+		}
 	};
 
 	var controller = Swathe.controller('body', model);

@@ -9,13 +9,13 @@
 		controllers: {}
 	};
 
-	var UID = null;
+	// var UID = null;
 
 	/*
 		prototypes
 	*/
 
-	Element.prototype.swatheUid = null;
+	// Element.prototype.swatheUid = null;
 	Element.prototype.swatheData = {};
 
 	Object.defineProperty(String.prototype, 'swathe', {
@@ -38,14 +38,14 @@
 			var element = this;
 
 			return Object.defineProperties({ element: element }, {
-				uid: {
-					enumerable: true,
-					configurable: true,
-					get: function () {
-						if (!element.swatheUid) element.swatheUid = uid();
-						return element.swatheUid;
-					}
-				},
+				// uid: {
+				// 	enumerable: true,
+				// 	configurable: true,
+				// 	get: function () {
+				// 		if (!element.swatheUid) element.swatheUid = uid();
+				// 		return element.swatheUid;
+				// 	}
+				// },
 				type: {
 					enumerable: true,
 					configurable: true,
@@ -75,6 +75,36 @@
 						return this.parameters[this.parameters.length-1];
 					}
 				},
+				eventMethodParameters: {
+					enumerable: true,
+					configurable: true,
+					get: function () {
+						var string = this.parameterLast;
+						var index = string.search(/\(/);
+						return string.slice(index).replace(/\(|\)/g, '').split(',');
+					}
+				},
+				eventMethod: {
+					enumerable: true,
+					configurable: true,
+					get: function () {
+						return this.parameterLast.split('(')[0];
+					}
+				},
+				eventName: {
+					enumerable: true,
+					configurable: true,
+					get: function () {
+						return this.parameterFirst.slice(2).toLowerCase();
+					}
+				},
+				isEvent: {
+					enumerable: true,
+					configurable: true,
+					get: function () {
+						return /^on/.test(this.parameterFirst);
+					}
+				},
 				data: {
 					value: function (key, value) {
 						if (!value) return element.swatheData[key];
@@ -96,10 +126,10 @@
 		utilities
 	*/
 
-	function uid () {
-		if (!UID) UID = (new Date()).getTime();
-		return UID++;
-	}
+	// function uid () {
+	// 	if (!UID) UID = (new Date()).getTime();
+	// 	return UID++;
+	// }
 
 	function is (type, value) {
 		return !value ? false : value.constructor.name === type;
@@ -184,14 +214,14 @@
 		if (!prefix) prefix = '';
 
 		var handler = {
-			get: function(target, property) {
+			get: function (target, property) {
 				if (is('Object', target[property]) || is('Array', target[property])) {
 					return ObserveObjects(target[property], callback, prefix + property + '.');
 				} else {
 					return target[property];
 				}
 			},
-			set: function(target, property, value) {
+			set: function (target, property, value) {
 				if (target[property] !== value) { // send change if value is different
 					target[property] = value;
 					callback(prefix + property, value, target);
@@ -236,8 +266,8 @@
 		self.sElements = GetSElements(self.scope);
 		self.sInputElements = self.scope.querySelectorAll(Query.inputElements);
 
-		self.model = ObserveObjects (model, function (path, value) { //, value
-			self.renderGroup(self.model, self.sElements[path], path, value); //, path, value
+		self.model = ObserveObjects (model, function (path, value) {
+			self.renderGroup(self.model, self.sElements[path], path, value);
 		});
 
 		self.view = ObserveElements (self.sInputElements, function (path, value) {
@@ -249,7 +279,17 @@
 		var self = this;
 
 		var parameterFirst = element.swathe.parameterFirst;
-		if (parameterFirst === 'for') self.renderForOf(model, element, value);
+
+		if (element.swathe.isEvent) {
+			var eventMethodParameters = element.swathe.eventMethodParameters;
+			var eventMethod = element.swathe.eventMethod;
+			var eventName = element.swathe.eventName;
+
+			var method = getByPath(model, eventMethod).bind(null, eventMethodParameters); // TODO: need to handle non function error
+
+			element.addEventListener(eventName, method);
+		}
+		else if (parameterFirst === 'for') self.renderForOf(model, element, value);
 		else if (parameterFirst !== 'value') setByPath(element, parameterFirst, value);
 	};
 
@@ -319,6 +359,16 @@
 	};
 
 }());
+
+
+// function addEventListeners (target, props) {
+// 	Object.keys(props).forEach(name, function () {
+// 		if (isEvent(name)) {
+// 			target.addEventListener(getEventName(name), props[name]);
+// 		}
+// 	});
+// }
+
 
 // function flattenObject (object) {
 // 	var flatObject = {};
