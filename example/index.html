@@ -1,86 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>Swathe</title>
-
-	<!-- <script src="../proxy.min.js"></script> -->
-	<!-- <script src="../swathe.js"></script> -->
+	<title>Swathe | General</title>
+	<script src="../lib/utilities.js"></script>
 	<script src="../swathe-next.js"></script>
 </head>
 <body>
-
-	<div data-s="style.background: color">Color Me!</div>
-	<input data-s="value: color" value="Color"/>
-
-	<div data-s="innerText: color">Empty</div>
-	<a href="#" data-s="href: color">Link</a>
-
-	<!-- <div class="container">
-		<input class="input" data-s="value: i.am.nested" value="None"/>
-		<div class="data" data-s="innerText: i.am.nested">None</div>
-	</div> -->
+	<div>
+		<div data-s="style.background: color">Color Me!</div>
+		<input data-s="value: color" value="Color"/>
+	</div>
+	<br>
 
 
-	<input type="text" data-s="value: iterable.0">
-	<div data-s="for: variable of iterable">
-		<div>
-			<div data-s="innerText: variable"></div>
-			<div data-s="innerText: i.am.nested"></div>
+	<div>
+		<span>Link: </span>
+		<input type="text" data-s="value: link">
+		<a href="#" data-s="href: link">Href</a>
+	</div>
+	<br>
+
+
+	<div>
+		<span>For: </span>
+		<input type="text" data-s="value: iterable.0">
+		<div data-s="for: variable of iterable">
+			<div>
+				<div data-s="innerText: variable"></div>
+				<div data-s="innerText: i.am.nested"></div>
+			</div>
 		</div>
 	</div>
+	<br>
 
-	<button class="button" type="button" data-s="onClick: say('hello')">Say Hello</button>
 
-	<!-- <script src="../dev.js"></script> -->
+	<div>
+		<span>Event: </span>
+		<button type="button" s-inner-text="buttonName" s-on-click="say('hello', 'world')">Say Hello</button>
+	</div>
 
-<script>
+	<script>
 
-	// window.addEventListener('DOMContentLoaded', function () {
-	// 	var scope = 'body';
-	// 	var callback = function (mutaions) {
-	// 		console.log(mutaions);
-	// 	};
-	//
-	// 	var observedDom = ObserveDom(scope, callback);
-	//
-	// 	document.body.appendChild(document.createElement('div'));
-	//
-	// });
-
-	// for (var i = 0; i < 10000; i++) {
-	// 	// var data = document.querySelector('.data');
-	// 	// var dataClone = data.cloneNode(true);
-	// 	// document.querySelector('.container').appendChild(dataClone);
-	// 	var input = document.querySelector('.input');
-	// 	var inputClone = input.cloneNode(true);
-	// 	document.querySelector('.container').appendChild(inputClone);
-	// }
-
-	var scope = 'body';
-	var model = {
-		color: 'blue',
-		i: {
-			am: {
-				nested: 'NO'
+		var model = {
+			buttonName: 'Log Hello World',
+			link: '',
+			color: 'blue',
+			i: {
+				am: {
+					nested: 'NO'
+				}
+			},
+			iterable: ['zero', 'one', 'two', 'three'],
+			say: function (p1, p2, p3) {
+				console.log(p1);
+				console.log(p2);
+				console.log(p3);
 			}
-		},
-		iterable: ['zero', 'one', 'two', 'three'],
-		say: function (args, e) {
-			console.log(args);
-			console.log(e);
-		}
-	};
+		};
 
-	var controller = Swathe.controller('body', model);
+		var controller = Swathe.controller('body', model);
 
-	setTimeout(function () {
-		// var i = controller.model.iterable;
-		// i.push('four');
-		//
-		// controller.model.iterable = i;
-		console.log(controller.model);
-	}, 1500);
-</script>
+		// setTimeout(function () {
+		// 	// var i = controller.model.iterable;
+		// 	// i.push('four');
+		// 	//
+		// 	// controller.model.iterable = i;
+		// 	// console.log(controller.model);
+		// }, 1500);
+	</script>
 </body>
 </html>

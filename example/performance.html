@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Swathe | Performance</title>
+	<script src="../swathe-next.js"></script>
+</head>
+<body>
+
+	<style>
+		.group { display: inline-block; background: lightgray; margin: 4px; padding: 4px; }
+	</style>
+
+	<div class="container">
+		<div class="group">
+			<input/>
+			<div>Initial</div>
+		</div>
+	</div>
+
+	<script>
+
+		var model = {};
+		var container = document.querySelector('.container');
+		var group = document.querySelector('.group');
+
+		for (var i = 0; i < 10000; i++) {
+			var groupClone = group.cloneNode(true);
+
+			var inputClone = groupClone.children[0];
+			var divClone = groupClone.children[1];
+
+			inputClone.setAttribute('data-s', 'value: ' + i);
+			divClone.setAttribute('data-s', 'innerText: ' + i);
+
+			model[i] = i;
+
+			container.appendChild(groupClone);
+		}
+
+
+		var controller = Swathe.controller('body', model);
+
+	</script>
+</body>
+</html>

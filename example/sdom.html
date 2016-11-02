@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Query</title>
+	<script src="../lib/utilities.js"></script>
+	<script src="../lib/dom.js"></script>
+</head>
+<body>
+
+	<style>
+		.group { display: inline-block; background: lightgray; margin: 4px; padding: 4px; }
+	</style>
+
+	<div class="container">
+		<div class="group">
+			<input data-s="value: color"/>
+			<div data-s="innerText: color">Initial</div>
+		</div>
+	</div>
+
+	<script>
+
+		var model = {};
+		var container = document.querySelector('.container');
+		var group = document.querySelector('.group');
+
+		for (var i = 0; i < 10; i++) {
+			var groupClone = group.cloneNode(true);
+
+			var inputClone = groupClone.children[0];
+			var divClone = groupClone.children[1];
+
+			inputClone.setAttribute('s-value', 'color');
+			divClone.setAttribute('s-inner-text', 'color');
+
+			model[i] = i;
+
+			container.appendChild(groupClone);
+		}
+
+		console.time('Swathe.Dom');
+		var sdom = new Swathe.Dom (document.body);
+		sdom.create();
+		console.timeEnd('Swathe.Dom');
+
+
+		console.time('sdom.findAll');
+		var sElement = sdom.findAll('innerText', 'color');
+		console.timeEnd('sdom.findAll');
+
+
+		// console.time('querySelectorAll');
+		// var dataSElements = document.querySelectorAll('[data-s="innerText: color"]');
+		// console.timeEnd('querySelectorAll');
+
+		// console.log(sElement);
+	</script>
+
+</body>
+</html>

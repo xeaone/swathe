@@ -1,13 +1,14 @@
-(function() {
+this.swathe = this.swathe || {};
+this.swathe.b = this.swathe.b || {};
+(function (lib_utilities) {
 	'use strict';
 
 	if (!window.Swathe)  window.Swathe = {};
+	if (!window.Swathe.controllers) window.Swathe.controllers = {};
 
 	/*
 		globals
 	*/
-
-	window.Swathe.controllers = {};
 
 	var RGS = {
 		comma: '(\\s*)\\,(\\s*)',
@@ -80,37 +81,6 @@
 						return attributes;
 					}
 				},
-				// attribute: {
-				// 	enumerable: true,
-				// 	configurable: true,
-				// 	get: function () {
-				// 		return element.getAttribute('data-s') || '';
-				// 	}
-				// },
-				// parameters: {
-				// 	enumerable: true,
-				// 	configurable: true,
-				// 	get: function () {
-				// 		return this.attribute
-				// 		.replace(RG.parameters, ' ')
-				// 		.trim()
-				// 		.split(' ');
-				// 	}
-				// },
-				// parameterFirst: {
-				// 	enumerable: true,
-				// 	configurable: true,
-				// 	get: function () {
-				// 		return this.parameters[0];
-				// 	}
-				// },
-				// parameterLast: {
-				// 	enumerable: true,
-				// 	configurable: true,
-				// 	get: function () {
-				// 		return this.parameters[this.parameters.length - 1];
-				// 	}
-				// },
 				eventMethodParameters: {
 					enumerable: true,
 					configurable: true,
@@ -179,70 +149,6 @@
 	});
 
 	/*
-		utilities
-	*/
-
-	// var is = function (type, value) {
-	// 	return !value ? false : value.constructor.name === type;
-	// };
-	//
-	// var each = function (iterable, callback, scope) {
-	// 	var statment = null, i = null, l = null, k = null;
-	//
-	// 	if (is('Number', iterable)) {
-	// 		for (i = 0; i < iterable; i++) {
-	// 			statment = callback.call(scope, i, iterable);
-	// 			if (statment === 'break') break;
-	// 			else if (statment === 'continue') continue;
-	// 		}
-	// 	} else if (is('Object', iterable)) {
-	// 		for (k in iterable) {
-	// 			if (!iterable.hasOwnProperty(k)) continue;
-	// 			statment = callback.call(scope, iterable[k], k, iterable);
-	// 			if (statment === 'break') break;
-	// 			else if (statment === 'continue') continue;
-	// 		}
-	// 	} else {
-	// 		for (i = 0, l = iterable.length; i < l; i++) {
-	// 			statment = callback.call(scope, iterable[i], i, iterable);
-	// 			if (statment === 'break') break;
-	// 			else if (statment === 'continue') continue;
-	// 		}
-	// 	}
-	//
-	// 	return iterable;
-	// };
-	//
-	// var getByPath = function (object, path) {
-	// 	var keys = path.swathe.pathKeys();
-	// 	var last = keys.length - 1;
-	// 	var obj = object;
-	//
-	// 	for (var i = 0; i < last; i++) {
-	// 		var prop = keys[i];
-	// 		if (!obj[prop]) return undefined;
-	// 		obj = obj[prop];
-	// 	}
-	//
-	// 	return obj[keys[last]];
-	// };
-	//
-	// var setByPath = function (object, path, value) {
-	// 	var keys = path.swathe.pathKeys();
-	// 	var last = keys.length - 1;
-	// 	var obj = object;
-	//
-	// 	for (var i = 0; i < last; i++) {
-	// 		var prop = keys[i];
-	// 		if (!obj[prop]) obj[prop] = {};
-	// 		obj = obj[prop];
-	// 	}
-	//
-	// 	obj[keys[last]] = value;
-	// 	return object;
-	// };
-
-	/*
 		internal
 	*/
 
@@ -254,7 +160,7 @@
 
 	var GetSElements = function (scope) {
 		var sElements = {};
-		each(scope.querySelectorAll('[data-s]'), function (elements) {
+		lib_utilities.each(scope.querySelectorAll('[data-s]'), function (elements) {
 			if (!sElements[elements.swathe.parameterLast]) sElements[elements.swathe.parameterLast] = [];
 			sElements[elements.swathe.parameterLast].push(elements);
 		});
@@ -266,7 +172,7 @@
 
 		var handler = {
 			get: function (target, property) {
-				if (is('Object', target[property]) || is('Array', target[property])) {
+				if (lib_utilities.is('Object', target[property]) || lib_utilities.is('Array', target[property])) {
 					return ObserveObjects(target[property], callback, prefix + property + '.');
 				} else {
 					return target[property];
@@ -296,7 +202,7 @@
 			callback(sValue, value, target);
 		};
 
-		each(elements, function (element) {
+		lib_utilities.each(elements, function (element) {
 			element.addEventListener('input', handler, false);
 		});
 
@@ -312,7 +218,7 @@
 
 		self.name = name;
 		self.model = model;
-		self.scope = is('String', scope) ? document.querySelector(scope) : scope;
+		self.scope = lib_utilities.is('String', scope) ? document.querySelector(scope) : scope;
 
 		self.sElements = GetSElements(self.scope);
 		self.sInputElements = self.scope.querySelectorAll(Query.inputElements);
@@ -322,7 +228,7 @@
 		});
 
 		self.view = ObserveElements (self.sInputElements, function (path, value) {
-			setByPath(self.model, path, value);
+			lib_utilities.setByPath(self.model, path, value);
 		});
 	};
 
@@ -334,8 +240,8 @@
 		var fragment = document.createDocumentFragment();
 
 		// clone child elements
-		each(value.length, function () {
-			each(element.children, function (child) {
+		lib_utilities.each(value.length, function () {
+			lib_utilities.each(element.children, function (child) {
 				fragment.appendChild(child.cloneNode(true));
 			});
 		});
@@ -343,7 +249,7 @@
 		var children = fragment.querySelectorAll('[data-s$="'+ parameters[1] +'"]');
 
 		// update child element's parameterFirst
-		each(children, function (child, index) {
+		lib_utilities.each(children, function (child, index) {
 			// FIXME: needs to be in a loop over the attributes;
 			var childParameters = child.swathe.attributes[name];
 			var childKey = childParameters[0];
@@ -353,7 +259,7 @@
 			child.setAttribute('data-s', childAttribute);
 
 			var path = child.swathe.parameterLast; // FIXME: start
-			var value = getByPath(model, path);
+			var value = lib_utilities.getByPath(model, path);
 			self.renderSingle(model, child, path, value);
 
 			// add to sElements
@@ -370,7 +276,7 @@
 		var eventMethod = element.swathe.eventMethod;
 		var eventName = element.swathe.eventName;
 
-		var method = getByPath(model, eventMethod);
+		var method = lib_utilities.getByPath(model, eventMethod);
 		var methodBound = method.bind.apply(method, [element].concat(eventMethodParameters));
 
 		// TODO: need to handle non function error
@@ -379,7 +285,7 @@
 	};
 
 	Controller.prototype.otherElement = function (element, name, value) {
-		setByPath(element, name, value);
+		lib_utilities.setByPath(element, name, value);
 	};
 
 	Controller.prototype.renderSingle = function (model, element, path, value) {
@@ -402,9 +308,9 @@
 	Controller.prototype.renderGroup = function (model, elements, path, value) {
 		var self = this;
 
-		each(elements, function (element) {
+		lib_utilities.each(elements, function (element) {
 			path = path || element.swathe.parameterLast;
-			value = value || getByPath(model, path);
+			value = value || lib_utilities.getByPath(model, path);
 			self.renderSingle(model, element, path, value);
 		});
 	};
@@ -412,7 +318,7 @@
 	Controller.prototype.renderAll = function () {
 		var self = this;
 
-		each(self.sElements, function (elements, path) {
+		lib_utilities.each(self.sElements, function (elements, path) {
 			self.renderGroup(self.model, elements, path);
 		});
 	};
@@ -428,12 +334,12 @@
 		return window.Swathe.controllers[name];
 	};
 
-}());
+	// function addEventListeners (target, props) {
+	// 	Object.keys(props).forEach(name, function () {
+	// 		if (isEvent(name)) {
+	// 			target.addEventListener(getEventName(name), props[name]);
+	// 		}
+	// 	});
+	// }
 
-// function addEventListeners (target, props) {
-// 	Object.keys(props).forEach(name, function () {
-// 		if (isEvent(name)) {
-// 			target.addEventListener(getEventName(name), props[name]);
-// 		}
-// 	});
-// }
+}(lib_utilities));
