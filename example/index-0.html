@@ -5,29 +5,29 @@
 	<script src="../dist/proxy.js"></script>
 	<script src="../dist/swathe.js"></script>
 </head>
-<body>
+<body s-controller="main">
 	<div>
-		<div data-s="style.background: color">Color Me!</div>
-		<input data-s="value: color" value="Color"/>
+		<div s-style-background="color">Color Me!</div>
+		<input s-value="color" value="Color"/>
 	</div>
 	<br>
 
 
 	<div>
 		<span>Link: </span>
-		<input type="text" data-s="value: link">
-		<a href="#" data-s="href: link">Href</a>
+		<input type="text" s-value="link">
+		<a href="#" s-href="link">Href</a>
 	</div>
 	<br>
 
 
 	<div>
 		<span>For: </span>
-		<input type="text" data-s="value: iterable.0">
-		<div data-s="for: variable of iterable">
+		<input type="text" s-value="iterable.0">
+		<div s-for="variable of iterable">
 			<div>
-				<div data-s="innerText: variable"></div>
-				<div data-s="innerText: i.am.nested"></div>
+				<div s-inner-text="variable"></div>
+				<div s-inner-text="i.am.nested"></div>
 			</div>
 		</div>
 	</div>
@@ -40,7 +40,6 @@
 	</div>
 
 	<script>
-
 		var model = {
 			buttonName: 'Log Hello World',
 			link: '',
@@ -58,7 +57,8 @@
 			}
 		};
 
-		var controller = Swathe.controller('body', model);
+		var controller = Swathe.controller('main', model);
+		console.log(controller);
 
 		// setTimeout(function () {
 		// 	// var i = controller.model.iterable;

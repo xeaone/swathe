@@ -1,8 +1,8 @@
-var is = function (type, value) {
+function is (type, value) {
 	return !value ? false : value.constructor.name === type;
-};
+}
 
-var each = function (iterable, callback, scope) {
+function each (iterable, callback, scope) {
 	var statment = null, i = null, l = null, k = null;
 
 	if (is('Number', iterable)) {
@@ -27,9 +27,9 @@ var each = function (iterable, callback, scope) {
 	}
 
 	return iterable;
-};
+}
 
-var getByPath = function (object, path) {
+function getByPath (object, path) {
 	var keys = path.swathe.pathKeys();
 	var last = keys.length - 1;
 	var obj = object;
@@ -41,9 +41,9 @@ var getByPath = function (object, path) {
 	}
 
 	return obj[keys[last]];
-};
+}
 
-var setByPath = function (object, path, value) {
+function setByPath (object, path, value) {
 	var keys = path.swathe.pathKeys();
 	var last = keys.length - 1;
 	var obj = object;
@@ -56,14 +56,40 @@ var setByPath = function (object, path, value) {
 
 	obj[keys[last]] = value;
 	return object;
-};
+}
 
-var toCamelCase = function (string) {
-	var nextIndex = string.search('-') + 1;
-	var nextLetter = string.charAt(nextIndex).toString();
-	var r = '-' + nextLetter;
-	var n = nextLetter.toUpperCase();
-	return string.replace(r, n);
-};
+function toCamelCase (string) {
+	var pattern = /(-.)|(\..)/g;
 
-export { is, each, getByPath, setByPath, toCamelCase };
+	return string.replace(pattern, function (match) {
+		return match[1].toUpperCase();
+	});
+}
+
+function toDashCase (string) {
+	var pattern = /[A-Z]/g;
+
+	return string.replace(pattern, function (match) {
+		return '-' + match.toLowerCase();
+	});
+}
+
+function toDotCase (string) {
+	var pattern = /[A-Z]/g;
+
+	return string.replace(pattern, function (match) {
+		return '.' + match.toLowerCase();
+	});
+}
+
+function isSAttribute (string) {
+	return /(^s-)|(^data-s)/.test(string);
+}
+
+function toCleanAttribute (string) {
+	string = string.replace(/^data-s-/, '');
+	string = string.replace(/^s-/, '');
+	return string;
+}
+
+export { is, each, getByPath, setByPath, toCamelCase, toDashCase, toDotCase, isSAttribute, toCleanAttribute };

@@ -1,14 +1,190 @@
-this.swathe = this.swathe || {};
-this.swathe.b = this.swathe.b || {};
-(function (lib_utilities) {
+(function () {
 	'use strict';
 
-	if (!window.Swathe)  window.Swathe = {};
-	if (!window.Swathe.controllers) window.Swathe.controllers = {};
+	function is (type, value) {
+		return !value ? false : value.constructor.name === type;
+	}
 
-	/*
-		globals
-	*/
+	function each (iterable, callback, scope) {
+		var statment = null, i = null, l = null, k = null;
+
+		if (is('Number', iterable)) {
+			for (i = 0; i < iterable; i++) {
+				statment = callback.call(scope, i, iterable);
+				if (statment === 'break') break;
+				else if (statment === 'continue') continue;
+			}
+		} else if (is('Object', iterable)) {
+			for (k in iterable) {
+				if (!iterable.hasOwnProperty(k)) continue;
+				statment = callback.call(scope, iterable[k], k, iterable);
+				if (statment === 'break') break;
+				else if (statment === 'continue') continue;
+			}
+		} else {
+			for (i = 0, l = iterable.length; i < l; i++) {
+				statment = callback.call(scope, iterable[i], i, iterable);
+				if (statment === 'break') break;
+				else if (statment === 'continue') continue;
+			}
+		}
+
+		return iterable;
+	}
+
+	function getByPath (object, path) {
+		var keys = path.swathe.pathKeys();
+		var last = keys.length - 1;
+		var obj = object;
+
+		for (var i = 0; i < last; i++) {
+			var prop = keys[i];
+			if (!obj[prop]) return undefined;
+			obj = obj[prop];
+		}
+
+		return obj[keys[last]];
+	}
+
+	function setByPath (object, path, value) {
+		var keys = path.swathe.pathKeys();
+		var last = keys.length - 1;
+		var obj = object;
+
+		for (var i = 0; i < last; i++) {
+			var prop = keys[i];
+			if (!obj[prop]) obj[prop] = {};
+			obj = obj[prop];
+		}
+
+		obj[keys[last]] = value;
+		return object;
+	}
+
+	function toCamelCase (string) {
+		var pattern = /(-.)|(\..)/g;
+
+		return string.replace(pattern, function (match) {
+			return match[1].toUpperCase();
+		});
+	}
+
+	function toDotCase (string) {
+		var pattern = /[A-Z]/g;
+
+		return string.replace(pattern, function (match) {
+			return '.' + match.toLowerCase();
+		});
+	}
+
+	function isSAttribute (string) {
+		return /(^s-)|(^data-s)/.test(string);
+	}
+
+	function toCleanAttribute (string) {
+		string = string.replace(/^data-s-/, '');
+		string = string.replace(/^s-/, '');
+		return string;
+	}
+
+	var Dom = function (scope) {
+		this.sElements = [];
+		this.sPaths = {};
+		this.sNames = {};
+		this.sValues = {};
+		this.scope = scope;
+	};
+
+	Dom.prototype.create = function (scope, sElements, sPaths, sNames, sValues) {
+		var attributeValue = '';
+		var attributeName = '';
+		var attribute = null;
+		var element = null;
+
+		sElements = sElements || [];
+		sPaths = sPaths || {};
+		sNames = sNames || {};
+		sValues = sValues || {};
+		scope = scope || this.scope;
+
+		// loop elements
+		for (var i = 0, l = scope.children.length; i < l; i++) {
+			element = scope.children[i];
+
+			// loop attributes
+			if (element.attributes.length > 0) {
+				for (var c = 0, t = element.attributes.length; c < t; c++) {
+					attribute = element.attributes[c];
+
+					if (!isSAttribute(attribute.name)) continue;
+
+					attributeName = attribute.name;
+					attributeName = toCleanAttribute(attributeName);
+					attributeName = toCamelCase(attributeName);
+
+					attributeValue = attribute.value;
+
+					if (!sNames[attributeName]) sNames[attributeName] = [];
+					sNames[attributeName].push(sElements.length);
+
+					if (!sValues[attributeValue]) sValues[attributeValue] = [];
+					sValues[attributeValue].push(sElements.length);
+
+					// TODO: decided what path style to use
+					if (!sPaths[attributeName + '/' + attributeValue]) sPaths[attributeName + '/' + attributeValue] = [];
+					sPaths[attributeName + '/' + attributeValue].push(sElements.length);
+
+					sElements.push(element);
+				}
+			}
+
+			// loop children
+			if (element.children.length > 0) {
+				this.create(element, sElements, sPaths, sNames, sValues);
+			}
+		}
+
+		this.sElements = sElements;
+		this.sPaths = sPaths;
+		this.sNames = sNames;
+		this.sValues = sValues;
+	};
+
+	Dom.prototype.findOneByPath = function (sName, sValue) {
+		var self = this;
+
+		var index = self.obj[sName][sValue];
+
+		return self.sElements[index];
+
+	};
+
+	Dom.prototype.findOneByIndex = function (index) {
+		var self = this;
+		return self.sElements[index];
+	};
+
+	Dom.prototype.findAll = function (sName, sValue) {
+		var self = this;
+
+		var nameObject = self.obj[sName];
+
+		if (sValue) {
+			return nameObject[sValue].map(function (index) {
+				return self.sElements[index];
+			});
+		} else {
+			var array = [];
+
+			for (var value in nameObject) {
+				array = array.concat(nameObject[value]);
+			}
+
+			return array.map(function (index) {
+				return self.sElements[index];
+			});
+		}
+	};
 
 	var RGS = {
 		comma: '(\\s*)\\,(\\s*)',
@@ -27,153 +203,165 @@ this.swathe.b = this.swathe.b || {};
 		)
 	};
 
-	/*
-		prototypes
-	*/
-
-	Element.prototype.swatheData = {};
-
-	Object.defineProperty(String.prototype, 'swathe', {
-		writeable: false,
-		configurable: true,
-		get: function () {
-			return {
-				string: this,
-				pathKeys: function () {
-					return this.string.replace('[', '.').replace(']', '').split('.');
-				}
-			};
-		}
-	});
-
-	Object.defineProperty(Element.prototype, 'swathe', {
-		enumerable: true,
-		configurable: true,
-		get: function () {
-			var element = this;
-
-			return Object.defineProperties({ element: element }, {
-				type: {
-					enumerable: true,
-					configurable: true,
-					get: function () {
-						return element.constructor.name;
+	function defineStringSwatheProperties () {
+		Object.defineProperty(String.prototype, 'swathe', {
+			writeable: false,
+			configurable: true,
+			get: function () {
+				return {
+					string: this,
+					pathKeys: function () {
+						return this.string.replace('[', '.').replace(']', '').split('.');
 					}
-				},
-				attributes: {
-					enumerable: true,
-					configurable: true,
-					get: function () {
-						var attributes;
+				};
+			}
+		});
+	}
 
-						for (var i = 0, l = element.attributes.length; i < l; i++) {
-							var attribute = element.attributes[i];
-							var value = attribute.value;
-							var name = attribute.name;
+	function defineElementSwatheProperties () {
+		Element.prototype.swatheData = {};
 
-							if (this.isAttribute(name)) {
-								name = name.slice(2);
-								value = value.replace(RG.parameters, ' ').trim().split(' ');
-								attributes[name] = value;
+		Object.defineProperty(Element.prototype, 'swathe', {
+			enumerable: true,
+			configurable: true,
+			get: function () {
+				var element = this;
+
+				return Object.defineProperties({ element: element }, {
+					type: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return element.constructor.name;
+						}
+					},
+					attributes: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							var attributes = [];
+
+							for (var i = 0, l = element.attributes.length; i < l; i++) {
+								var attribute = element.attributes[i];
+								var value = attribute.value;
+								var name = attribute.name;
+
+								if (this.isAttribute(name)) {
+									value = value.replace(RG.parameters, ' ').trim().split(' ');
+									attributes.push(value);
+								}
+							}
+
+							return attributes;
+						}
+					},
+					attribute: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return element.getAttribute('data-s') || '';
+						}
+					},
+					parameters: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return this.attribute
+							.replace(RG.parameters, ' ')
+							.trim()
+							.split(' ');
+						}
+					},
+					parameterFirst: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return this.parameters[0];
+						}
+					},
+					parameterLast: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return this.parameters[this.parameters.length - 1];
+						}
+					},
+					eventMethodParameters: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return this.parameters.splice(2);
+						}
+					},
+					eventMethod: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return this.parameters[1];
+						}
+					},
+					eventName: {
+						enumerable: true,
+						configurable: true,
+						get: function () {
+							return this.parameterFirst.slice(2).toLowerCase();
+						}
+					},
+					isFor: {
+						value: function (string) {
+							return /^for/.test(string);
+						}
+					},
+					isEvent: {
+						value: function (string) {
+							return /^on/.test(string);
+						}
+					},
+					isValue: {
+						value: function (string) {
+							return /^value/.test(string);
+						}
+					},
+					isAttribute: {
+						value: function (string) {
+							return /^data-s/.test(string);
+							// return /^s\-/.test(string);
+						}
+					},
+					toCamelCase: {
+						value: function (string) {
+							var nextIndex = string.search('-') + 1;
+							var nextLetter = string.charAt(nextIndex).toString();
+							var r = '-' + nextLetter;
+							var n = nextLetter.toUpperCase();
+							return string.replace(r, n);
+						}
+					},
+					data: {
+						value: function (key, value) {
+							if (!value) return element.swatheData[key];
+							else element.swatheData[key] = value;
+						}
+					},
+					removeChildren: {
+						value: function () {
+							while (element.firstChild) {
+								element.removeChild(element.firstChild);
 							}
 						}
-
-						return attributes;
 					}
-				},
-				eventMethodParameters: {
-					enumerable: true,
-					configurable: true,
-					get: function () {
-						return this.parameters.splice(2);
-					}
-				},
-				eventMethod: {
-					enumerable: true,
-					configurable: true,
-					get: function () {
-						return this.parameters[1];
-					}
-				},
-				eventName: {
-					enumerable: true,
-					configurable: true,
-					get: function () {
-						return this.parameterFirst.slice(2).toLowerCase();
-					}
-				},
-				isFor: {
-					value: function (string) {
-						return /^for/.test(string);
-					}
-				},
-				isEvent: {
-					value: function (string) {
-						return /^on/.test(string);
-					}
-				},
-				isValue: {
-					value: function (string) {
-						return /^value/.test(string);
-					}
-				},
-				isAttribute: {
-					value: function (string) {
-						return /^s\-/.test(string);
-					}
-				},
-				toCamelCase: {
-					value: function (string) {
-						var nextIndex = string.search('-') + 1;
-						var nextLetter = string.charAt(nextIndex).toString();
-						var r = '-' + nextLetter;
-						var n = nextLetter.toUpperCase();
-						return string.replace(r, n);
-					}
-				},
-				data: {
-					value: function (key, value) {
-						if (!value) return element.swatheData[key];
-						else element.swatheData[key] = value;
-					}
-				},
-				removeChildren: {
-					value: function () {
-						while (element.firstChild) {
-							element.removeChild(element.firstChild);
-						}
-					}
-				}
-			});
-		}
-	});
-
-	/*
-		internal
-	*/
-
-	var Query = {
-		forElements: '[data-s^="for:"]',
-		sElements: '[data-s]:not(input):not(select):not(textarea):not([data-s^="for:"])',
-		inputElements: 'input[data-s^="value:"], select[data-s^="value:"], textarea[data-s^="value:"]'
-	};
-
-	var GetSElements = function (scope) {
-		var sElements = {};
-		lib_utilities.each(scope.querySelectorAll('[data-s]'), function (elements) {
-			if (!sElements[elements.swathe.parameterLast]) sElements[elements.swathe.parameterLast] = [];
-			sElements[elements.swathe.parameterLast].push(elements);
+				});
+			}
 		});
-		return sElements;
-	};
+	}
 
-	var ObserveObjects = function (object, callback, prefix) {
+	function ObserveSObjects (object, callback, prefix) {
 		if (!prefix) prefix = '';
 
 		var handler = {
 			get: function (target, property) {
-				if (lib_utilities.is('Object', target[property]) || lib_utilities.is('Array', target[property])) {
-					return ObserveObjects(target[property], callback, prefix + property + '.');
+				if (is('Object', target[property]) || is('Array', target[property])) {
+					return ObserveSObjects(target[property], callback, prefix + property + '.');
 				} else {
 					return target[property];
 				}
@@ -189,150 +377,125 @@ this.swathe.b = this.swathe.b || {};
 		};
 
 		return new Proxy(object, handler);
-	};
+	}
 
-	var ObserveElements = function (elements, callback) {
+	function ObserveSElements (elements, callback) {
+
 		var handler = function (e) { // event input works on: input, select, textarea
 			var target = e.target;
 			var value = target.value;
-			var attribute = target.getAttribute('data-s');
 
-			var sValue = attribute.split(':')[1].trim();
+			var sName = null;
+			var sValue = null;
 
-			callback(sValue, value, target);
+			if (target.hasAttribute('s-value')) sName = 's-value';
+			else if (target.hasAttribute('data-s-value')) sName = 'data-s-value';
+
+			sValue = target.getAttribute(sName);
+
+			callback(sName, sValue, value, target);
 		};
 
-		lib_utilities.each(elements, function (element) {
-			element.addEventListener('input', handler, false);
+		each(elements, function (element) {
+			element.addEventListener('input', handler);
 		});
 
 		return elements;
+	}
+
+	// var renderGroup = function (model, elements, path, value) {
+	// 	each(elements, function (element) {
+	// 		path = path || element.swathe.parameterLast;
+	// 		value = value || getByPath(model, path);
+	// 		renderSingle(model, element, path, value);
+	// 	});
+	// };
+	//
+	// var renderAll = function (sElements, model) {
+	// 	each(sElements, function (elements, path) {
+	// 		renderGroup(model, elements, path);
+	// 	});
+	// };
+
+	var renderOne = function (model, dom, sValue, value) {
+		console.log(sValue);
+		console.log(value);
+
+		var element = dom.findOneByPath(path);
+		// console.log(element);
+
+		// var element = dom.arr[index];
+		// var value = getByPath(model, pathName);
+		// setByPath(element, commandName, value);
 	};
 
-	/*
-		main
-	*/
+	var renderAll = function (dom, model) {
+		each(dom.obj, function (sNameObj, sName) {
+			each(sNameObj, function (sValueArray, sValue) {
+				each(sValueArray, function (index) {
+					var element = dom.arr[index];
 
-	var Controller = function (scope, model, name) {
+					sValue = toDotCase(sValue);
+					sName = toDotCase(sName);
+
+					var value = getByPath(model, sValue);
+					setByPath(element, sName, value);
+				});
+			});
+		});
+	};
+
+	var Controller = function (name, model, scope) {
 		var self = this;
 
 		self.name = name;
 		self.model = model;
-		self.scope = lib_utilities.is('String', scope) ? document.querySelector(scope) : scope;
+		self.scope = scope;
 
-		self.sElements = GetSElements(self.scope);
-		self.sInputElements = self.scope.querySelectorAll(Query.inputElements);
+		// self.sElements = GetSElements(self.scope);
+		// self.sInputElements = GetSInputElements(self.scope);
 
-		self.model = ObserveObjects (model, function (path, value) {
-			self.renderGroup(self.model, self.sElements[path], path, value);
+		self.dom = new Dom(self.scope);
+		self.dom.create(self.scope);
+
+		self.valueElements = self.dom.findAll('value');
+
+		self.model = ObserveSObjects (self.model, function (sValue, value) {
+			// renderGroup(self.model, self.sElements[path], path, value);
+			renderOne(self.model, self.dom, sValue, value);
 		});
 
-		self.view = ObserveElements (self.sInputElements, function (path, value) {
-			lib_utilities.setByPath(self.model, path, value);
-		});
-	};
-
-	Controller.prototype.forElement = function (model, element, name, value) {
-		var self = this;
-
-		var parameters = element.swathe.attributes[name];
-		var parameterLast =  parameters[parameters.length-1];
-		var fragment = document.createDocumentFragment();
-
-		// clone child elements
-		lib_utilities.each(value.length, function () {
-			lib_utilities.each(element.children, function (child) {
-				fragment.appendChild(child.cloneNode(true));
-			});
+		// self.sInputElements
+		self.view = ObserveSElements (self.valueElements, function (sName, sValue, value) {
+			setByPath(self.model, sValue, value);
 		});
 
-		var children = fragment.querySelectorAll('[data-s$="'+ parameters[1] +'"]');
-
-		// update child element's parameterFirst
-		lib_utilities.each(children, function (child, index) {
-			// FIXME: needs to be in a loop over the attributes;
-			var childParameters = child.swathe.attributes[name];
-			var childKey = childParameters[0];
-			// var childKey = child.swathe.parameterFirst;
-
-			var childAttribute = childKey +': '+ parameterLast +'.'+ index;
-			child.setAttribute('data-s', childAttribute);
-
-			var path = child.swathe.parameterLast; // FIXME: start
-			var value = lib_utilities.getByPath(model, path);
-			self.renderSingle(model, child, path, value);
-
-			// add to sElements
-			if (!self.sElements[path]) self.sElements[path] = [];
-			self.sElements[path].push(child);
-		});
-
-		element.swathe.removeChildren();
-		element.appendChild(fragment);
 	};
 
-	Controller.prototype.eventElement = function (model, element) {
-		var eventMethodParameters = element.swathe.eventMethodParameters;
-		var eventMethod = element.swathe.eventMethod;
-		var eventName = element.swathe.eventName;
+	if (!window.Swathe)  {
 
-		var method = lib_utilities.getByPath(model, eventMethod);
-		var methodBound = method.bind.apply(method, [element].concat(eventMethodParameters));
+		defineStringSwatheProperties();
+		defineElementSwatheProperties();
 
-		// TODO: need to handle non function error
+		window.Swathe = {
+			dom: Dom,
+			controllers: {},
+			controller: function (name, model, scope) {
+				if (!name) throw new Error('Controller: name parameter required');
+				if (!model) throw new Error('Controller: model parameter required');
 
-		element.addEventListener(eventName, methodBound);
-	};
+				scope = document.querySelector('s-controller=' + name) || document.querySelector('data-s-controller=' + name);
 
-	Controller.prototype.otherElement = function (element, name, value) {
-		lib_utilities.setByPath(element, name, value);
-	};
+				if (!scope) throw new Error('Controller: scope missing or invalid "s-controller" attribute');
 
-	Controller.prototype.renderSingle = function (model, element, path, value) {
-		var attribute = element.swathe.attributes;
-		var self = this;
-		var name = '';
+				this.controllers[name] = new Controller(name, model, scope);
+				renderAll(this.controllers[name].dom, this.controllers[name].model);
 
-		for (name in attribute) {
-			console.log(name);
-			if (element.swathe.isEvent(attribute[name])) self.eventElement(model, element);
-			else if (!element.swathe.isValue(attribute[name])) self.otherElement(element, name, value);
-			else if (element.swathe.isFor(attribute[name])) self.forElement(model, element, name, value);
-		}
+				return this.controllers[name];
+			}
+		};
 
-		// if (element.swathe.isEvent) self.eventElement(model, element);
-		// else if (element.swathe.isFor) self.forElement(model, element, value);
-		// else if (!element.swathe.isValue) self.otherElement(element, value);
-	};
-
-	Controller.prototype.renderGroup = function (model, elements, path, value) {
-		var self = this;
-
-		lib_utilities.each(elements, function (element) {
-			path = path || element.swathe.parameterLast;
-			value = value || lib_utilities.getByPath(model, path);
-			self.renderSingle(model, element, path, value);
-		});
-	};
-
-	Controller.prototype.renderAll = function () {
-		var self = this;
-
-		lib_utilities.each(self.sElements, function (elements, path) {
-			self.renderGroup(self.model, elements, path);
-		});
-	};
-
-	window.Swathe.controller = function (scope, model, name) {
-		if (!scope) throw new Error('Controller: scope parameter required');
-		if (!model) throw new Error('Controller: model parameter required');
-
-		name = name ? name : name = Object.keys(window.Swathe.controllers).length;
-		window.Swathe.controllers[name] = new Controller(scope, model);
-		window.Swathe.controllers[name].renderAll();
-
-		return window.Swathe.controllers[name];
-	};
+	}
 
 	// function addEventListeners (target, props) {
 	// 	Object.keys(props).forEach(name, function () {
@@ -342,4 +505,4 @@ this.swathe.b = this.swathe.b || {};
 	// 	});
 	// }
 
-}(lib_utilities));
+}());
