@@ -1,11 +1,8 @@
 {
   "name": "swathe",
-  "version": "1.1.7",
-  "description": "Swathe - Powerful, Small, 2 Way Data Binding",
-  "main": "swathe.js",
-  "scripts": {
-    "test": "http-serve ."
-  },
+  "version": "1.2.0",
+  "description": "Swathe - Powerful | Small | Data Binding | No Virtual DOM | No Dirty Checks",
+  "main": "dist/swathe.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AlexanderElias/swathe.git"

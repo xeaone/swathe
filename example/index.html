@@ -2,71 +2,92 @@
 <html>
 <head>
 	<title>Swathe | General</title>
-	<script src="../dist/proxy.js"></script>
+	<link rel="stylesheet" href="assets/index.css">
+	<!-- <script src="../dist/swathe.min.js"></script> -->
 	<script src="../dist/swathe.js"></script>
 </head>
-<body>
-	<div>
-		<div data-s="style.background: color">Color Me!</div>
-		<input data-s="value: color" value="Color"/>
-	</div>
-	<br>
+<body s-controller="main">
 
 
-	<div>
-		<span>Link: </span>
-		<input type="text" data-s="value: link">
-		<a href="#" data-s="href: link">Href</a>
-	</div>
-	<br>
+	<section>
+		<h2>Style</h3>
+		<div s-style.background="color" s-inner-text="color">Color Me!</div>
+		<input s-value="color" value="Color"/>
+	</section>
 
 
-	<div>
-		<span>For: </span>
-		<input type="text" data-s="value: iterable.0">
-		<div data-s="for: variable of iterable">
+	<section>
+		<h2>Link</h2>
+		<input type="text" s-value="link">
+		<a href="#" s-href="link" s-inner-text="link" >Link</a>
+	</section>
+
+	<section>
+		<h2>Link Nested</h2>
+		<input type="text" s-value="i.am.nestedLink">
+		<a href="#" s-href="i.am.nestedLink" s-inner-text="i.am.nestedLink"  target="_blank">Link</a>
+	</section>
+
+
+	<section>
+		<h2>For</h2>
+		<input type="text" s-value="iterable.0">
+		<div s-for="variable of iterable">
 			<div>
-				<div data-s="innerText: variable"></div>
-				<div data-s="innerText: i.am.nested"></div>
+				<div s-inner-text="variable"></div>
+				<div s-inner-text="i.am.nested"></div>
 			</div>
 		</div>
-	</div>
-	<br>
+	</section>
+
+	<section>
+		<h2>Model Change</h2>
+		<div s-inner-text="count"></div>
+	</section>
+
+	<section>
+		<h2>Event</h2>
+		<button type="button" s-inner-text="buttonName" s-on-click="say(color, 'world', 1)" >Default</button>
+	</section>
 
 
-	<div>
-		<span>Event: </span>
-		<button type="button" s-inner-text="buttonName" s-on-click="say('hello', 'world')">Say Hello</button>
-	</div>
+	<section s-controller="second">
+		<h2>Sub Controller</h2>
+		<div s-inner-text="text">Ignored Becuase this is another controller.</div>
+	</section>
+
 
 	<script>
-
 		var model = {
-			buttonName: 'Log Hello World',
-			link: '',
-			color: 'blue',
+			count: 0,
+			text: 'text stuff',
+			buttonName: 'Say Hello World',
+			link: 'Empty',
+			color: 'red',
 			i: {
 				am: {
-					nested: 'NO'
+					nested: 'NO',
+					nestedLink: 'www.google.com'
 				}
 			},
 			iterable: ['zero', 'one', 'two', 'three'],
-			say: function (p1, p2, p3) {
-				console.log(p1);
-				console.log(p2);
-				console.log(p3);
+			say: function (modelVariable, string, number, e) {
+				console.log(modelVariable);
+				console.log(string);
+				console.log(number + ' ' + typeof number);
+				console.log(e);
+				console.log(this);
 			}
 		};
 
-		var controller = Swathe.controller('body', model);
+		var controller = Swathe.controller('main', model);
 
-		// setTimeout(function () {
-		// 	// var i = controller.model.iterable;
-		// 	// i.push('four');
-		// 	//
-		// 	// controller.model.iterable = i;
-		// 	// console.log(controller.model);
-		// }, 1500);
+		controller.model.count = 0;
+
+		setInterval(function () {
+			controller.model.count++;
+		}, 1000);
+
 	</script>
 </body>
 </html>

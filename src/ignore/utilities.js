@@ -1,8 +1,9 @@
-function is (type, value) {
+
+export function is (type, value) {
 	return !value ? false : value.constructor.name === type;
 }
 
-function each (iterable, callback, scope) {
+export function each (iterable, callback, scope) {
 	var statment = null, i = null, l = null, k = null;
 
 	if (is('Number', iterable)) {
@@ -29,8 +30,12 @@ function each (iterable, callback, scope) {
 	return iterable;
 }
 
-function getByPath (object, path) {
-	var keys = path.swathe.pathKeys();
+function getPathKeys (string) {
+	return string.replace(']', '').replace('[', '.').split('.');
+}
+
+export function getByPath (object, path) {
+	var keys = getPathKeys(path);
 	var last = keys.length - 1;
 	var obj = object;
 
@@ -43,8 +48,8 @@ function getByPath (object, path) {
 	return obj[keys[last]];
 }
 
-function setByPath (object, path, value) {
-	var keys = path.swathe.pathKeys();
+export function setByPath (object, path, value) {
+	var keys = getPathKeys(path);
 	var last = keys.length - 1;
 	var obj = object;
 
@@ -58,38 +63,29 @@ function setByPath (object, path, value) {
 	return object;
 }
 
-function toCamelCase (string) {
-	var pattern = /(-.)|(\..)/g;
+export function removeChildren (element) {
+	while (element.firstChild) {
+		element.removeChild(element.firstChild);
+	}
+
+	return element;
+}
+
+export function toCamelCase (string) {
+	var pattern = /(-.)/g; // |(\..)
 
 	return string.replace(pattern, function (match) {
 		return match[1].toUpperCase();
 	});
 }
 
-function toDashCase (string) {
-	var pattern = /[A-Z]/g;
-
-	return string.replace(pattern, function (match) {
-		return '-' + match.toLowerCase();
-	});
-}
-
-function toDotCase (string) {
-	var pattern = /[A-Z]/g;
-
-	return string.replace(pattern, function (match) {
-		return '.' + match.toLowerCase();
-	});
-}
-
-function isSAttribute (string) {
+export function isSwatheAttribute (string) {
 	return /(^s-)|(^data-s)/.test(string);
 }
 
-function toCleanAttribute (string) {
+export function normalizeAttribute (string) {
 	string = string.replace(/^data-s-/, '');
 	string = string.replace(/^s-/, '');
+	string = toCamelCase(string);
 	return string;
 }
-
-export { is, each, getByPath, setByPath, toCamelCase, toDashCase, toDotCase, isSAttribute, toCleanAttribute };

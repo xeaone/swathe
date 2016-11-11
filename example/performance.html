@@ -10,35 +10,48 @@
 		.group { display: inline-block; background: lightgray; margin: 4px; padding: 4px; }
 	</style>
 
-	<div class="container">
-		<div class="group">
-			<input/>
-			<div>Initial</div>
-		</div>
+	<div class="container" s-controller="app">
 	</div>
 
 	<script>
 
 		var model = {};
+
+		var count = 0;
+		var current = 0;
+
 		var container = document.querySelector('.container');
-		var group = document.querySelector('.group');
+		var group = document.createElement('div');
+		var input = document.createElement('input');
+		var div = document.createElement('div');
+
+		group.setAttribute('class', 'group');
 
 		for (var i = 0; i < 10000; i++) {
-			var groupClone = group.cloneNode(true);
+			var groupClone = group.cloneNode();
+			var inputClone = input.cloneNode();
+			var divClone = div.cloneNode();
 
-			var inputClone = groupClone.children[0];
-			var divClone = groupClone.children[1];
+			if (count === 1000) {
+				count = 0;
+				current = i;
+			} else {
+				count++;
+			}
 
-			inputClone.setAttribute('data-s', 'value: ' + i);
-			divClone.setAttribute('data-s', 'innerText: ' + i);
+			model[current] = current;
 
-			model[i] = i;
+			inputClone.setAttribute('s-value', current);
+			divClone.setAttribute('s-inner-text', current);
 
+			groupClone.appendChild(inputClone);
+			groupClone.appendChild(divClone);
 			container.appendChild(groupClone);
 		}
 
-
-		var controller = Swathe.controller('body', model);
+		console.time('controller');
+		var controller = Swathe.controller('app', model);
+		console.timeEnd('controller');
 
 	</script>
 </body>
