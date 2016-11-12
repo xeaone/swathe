@@ -1,9 +1,14 @@
-import { Dom } from './dom.js';
-import { each, getByPath, setByPath, removeChildren, normalizeAttribute, isSwatheAttribute } from './utilities.js';
+import { each, getByPath, setByPath, removeChildren } from './utilities.js';
 
-function onElement (model, element, sName, sValue) {
-	var eventName = sName;
-	var sValues = sValue;
+var PATTERN = {
+	FOR: /(^s-for.*)|(^s-for.*)/,
+	VALUE: /(^s-value.*)|(^s-value.*)/,
+	ON: /(^s-on.*)|(^s-event.*)|(^data-s-on.*)|(^data-s-event.*)/
+};
+
+function onElement (model, dom, name, value, element) {
+	var eventName = name;
+	var sValues = value;
 
 	sValues = sValues.replace(/\(/g, ', ');
 	sValues = sValues.replace(/\)/g, '');
@@ -32,8 +37,8 @@ function onElement (model, element, sName, sValue) {
 	element.addEventListener(eventName, methodBound);
 }
 
-function forElement (model, element, sName, sValue) {
-	var sValues = sValue.split(' of ');
+function forElement (model, dom, name, value, element) {
+	var sValues = value.split(' of ');
 	var variable = sValues[0];
 	var iterable = sValues[1];
 	var iterableArray = getByPath(model, iterable);
@@ -47,11 +52,7 @@ function forElement (model, element, sName, sValue) {
 		});
 	});
 
-	var fragmentDom = new Dom(fragment);
-
-	var iterableElements = fragmentDom.findByValue(variable);
-
-	each(iterableElements, function (element, index) {
+	each(fragment, function (element, index) {
 		each(element.attributes, function (attribute) {
 			if (attribute.value === variable) {
 				attribute.value = iterable + '.'+ index;
@@ -59,42 +60,42 @@ function forElement (model, element, sName, sValue) {
 		});
 	});
 
-	renderElements(model, fragmentDom.sElements);
 
-	// replace children
-	// element.swathe.removeChildren();
 	element = removeChildren(element);
 	element.appendChild(fragment);
+	// Render(model, dom, );
 }
 
-// function ValueElement (element, sName, sValue) {
+// function valueElement (model, dom, name, value, element) {
 // 	console.log(value);
 // }
 
-function defaultElement (model, element, sName, sValue, mValue) {
-	mValue = mValue || getByPath(model, sValue);
-	setByPath(element, sName, mValue);
+function defaultElement (model, dom, name, value, element) {
+	value = getByPath(model, value);
+	setByPath(element, name, value);
 }
 
-function proxyElement (model, element, sName, sValue, mValue) {
-	if (/(^on.*)|(^event.*)/.test(sName)) {
-		onElement(model, element, sName, sValue);
-	} else if (/for/.test(sName)) {
-		forElement(model, element, sName, sValue);
-	} else if (/value/.test(sName)) {
-		// ValueElement(model, element, sName, sValue);
+function proxy (model, dom, name, value, element) {
+	if (PATTERN.ON.test(name)) {
+		onElement(model, dom, name, value, element);
+	} else if (PATTERN.FOR.test(name)) {
+		// forElement(model, dom, name, value, element);
+	} else if (PATTERN.VALUE.test(name)) {
+		// valueElement(model, dom, name, value, element);
 	} else {
-		defaultElement(model, element, sName, sValue, mValue);
+		defaultElement(model, dom, name, value, element);
 	}
 }
 
-export function renderElements (model, elements, mValue) {
-	each(elements, function (element) {
+export function Render (model, dom, name, value) {
+	var elements = dom.findByAttribute({ name: name, value: value });
+	var namePattern = new RegExp(name);
+	// var valuePattern = new RegExp(value);
+
+	elements.forEach(function (element) {
 		each(element.attributes, function (attribute) {
-			if (attribute && isSwatheAttribute(attribute.name)) {
-				var sName = normalizeAttribute(attribute.name);
-				var sValue = attribute.value;
-				proxyElement(model, element, sName, sValue, mValue);
+			if (attribute && namePattern.test(attribute.name)) {
+				proxy(model, dom, attribute.name, attribute.value, element);
 			}
 		});
 	});

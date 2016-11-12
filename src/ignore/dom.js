@@ -1,103 +1,67 @@
-import { isSwatheAttribute, normalizeAttribute } from './utilities.js';
+/*
+	Node is accepted.
+		NodeFilter.FILTER_ACCEPT = 1
 
-function DomCreate (self, scope, sElements, sPaths, sNames, sValues) {
-	var attributeValue = '';
-	var attributeName = '';
-	var attribute = null;
-	var element = null;
-	var isNew = null;
-	var index = null;
-	var isController = null;
+	Child nodes are also rejected.
+		NodeFilter.FILTER_REJECT = 2
 
-	sPaths = sPaths || {};
-	sNames = sNames || {};
-	sValues = sValues || {};
-	sElements = sElements || [];
+	Child nodes are not skipped.
+		NodeFilter.FILTER_SKIP = 3
+*/
 
-	index = sElements.length;
+var Dom = function (treeNode, treeFilter) {
+	this.treeNode = treeNode;
+	this.treeFilter = treeFilter;
+	this.tree = document.createTreeWalker(this.treeNode, NodeFilter.SHOW_ELEMENT, this.treeFilter, false);
+};
 
-	// loop elements
-	for (var i = 0, l = scope.children.length; i < l; i++) {
-		element = scope.children[i];
-		isNew = false;
+Dom.prototype.filter = function (filter) {
+	var node = this.tree.currentNode;
+	var nodes = [];
 
-		isController = element.getAttribute('s-controller') || element.getAttribute('data-s-controller');
+	while (node) {
+		if (filter ? filter(node) : true) {
+			nodes.push(node);
+		}
 
-		// loop attributes
-		if (element.attributes.length > 0 && !isController) {
-			for (var c = 0, t = element.attributes.length; c < t; c++) {
-				attribute = element.attributes[c];
+		node = this.tree.nextNode();
+	}
 
-				if (isSwatheAttribute(attribute.name)) {
-					attributeName = attribute.name;
-					attributeName = normalizeAttribute(attributeName);
+	return nodes;
+};
 
-					attributeValue = attribute.value;
+Dom.prototype.findByTag = function (tag) {
+	var tagPattern = new RegExp(tag);
 
-					if (!sNames[attributeName]) sNames[attributeName] = [];
-					sNames[attributeName].push(index);
+	return this.filter(function (node) {
+		return tagPattern.test(node.tagName.toLowerCase());
+	});
+};
 
-					if (!sValues[attributeValue]) sValues[attributeValue] = [];
-					sValues[attributeValue].push(index);
+Dom.prototype.findByAttribute = function (options) {
+	var namePattern = new RegExp(options.name);
+	var valuePattern = new RegExp(options.value);
 
-					if (!sPaths[attributeName + ':' + attributeValue]) sPaths[attributeName + ':' + attributeValue] = [];
-					sPaths[attributeName + ':' + attributeValue].push(index);
+	return this.filter(function (node) {
+		var attributes = node.attributes;
+		var l = attributes.length;
+		var i = 0;
 
-					isNew = true;
-				}
+		if (options.name && options.value) {
+			for (i; i < l; i++) {
+				return namePattern.test(attributes[i].name) && valuePattern.test(attributes[i].value);
+			}
+		} else if (options.name) {
+			for (i; i < l; i++) {
+				return namePattern.test(attributes[i].name);
+			}
+		} else if (options.value) {
+			for (i; i < l; i++) {
+				return valuePattern.test(attributes[i].value);
 			}
 		}
 
-		if (isNew) {
-			index++;
-			sElements.push(element);
-		}
-
-		// loop children
-		if (element.children.length > 0 && !isController) {
-			DomCreate(self, element, sElements, sPaths, sNames, sValues);
-		}
-
-	}
-
-	self.sPaths = sPaths;
-	self.sNames = sNames;
-	self.sValues = sValues;
-	self.sElements = sElements;
-}
-
-export var Dom = function (scope) {
-	var self = this;
-
-	self.sElements = [];
-	self.sPaths = {};
-	self.sNames = {};
-	self.sValues = {};
-	self.scope = scope;
-
-	DomCreate(self, scope);
-};
-
-Dom.prototype.findByName = function (sName) {
-	var self = this;
-
-	return self.sNames[sName].map(function (index) {
-		return self.sElements[index];
 	});
 };
 
-Dom.prototype.findByValue = function (sValue) {
-	var self = this;
-
-	return self.sValues[sValue].map(function (index) {
-		return self.sElements[index];
-	});
-};
-
-Dom.prototype.findByPath = function (sName, sValue) {
-	var self = this;
-
-	return self.sPaths[sName + ':' + sValue].map(function (index) {
-		return self.sElements[index];
-	});
-};
+export { Dom };

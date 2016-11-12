@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Tree Walker</title>
+	<script src="../src/ignore/dom.js"></script>
+</head>
+<body>
+
+		<style>
+			.group { display: inline-block; background: lightgray; margin: 4px; padding: 4px; }
+		</style>
+
+		<div class="container" s-controller="app"></div>
+
+		<script>
+			var model = {};
+			var count = 0;
+			var current = 0;
+			var container = document.querySelector('.container');
+			var group = document.createElement('div');
+			var input = document.createElement('input');
+			var div = document.createElement('div');
+
+			group.setAttribute('class', 'group');
+
+			for (var i = 0; i < 10; i++) {
+				var groupClone = group.cloneNode();
+				var inputClone = input.cloneNode();
+				var divClone = div.cloneNode();
+
+				if (count === 2) {
+					count = 0;
+					current = i;
+				} else {
+					count++;
+				}
+
+				model[current] = current;
+
+				inputClone.setAttribute('s-value', current);
+				divClone.setAttribute('s-inner-text', current);
+
+				groupClone.appendChild(inputClone);
+				groupClone.appendChild(divClone);
+				container.appendChild(groupClone);
+			}
+
+			var scope = document.querySelector('[s-controller="app"]');
+			var dom = new Dom (scope);
+
+			var span = document.createElement('span');
+			span.setAttribute('s-stuff', 'yeah');
+			dom.tree.firstChild().children[1].appendChild(span);
+
+			console.time('All');
+			// var elements = dom.filter(function (node) {
+			// 	return node.tagName === 'SPAN';
+			// });
+			var elements = dom.findByAttribute({ name: 's-value' });
+			// var elements = dom.findByTag('span');
+			console.timeEnd('All');
+
+			console.log(elements);
+	</script>
+
+</body>
+</html>

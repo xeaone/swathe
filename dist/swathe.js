@@ -1,6 +1,72 @@
 (function () {
 	'use strict';
 
+	/*
+		Node is accepted.
+			NodeFilter.FILTER_ACCEPT = 1
+
+		Child nodes are also rejected.
+			NodeFilter.FILTER_REJECT = 2
+
+		Child nodes are not skipped.
+			NodeFilter.FILTER_SKIP = 3
+	*/
+
+	var Dom = function (treeNode, treeFilter) {
+		this.treeNode = treeNode;
+		this.treeFilter = treeFilter;
+		this.tree = document.createTreeWalker(this.treeNode, NodeFilter.SHOW_ELEMENT, this.treeFilter, false);
+	};
+
+	Dom.prototype.filter = function (filter) {
+		var node = this.tree.currentNode;
+		var nodes = [];
+
+		while (node) {
+			if (filter ? filter(node) : true) {
+				nodes.push(node);
+			}
+
+			node = this.tree.nextNode();
+		}
+
+		return nodes;
+	};
+
+	Dom.prototype.findByTag = function (tag) {
+		var tagPattern = new RegExp(tag);
+
+		return this.filter(function (node) {
+			return tagPattern.test(node.tagName.toLowerCase());
+		});
+	};
+
+	Dom.prototype.findByAttribute = function (options) {
+		var namePattern = new RegExp(options.name);
+		var valuePattern = new RegExp(options.value);
+
+		return this.filter(function (node) {
+			var attributes = node.attributes;
+			var l = attributes.length;
+			var i = 0;
+
+			if (options.name && options.value) {
+				for (i; i < l; i++) {
+					return namePattern.test(attributes[i].name) && valuePattern.test(attributes[i].value);
+				}
+			} else if (options.name) {
+				for (i; i < l; i++) {
+					return namePattern.test(attributes[i].name);
+				}
+			} else if (options.value) {
+				for (i; i < l; i++) {
+					return valuePattern.test(attributes[i].value);
+				}
+			}
+
+		});
+	};
+
 	function is (type, value) {
 		return !value ? false : value.constructor.name === type;
 	}
@@ -33,7 +99,10 @@
 	}
 
 	function getPathKeys (string) {
-		return string.replace(']', '').replace('[', '.').split('.');
+		string = string.replace(/(\])|(^data-s-)|(^s-)/g, '');
+		string = string.replace('[', '.');
+		string = toCamelCase(string);
+		return string.split('.');
 	}
 
 	function getByPath (object, path) {
@@ -65,138 +134,23 @@
 		return object;
 	}
 
-	function removeChildren (element) {
-		while (element.firstChild) {
-			element.removeChild(element.firstChild);
-		}
-
-		return element;
-	}
-
 	function toCamelCase (string) {
-		var pattern = /(-.)/g; // |(\..)
+		var pattern = /(-.)/g;
 
 		return string.replace(pattern, function (match) {
 			return match[1].toUpperCase();
 		});
 	}
 
-	function isSwatheAttribute (string) {
-		return /(^s-)|(^data-s)/.test(string);
-	}
-
-	function normalizeAttribute (string) {
-		string = string.replace(/^data-s-/, '');
-		string = string.replace(/^s-/, '');
-		string = toCamelCase(string);
-		return string;
-	}
-
-	function DomCreate (self, scope, sElements, sPaths, sNames, sValues) {
-		var attributeValue = '';
-		var attributeName = '';
-		var attribute = null;
-		var element = null;
-		var isNew = null;
-		var index = null;
-		var isController = null;
-
-		sPaths = sPaths || {};
-		sNames = sNames || {};
-		sValues = sValues || {};
-		sElements = sElements || [];
-
-		index = sElements.length;
-
-		// loop elements
-		for (var i = 0, l = scope.children.length; i < l; i++) {
-			element = scope.children[i];
-			isNew = false;
-
-			isController = element.getAttribute('s-controller') || element.getAttribute('data-s-controller');
-
-			// loop attributes
-			if (element.attributes.length > 0 && !isController) {
-				for (var c = 0, t = element.attributes.length; c < t; c++) {
-					attribute = element.attributes[c];
-
-					if (isSwatheAttribute(attribute.name)) {
-						attributeName = attribute.name;
-						attributeName = normalizeAttribute(attributeName);
-
-						attributeValue = attribute.value;
-
-						if (!sNames[attributeName]) sNames[attributeName] = [];
-						sNames[attributeName].push(index);
-
-						if (!sValues[attributeValue]) sValues[attributeValue] = [];
-						sValues[attributeValue].push(index);
-
-						if (!sPaths[attributeName + ':' + attributeValue]) sPaths[attributeName + ':' + attributeValue] = [];
-						sPaths[attributeName + ':' + attributeValue].push(index);
-
-						isNew = true;
-					}
-				}
-			}
-
-			if (isNew) {
-				index++;
-				sElements.push(element);
-			}
-
-			// loop children
-			if (element.children.length > 0 && !isController) {
-				DomCreate(self, element, sElements, sPaths, sNames, sValues);
-			}
-
-		}
-
-		self.sPaths = sPaths;
-		self.sNames = sNames;
-		self.sValues = sValues;
-		self.sElements = sElements;
-	}
-
-	var Dom = function (scope) {
-		var self = this;
-
-		self.sElements = [];
-		self.sPaths = {};
-		self.sNames = {};
-		self.sValues = {};
-		self.scope = scope;
-
-		DomCreate(self, scope);
+	var PATTERN$1 = {
+		FOR: /(^s-for.*)|(^s-for.*)/,
+		VALUE: /(^s-value.*)|(^s-value.*)/,
+		ON: /(^s-on.*)|(^s-event.*)|(^data-s-on.*)|(^data-s-event.*)/
 	};
 
-	Dom.prototype.findByName = function (sName) {
-		var self = this;
-
-		return self.sNames[sName].map(function (index) {
-			return self.sElements[index];
-		});
-	};
-
-	Dom.prototype.findByValue = function (sValue) {
-		var self = this;
-
-		return self.sValues[sValue].map(function (index) {
-			return self.sElements[index];
-		});
-	};
-
-	Dom.prototype.findByPath = function (sName, sValue) {
-		var self = this;
-
-		return self.sPaths[sName + ':' + sValue].map(function (index) {
-			return self.sElements[index];
-		});
-	};
-
-	function onElement (model, element, sName, sValue) {
-		var eventName = sName;
-		var sValues = sValue;
+	function onElement (model, dom, name, value, element) {
+		var eventName = name;
+		var sValues = value;
 
 		sValues = sValues.replace(/\(/g, ', ');
 		sValues = sValues.replace(/\)/g, '');
@@ -225,69 +179,36 @@
 		element.addEventListener(eventName, methodBound);
 	}
 
-	function forElement (model, element, sName, sValue) {
-		var sValues = sValue.split(' of ');
-		var variable = sValues[0];
-		var iterable = sValues[1];
-		var iterableArray = getByPath(model, iterable);
-
-		var fragment = document.createDocumentFragment();
-
-		// clone child elements
-		each(iterableArray.length, function () {
-			each(element.children, function (child) {
-				fragment.appendChild(child.cloneNode(true));
-			});
-		});
-
-		var fragmentDom = new Dom(fragment);
-
-		var iterableElements = fragmentDom.findByValue(variable);
-
-		each(iterableElements, function (element, index) {
-			each(element.attributes, function (attribute) {
-				if (attribute.value === variable) {
-					attribute.value = iterable + '.'+ index;
-				}
-			});
-		});
-
-		renderElements(model, fragmentDom.sElements);
-
-		// replace children
-		// element.swathe.removeChildren();
-		element = removeChildren(element);
-		element.appendChild(fragment);
-	}
-
-	// function ValueElement (element, sName, sValue) {
+	// function valueElement (model, dom, name, value, element) {
 	// 	console.log(value);
 	// }
 
-	function defaultElement (model, element, sName, sValue, mValue) {
-		mValue = mValue || getByPath(model, sValue);
-		setByPath(element, sName, mValue);
+	function defaultElement (model, dom, name, value, element) {
+		value = getByPath(model, value);
+		setByPath(element, name, value);
 	}
 
-	function proxyElement (model, element, sName, sValue, mValue) {
-		if (/(^on.*)|(^event.*)/.test(sName)) {
-			onElement(model, element, sName, sValue);
-		} else if (/for/.test(sName)) {
-			forElement(model, element, sName, sValue);
-		} else if (/value/.test(sName)) {
-			// ValueElement(model, element, sName, sValue);
+	function proxy (model, dom, name, value, element) {
+		if (PATTERN$1.ON.test(name)) {
+			onElement(model, dom, name, value, element);
+		} else if (PATTERN$1.FOR.test(name)) {
+			// forElement(model, dom, name, value, element);
+		} else if (PATTERN$1.VALUE.test(name)) {
+			// valueElement(model, dom, name, value, element);
 		} else {
-			defaultElement(model, element, sName, sValue, mValue);
+			defaultElement(model, dom, name, value, element);
 		}
 	}
 
-	function renderElements (model, elements, mValue) {
-		each(elements, function (element) {
+	function Render (model, dom, name, value) {
+		var elements = dom.findByAttribute({ name: name, value: value });
+		var namePattern = new RegExp(name);
+		// var valuePattern = new RegExp(value);
+
+		elements.forEach(function (element) {
 			each(element.attributes, function (attribute) {
-				if (attribute && isSwatheAttribute(attribute.name)) {
-					var sName = normalizeAttribute(attribute.name);
-					var sValue = attribute.value;
-					proxyElement(model, element, sName, sValue, mValue);
+				if (attribute && namePattern.test(attribute.name)) {
+					proxy(model, dom, attribute.name, attribute.value, element);
 				}
 			});
 		});
@@ -376,47 +297,50 @@
 		return Object.defineProperties(self, properties);
 	}
 
-	var Controller = function (name, model, scope) {
+	var PATTERN = {
+		S: '(s-.*)|(data-s-.*)',
+		VALUE: '(s-value)|(data-s-value)'
+	};
+
+	var Controller = function (name, model, dom) {
 		var observeObjects = window.Proxy ? observeObjectsProxy : observeObjectsDefine;
 		var self = this;
 
+		self.dom = dom;
 		self.name = name;
 		self.model = model;
+		self.view = self.dom.findByAttribute({ name: 's-controller', value: name });
 
-		self.dom = new Dom(scope);
+		// TODO: find s-value elements
+		// TODO: and change the query abilties from Dom to new View
 
-		self.valueElements = self.dom.findByName('value');
-
-		self.model = observeObjects (self.model, function (sValue, mValue) {
-			var sValueElements = self.dom.findByValue(sValue);
-			renderElements(self.model, sValueElements, mValue);
+		self.model = observeObjects (self.model, function (value) { // mValue
+			Render(self.model, self.view, null, value);
 		});
 
-		self.view = observeElements (self.valueElements, function (sName, sValue, value) {
-			setByPath(self.model, sValue, value);
+		self.observedElements = observeElements (self.inputs, function (name, value, newValue) {
+			setByPath(self.model, value, newValue);
 		});
 
+		Render(self.model, self.view, PATTERN.S);
 	};
 
 	if (!window.Swathe)  {
+		document.addEventListener('DOMContentLoaded', function () {
 
-		window.Swathe = {
-			controllers: {},
-			controller: function (name, model, scope) {
+			window.Swathe = {};
+			window.Swathe.controllers = {};
+			window.Swathe.dom = new Dom(document.body);
+			window.Swathe.controller = function (name, model) {
 				if (!name) throw new Error('Controller - name parameter required');
 				if (!model) throw new Error('Controller - model parameter required');
 
-				scope = document.querySelector('[s-controller=' + name + ']') || document.querySelector('[data-s-controller=' + name + ']');
-
-				if (!scope) throw new Error('Controller - missing or invalid "s-controller" attribute');
-
-				this.controllers[name] = new Controller(name, model, scope);
-				renderElements(this.controllers[name].model, this.controllers[name].dom.sElements);
+				this.controllers[name] = new Controller(name, model, this.dom);
 
 				return this.controllers[name];
-			}
-		};
+			};
 
+		});
 	}
 
 }());

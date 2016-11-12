@@ -31,7 +31,10 @@ export function each (iterable, callback, scope) {
 }
 
 function getPathKeys (string) {
-	return string.replace(']', '').replace('[', '.').split('.');
+	string = string.replace(/(\])|(^data-s-)|(^s-)/g, '');
+	string = string.replace('[', '.');
+	string = toCamelCase(string);
+	return string.split('.');
 }
 
 export function getByPath (object, path) {
@@ -72,7 +75,7 @@ export function removeChildren (element) {
 }
 
 export function toCamelCase (string) {
-	var pattern = /(-.)/g; // |(\..)
+	var pattern = /(-.)/g;
 
 	return string.replace(pattern, function (match) {
 		return match[1].toUpperCase();
