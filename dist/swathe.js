@@ -2,35 +2,71 @@
 	'use strict';
 
 	/*
-		Node is accepted.
-			NodeFilter.FILTER_ACCEPT = 1
-
-		Child nodes are also rejected.
-			NodeFilter.FILTER_REJECT = 2
-
-		Child nodes are not skipped.
-			NodeFilter.FILTER_SKIP = 3
 	*/
 
-	var Dom = function (treeNode, treeFilter) {
-		this.treeNode = treeNode;
-		this.treeFilter = treeFilter;
-		this.tree = document.createTreeWalker(this.treeNode, NodeFilter.SHOW_ELEMENT, this.treeFilter, false);
+	var Dom = function (options) {
+		this.options = options || {};
+		this.nodes = this.options.scope.getElementsByTagName('*');
 	};
 
-	Dom.prototype.filter = function (filter) {
-		var node = this.tree.currentNode;
+	Dom.prototype.list = function (filter) {
+		var l = this.nodes.length;
+		var node = null;
 		var nodes = [];
+		var i = 0;
 
-		while (node) {
+		for (i; i < l; i++) {
+			node = this.nodes[i];
+
 			if (filter ? filter(node) : true) {
 				nodes.push(node);
 			}
-
-			node = this.tree.nextNode();
 		}
 
 		return nodes;
+	};
+
+	Dom.prototype.filter = function (filter) {
+		var filters = this.options.filters;
+
+		if (filters) {
+			if (filters.attributes) var attributesPattern = new RegExp(filters.attributes.join('|'));
+			if (filters.tags) var tagsPattern = new RegExp(filters.tags.join('|'));
+		}
+
+		return this.list(function (node) {
+			var attributesResult = true;
+			var tagsResult = true;
+
+			if (filters) {
+				if (filters.tags) {
+					var tag = node.tagName.toLowerCase();
+					tagsResult = !tagsPattern.test(tag);
+				}
+
+				if (filters.attributes) {
+					var l = node.attributes.length;
+					var i = 0;
+
+					for (i; i < l; i++) {
+						var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
+						if (!attributesPattern.test(attribute)) {
+							attributesResult = true;
+							break;
+						} else {
+							attributesResult = false;
+						}
+					}
+				}
+			}
+
+			if (tagsResult && attributesResult) {
+				return filter ? filter(node) : true;
+			} else {
+				return false;
+			}
+
+		});
 	};
 
 	Dom.prototype.findByTag = function (tag) {
@@ -41,27 +77,17 @@
 		});
 	};
 
-	Dom.prototype.findByAttribute = function (options) {
-		var namePattern = new RegExp(options.name);
-		var valuePattern = new RegExp(options.value);
+	Dom.prototype.findByAttribute = function (attribute) {
+		var attributePattern = new RegExp(attribute);
 
 		return this.filter(function (node) {
 			var attributes = node.attributes;
 			var l = attributes.length;
 			var i = 0;
 
-			if (options.name && options.value) {
-				for (i; i < l; i++) {
-					return namePattern.test(attributes[i].name) && valuePattern.test(attributes[i].value);
-				}
-			} else if (options.name) {
-				for (i; i < l; i++) {
-					return namePattern.test(attributes[i].name);
-				}
-			} else if (options.value) {
-				for (i; i < l; i++) {
-					return valuePattern.test(attributes[i].value);
-				}
+			for (i; i < l; i++) {
+				var attributeNode = node.attributes[i].name + '="' + node.attributes[i].value + '"';
+				if (attributePattern.test(attributeNode)) return true;
 			}
 
 		});
@@ -302,27 +328,36 @@
 		VALUE: '(s-value)|(data-s-value)'
 	};
 
-	var Controller = function (name, model, dom) {
+	var Controller = function (name, model, callback) {
 		var observeObjects = window.Proxy ? observeObjectsProxy : observeObjectsDefine;
 		var self = this;
 
-		self.dom = dom;
+		var options = {
+			scope: document.querySelector('[s-controller=' + name + ']') || document.querySelector('[data-s-controller=' + name + ']'),
+			filters: {
+				attributes: ['s-controller.*'],
+				tags: ['script', 'iframe']
+			}
+		};
+
 		self.name = name;
 		self.model = model;
-		self.view = self.dom.findByAttribute({ name: 's-controller', value: name });
+		self.dom = new Dom(options);
+		self.inputs = self.dom.findByAttribute('s-value.*');
 
-		// TODO: find s-value elements
-		// TODO: and change the query abilties from Dom to new View
-
-		self.model = observeObjects (self.model, function (value) { // mValue
+		// mValue
+		self.model = observeObjects (self.model, function (value) {
 			Render(self.model, self.view, null, value);
 		});
 
+		// might need to have a way to add inputs
 		self.observedElements = observeElements (self.inputs, function (name, value, newValue) {
 			setByPath(self.model, value, newValue);
 		});
 
 		Render(self.model, self.view, PATTERN.S);
+
+		if (callback) return callback(self);
 	};
 
 	if (!window.Swathe)  {
@@ -330,12 +365,11 @@
 
 			window.Swathe = {};
 			window.Swathe.controllers = {};
-			window.Swathe.dom = new Dom(document.body);
-			window.Swathe.controller = function (name, model) {
+			window.Swathe.controller = function (name, model, callback) {
 				if (!name) throw new Error('Controller - name parameter required');
 				if (!model) throw new Error('Controller - model parameter required');
 
-				this.controllers[name] = new Controller(name, model, this.dom);
+				this.controllers[name] = new Controller(name, model, callback);
 
 				return this.controllers[name];
 			};

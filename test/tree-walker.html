@@ -11,7 +11,10 @@
 			.group { display: inline-block; background: lightgray; margin: 4px; padding: 4px; }
 		</style>
 
-		<div class="container" s-controller="app"></div>
+		<div class="container" s-controller="app">
+			<div s-controller="la"></div>
+			<iframe src="" width="" height=""></iframe>
+		</div>
 
 		<script>
 			var model = {};
@@ -46,19 +49,26 @@
 				container.appendChild(groupClone);
 			}
 
-			var scope = document.querySelector('[s-controller="app"]');
-			var dom = new Dom (scope);
+			var options = {
+				scope: document.querySelector('[s-controller="app"]'),
+				filters: {
+					attributes: ['s-controller.*'],
+					tags: ['script', 'iframe']
+				}
+			};
+			var dom = new Dom (options);
 
-			var span = document.createElement('span');
-			span.setAttribute('s-stuff', 'yeah');
-			dom.tree.firstChild().children[1].appendChild(span);
+			// var span = document.createElement('span');
+			// span.setAttribute('s-stuff', 'yeah');
+			// dom.tree.firstChild().children[1].appendChild(span);
 
 			console.time('All');
 			// var elements = dom.filter(function (node) {
 			// 	return node.tagName === 'SPAN';
 			// });
-			var elements = dom.findByAttribute({ name: 's-value' });
-			// var elements = dom.findByTag('span');
+			// var elements = dom.filter();
+			var elements = dom.findByAttribute('s-value.*');
+			// var elements = dom.findByTag('div');
 			console.timeEnd('All');
 
 			console.log(elements);

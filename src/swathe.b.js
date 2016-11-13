@@ -8,27 +8,36 @@ var PATTERN = {
 	VALUE: '(s-value)|(data-s-value)'
 };
 
-var Controller = function (name, model, dom) {
+var Controller = function (name, model, callback) {
 	var observeObjects = window.Proxy ? observeObjectsProxy : observeObjectsDefine;
 	var self = this;
 
-	self.dom = dom;
+	var options = {
+		scope: document.querySelector('[s-controller=' + name + ']') || document.querySelector('[data-s-controller=' + name + ']'),
+		filters: {
+			attributes: ['s-controller.*'],
+			tags: ['script', 'iframe']
+		}
+	};
+
 	self.name = name;
 	self.model = model;
-	self.view = self.dom.findByAttribute({ name: 's-controller', value: name });
+	self.dom = new Dom(options);
+	self.inputs = self.dom.findByAttribute('s-value.*');
 
-	// TODO: find s-value elements
-	// TODO: and change the query abilties from Dom to new View
-
-	self.model = observeObjects (self.model, function (value) { // mValue
+	// mValue
+	self.model = observeObjects (self.model, function (value) {
 		Render(self.model, self.view, null, value);
 	});
 
+	// might need to have a way to add inputs
 	self.observedElements = observeElements (self.inputs, function (name, value, newValue) {
 		setByPath(self.model, value, newValue);
 	});
 
 	Render(self.model, self.view, PATTERN.S);
+
+	if (callback) return callback(self);
 };
 
 if (!window.Swathe)  {
@@ -36,12 +45,11 @@ if (!window.Swathe)  {
 
 		window.Swathe = {};
 		window.Swathe.controllers = {};
-		window.Swathe.dom = new Dom(document.body);
-		window.Swathe.controller = function (name, model) {
+		window.Swathe.controller = function (name, model, callback) {
 			if (!name) throw new Error('Controller - name parameter required');
 			if (!model) throw new Error('Controller - model parameter required');
 
-			this.controllers[name] = new Controller(name, model, this.dom);
+			this.controllers[name] = new Controller(name, model, callback);
 
 			return this.controllers[name];
 		};
