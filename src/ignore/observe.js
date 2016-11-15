@@ -1,24 +1,16 @@
-import { is, each } from './utilities.js';
+import { is } from './utilities.js';
 
 export function observeElements (elements, callback) {
 
-	var handler = function (e) { // event input works on: input, select, textarea
+	// event input works on: input, select, textarea
+	var eventHandler = function (e) {
 		var target = e.target;
-		var value = target.value;
-
-		var sName = null;
-		var sValue = null;
-
-		if (target.hasAttribute('s-value')) sName = 's-value';
-		else if (target.hasAttribute('data-s-value')) sName = 'data-s-value';
-
-		sValue = target.getAttribute(sName);
-
-		callback(sName, sValue, value, target);
+		var value = target.getAttribute('s-value') || target.getAttribute('data-s-value');
+		callback(name, value, target.value, target);
 	};
 
-	each(elements, function (element) {
-		element.addEventListener('input', handler);
+	elements.forEach(function (element) {
+		element.addEventListener('input', eventHandler);
 	});
 
 	return elements;

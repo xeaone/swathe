@@ -3,8 +3,8 @@
 <head>
 	<title>Swathe | General</title>
 	<link rel="stylesheet" href="assets/index.css">
-	<!-- <script src="../dist/swathe.min.js"></script> -->
 	<script src="../dist/swathe.js"></script>
+	<!-- <script src="../dist/swathe.min.js"></script> -->
 </head>
 <body>
 
@@ -59,37 +59,35 @@
 
 
 	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-			var model = {
-				count: 0,
-				text: 'text stuff',
-				buttonName: 'Say Hello World',
-				link: 'Empty',
-				color: 'red',
-				i: {
-					am: {
-						nested: 'NO',
-						nestedLink: 'www.google.com'
-					}
-				},
-				iterable: ['zero', 'one', 'two', 'three'],
-				say: function (modelVariable, string, number, e) {
-					console.log(modelVariable);
-					console.log(string);
-					console.log(number + ' ' + typeof number);
-					console.log(e);
-					console.log(this);
-				}
-			};
 
-			var controller = Swathe.controller('main', model);
+	var model = {
+		count: 0,
+		text: 'text stuff',
+		buttonName: 'Say Hello World',
+		link: 'Empty',
+		color: 'red',
+		i: {
+			am: {
+				nested: 'NO',
+				nestedLink: 'www.google.com'
+			}
+		},
+		iterable: ['zero', 'one', 'two', 'three'],
+		say: function (modelVariable, string, number, e) {
+			console.log(modelVariable);
+			console.log(string);
+			console.log(number + ' ' + typeof number);
+			console.log(e);
+			console.log(this);
+		}
+	};
 
-			// controller.model.count = 0;
-			//
-			// setInterval(function () {
-			// 	controller.model.count++;
-			// }, 1000);
-		});
+	var controller = Swathe.controller('main', model);
+
+	setInterval(function () {
+		controller.model.count++;
+	}, 1000);
+
 	</script>
 </body>
 </html>

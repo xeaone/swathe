@@ -2,13 +2,10 @@
 <html>
 <head>
 	<title>Swathe | Performance</title>
+	<link rel="stylesheet" href="assets/index.css">
 	<script src="../dist/swathe.js"></script>
 </head>
 <body>
-
-	<style>
-		.group { display: inline-block; background: lightgray; margin: 4px; padding: 4px; }
-	</style>
 
 	<div class="container" s-controller="app">
 	</div>
@@ -50,7 +47,9 @@
 		}
 
 		console.time('controller');
-		var controller = Swathe.controller('app', model);
+		Swathe.controller('app', model, function (controller) {
+			console.log(controller.model);
+		});
 		console.timeEnd('controller');
 
 	</script>

@@ -5,20 +5,57 @@
 	*/
 
 	var Dom = function (options) {
-		this.options = options || {};
-		this.nodes = this.options.scope.getElementsByTagName('*');
+		var self = this;
+
+		self.options = options || {};
+		self.nodes = self.options.scope.getElementsByTagName('*');
+
+		if (this.options.rejected) {
+			if (this.options.rejected.tags) this.options.rejected.tags = new RegExp(this.options.rejected.tags.join('|'));
+			if (this.options.rejected.attributes) this.options.rejected.attributes = new RegExp(this.options.rejected.attributes.join('|'));
+		}
+	};
+
+	Dom.prototype.isRejected = function (node) {
+		var rejected = this.options.rejected;
+
+		if (rejected) {
+			var tagsPattern = rejected.tags;
+			var attributesPattern = rejected.attributes;
+
+			if (rejected.tags) {
+				var tag = node.tagName.toLowerCase();
+				if (tagsPattern.test(tag)) return true;
+			}
+
+			if (rejected.attributes) {
+				var l = node.attributes.length;
+				var i = 0;
+
+				for (i; i < l; i++) {
+					var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
+					if (attributesPattern.test(attribute)) return true;
+					else if (i === l-1) return false;
+				}
+			}
+		} else {
+			return false;
+		}
 	};
 
 	Dom.prototype.list = function (filter) {
 		var l = this.nodes.length;
-		var node = null;
+		var node =  null;
 		var nodes = [];
 		var i = 0;
 
 		for (i; i < l; i++) {
 			node = this.nodes[i];
 
-			if (filter ? filter(node) : true) {
+			if (this.isRejected(node)) { // skips elment and its children
+				i = i + node.children.length;
+				node = this.nodes[i];
+			} else if (filter ? filter(node) : true) {
 				nodes.push(node);
 			}
 		}
@@ -26,53 +63,10 @@
 		return nodes;
 	};
 
-	Dom.prototype.filter = function (filter) {
-		var filters = this.options.filters;
-
-		if (filters) {
-			if (filters.attributes) var attributesPattern = new RegExp(filters.attributes.join('|'));
-			if (filters.tags) var tagsPattern = new RegExp(filters.tags.join('|'));
-		}
-
-		return this.list(function (node) {
-			var attributesResult = true;
-			var tagsResult = true;
-
-			if (filters) {
-				if (filters.tags) {
-					var tag = node.tagName.toLowerCase();
-					tagsResult = !tagsPattern.test(tag);
-				}
-
-				if (filters.attributes) {
-					var l = node.attributes.length;
-					var i = 0;
-
-					for (i; i < l; i++) {
-						var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
-						if (!attributesPattern.test(attribute)) {
-							attributesResult = true;
-							break;
-						} else {
-							attributesResult = false;
-						}
-					}
-				}
-			}
-
-			if (tagsResult && attributesResult) {
-				return filter ? filter(node) : true;
-			} else {
-				return false;
-			}
-
-		});
-	};
-
 	Dom.prototype.findByTag = function (tag) {
 		var tagPattern = new RegExp(tag);
 
-		return this.filter(function (node) {
+		return this.list(function (node) {
 			return tagPattern.test(node.tagName.toLowerCase());
 		});
 	};
@@ -80,16 +74,16 @@
 	Dom.prototype.findByAttribute = function (attribute) {
 		var attributePattern = new RegExp(attribute);
 
-		return this.filter(function (node) {
+		return this.list(function (node) {
 			var attributes = node.attributes;
 			var l = attributes.length;
 			var i = 0;
 
 			for (i; i < l; i++) {
-				var attributeNode = node.attributes[i].name + '="' + node.attributes[i].value + '"';
-				if (attributePattern.test(attributeNode)) return true;
+				var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
+				if (attributePattern.test(attribute)) return true;
+				else if (i === l-1) return false;
 			}
-
 		});
 	};
 
@@ -160,6 +154,14 @@
 		return object;
 	}
 
+	function removeChildren (element) {
+		while (element.firstChild) {
+			element.removeChild(element.firstChild);
+		}
+
+		return element;
+	}
+
 	function toCamelCase (string) {
 		var pattern = /(-.)/g;
 
@@ -169,24 +171,22 @@
 	}
 
 	var PATTERN$1 = {
-		FOR: /(^s-for.*)|(^s-for.*)/,
-		VALUE: /(^s-value.*)|(^s-value.*)/,
+		FOR: /(^s-for.*)|(^data-s-for.*)/,
+		VALUE: /(^s-value.*)|(^data-s-value.*)/,
 		ON: /(^s-on.*)|(^s-event.*)|(^data-s-on.*)|(^data-s-event.*)/
 	};
 
 	function onElement (model, dom, name, value, element) {
-		var eventName = name;
-		var sValues = value;
 
-		sValues = sValues.replace(/\(/g, ', ');
-		sValues = sValues.replace(/\)/g, '');
-		sValues = sValues.split(', ');
+		value = value.replace(/\(/g, ', ');
+		value = value.replace(/\)/g, '');
+		value = value.split(', ');
 
-		eventName = eventName.replace(/(^on)|(^event)/g, '');
-		eventName = eventName.toLowerCase();
+		name = name.replace(/(s-)|(on-)|(event-)|(-)/g, '');
+		name = name.toLowerCase();
 
-		var methodPath = sValues[0];
-		var methodParameters = sValues;
+		var methodPath = value[0];
+		var methodParameters = value;
 
 		methodParameters.splice(0, 1);
 
@@ -202,7 +202,42 @@
 		var method = getByPath(model, methodPath);
 		var methodBound = method.bind.apply(method, [element].concat(methodParameters));
 
-		element.addEventListener(eventName, methodBound);
+		element.addEventListener(name, methodBound);
+	}
+
+	function forElement (model, dom, name, value, element) {
+		var values = value.split(' of ');
+		var variable = values[0];
+		var iterable = values[1];
+		var iterableArray = getByPath(model, iterable);
+		var fragment = document.createDocumentFragment();
+
+		// clone child elements
+		each(iterableArray.length, function () {
+			each(element.children, function (child) {
+				fragment.appendChild(child.cloneNode(true));
+			});
+		});
+
+		var elements = fragment.querySelectorAll('*');
+		var namePattern = /(^s-.*)|(^data-s-.*)/;
+		var valuePattern = /.*/;
+		var index = 0;
+
+		// change variable name
+		each(elements, function (element) {
+			each(element.attributes, function (attribute) {
+				if (attribute.value === variable) {
+					attribute.value = iterable + '.'+ index;
+					index++;
+				}
+			});
+		});
+
+		handleElements (model, dom, name, value, elements, namePattern, valuePattern);
+
+		element = removeChildren(element);
+		element.appendChild(fragment);
 	}
 
 	// function valueElement (model, dom, name, value, element) {
@@ -218,47 +253,43 @@
 		if (PATTERN$1.ON.test(name)) {
 			onElement(model, dom, name, value, element);
 		} else if (PATTERN$1.FOR.test(name)) {
-			// forElement(model, dom, name, value, element);
-		} else if (PATTERN$1.VALUE.test(name)) {
+			forElement(model, dom, name, value, element);
+		// } else if (PATTERN.VALUE.test(name)) {
 			// valueElement(model, dom, name, value, element);
 		} else {
 			defaultElement(model, dom, name, value, element);
 		}
 	}
 
-	function Render (model, dom, name, value) {
-		var elements = dom.findByAttribute({ name: name, value: value });
-		var namePattern = new RegExp(name);
-		// var valuePattern = new RegExp(value);
-
+	function handleElements (model, dom, name, value, elements, namePattern, valuePattern) {
 		elements.forEach(function (element) {
 			each(element.attributes, function (attribute) {
-				if (attribute && namePattern.test(attribute.name)) {
+				if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
 					proxy(model, dom, attribute.name, attribute.value, element);
 				}
 			});
 		});
 	}
 
+	function Render (model, dom, name, value) {
+		var elements = dom.findByAttribute(name + '="' + value + '"');
+		var namePattern = new RegExp(name);
+		var valuePattern = new RegExp(value);
+
+		handleElements(model, dom, name, value, elements, namePattern, valuePattern);
+	}
+
 	function observeElements (elements, callback) {
 
-		var handler = function (e) { // event input works on: input, select, textarea
+		// event input works on: input, select, textarea
+		var eventHandler = function (e) {
 			var target = e.target;
-			var value = target.value;
-
-			var sName = null;
-			var sValue = null;
-
-			if (target.hasAttribute('s-value')) sName = 's-value';
-			else if (target.hasAttribute('data-s-value')) sName = 'data-s-value';
-
-			sValue = target.getAttribute(sName);
-
-			callback(sName, sValue, value, target);
+			var value = target.getAttribute('s-value') || target.getAttribute('data-s-value');
+			callback(name, value, target.value, target);
 		};
 
-		each(elements, function (element) {
-			element.addEventListener('input', handler);
+		elements.forEach(function (element) {
+			element.addEventListener('input', eventHandler);
 		});
 
 		return elements;
@@ -324,8 +355,11 @@
 	}
 
 	var PATTERN = {
+		ALL: '.*',
 		S: '(s-.*)|(data-s-.*)',
-		VALUE: '(s-value)|(data-s-value)'
+		VALUE: '(s-value.*)|(data-s-value.*)',
+		TAGS: ['iframe', 'script', 'style', 'link', 'object'],
+		ATTRIBUTES: ['(s-controller.*)|(data-s-controller.*)']
 	};
 
 	var Controller = function (name, model, callback) {
@@ -334,20 +368,19 @@
 
 		var options = {
 			scope: document.querySelector('[s-controller=' + name + ']') || document.querySelector('[data-s-controller=' + name + ']'),
-			filters: {
-				attributes: ['s-controller.*'],
-				tags: ['script', 'iframe']
+			rejected: {
+				tags: PATTERN.TAGS,
+				attributes: PATTERN.ATTRIBUTES
 			}
 		};
 
 		self.name = name;
 		self.model = model;
 		self.dom = new Dom(options);
-		self.inputs = self.dom.findByAttribute('s-value.*');
+		self.inputs = self.dom.findByAttribute(PATTERN.VALUE);
 
-		// mValue
 		self.model = observeObjects (self.model, function (value) {
-			Render(self.model, self.view, null, value);
+			Render(self.model, self.dom, PATTERN.ALL, value);
 		});
 
 		// might need to have a way to add inputs
@@ -355,26 +388,22 @@
 			setByPath(self.model, value, newValue);
 		});
 
-		Render(self.model, self.view, PATTERN.S);
+		Render(self.model, self.dom, PATTERN.S, PATTERN.ALL);
 
 		if (callback) return callback(self);
 	};
 
 	if (!window.Swathe)  {
-		document.addEventListener('DOMContentLoaded', function () {
+		window.Swathe = {};
+		window.Swathe.controllers = {};
+		window.Swathe.controller = function (name, model, callback) {
+			if (!name) throw new Error('Controller - name parameter required');
+			if (!model) throw new Error('Controller - model parameter required');
 
-			window.Swathe = {};
-			window.Swathe.controllers = {};
-			window.Swathe.controller = function (name, model, callback) {
-				if (!name) throw new Error('Controller - name parameter required');
-				if (!model) throw new Error('Controller - model parameter required');
+			this.controllers[name] = new Controller(name, model, callback);
 
-				this.controllers[name] = new Controller(name, model, callback);
-
-				return this.controllers[name];
-			};
-
-		});
+			return this.controllers[name];
+		};
 	}
 
 }());
