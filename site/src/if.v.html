@@ -1,0 +1,27 @@
+<div s-controller="main">
+
+	<h2>See DOM</h2>
+
+	<section>
+		<h2>If</h2>
+		<strong>Raw</strong>
+		<pre>
+		<code class="lang-javascript">
+			&lt;div s-if="isTrue"&gt;isTrue&lt;/div&gt;
+			&lt;div s-if="isFalse"&gt;isFalse&lt;/div&gt;
+		</code>
+		</pre>
+		<br>
+
+		<strong>Proccesed</strong>
+		<div s-if="isTrue">isTrue</div>
+		<div s-if="isFalse">isFalse</div>
+	</section>
+
+</div>
+
+<script>
+	Swathe.controller('main', Model, function (controller) {
+
+	});
+</script>

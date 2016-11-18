@@ -1,0 +1,20 @@
+<!-- { "title": "Html" } -->
+
+<div s-controller="main">
+	<h2>See DOM</h2>
+
+	<!-- <iframe class="nav" src="partials/nav.html"></iframe> -->
+	<object class="nav" data="partials/nav.html" type="text/html"></object>
+
+	<section>
+		<h2>Html</h2>
+		<div s-html="html"></div>
+	</section>
+</div>
+
+
+<script>
+	Swathe.controller('main', Model, function (controller) {
+
+	});
+</script>

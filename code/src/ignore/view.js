@@ -1,7 +1,5 @@
-/*
-*/
 
-var Dom = function (options) {
+export var View = function (options) {
 	var self = this;
 
 	self.options = options || {};
@@ -13,19 +11,19 @@ var Dom = function (options) {
 	}
 };
 
-Dom.prototype.isRejected = function (node) {
+View.prototype.isRejected = function (node) {
 	var rejected = this.options.rejected;
 
 	if (rejected) {
 		var tagsPattern = rejected.tags;
 		var attributesPattern = rejected.attributes;
 
-		if (rejected.tags) {
+		if (tagsPattern) {
 			var tag = node.tagName.toLowerCase();
 			if (tagsPattern.test(tag)) return true;
 		}
 
-		if (rejected.attributes) {
+		if (attributesPattern) {
 			var l = node.attributes.length;
 			var i = 0;
 
@@ -35,12 +33,13 @@ Dom.prototype.isRejected = function (node) {
 				else if (i === l-1) return false;
 			}
 		}
+
 	} else {
 		return false;
 	}
 };
 
-Dom.prototype.list = function (filter) {
+View.prototype.list = function (filter) {
 	var l = this.nodes.length;
 	var node =  null;
 	var nodes = [];
@@ -49,7 +48,7 @@ Dom.prototype.list = function (filter) {
 	for (i; i < l; i++) {
 		node = this.nodes[i];
 
-		if (this.isRejected(node)) { // skips elment and its children
+		if (this.isRejected(node)) { // rejects elment and its children
 			i = i + node.children.length;
 			node = this.nodes[i];
 		} else if (filter ? filter(node) : true) {
@@ -60,7 +59,7 @@ Dom.prototype.list = function (filter) {
 	return nodes;
 };
 
-Dom.prototype.findByTag = function (tag) {
+View.prototype.findByTag = function (tag) {
 	var tagPattern = new RegExp(tag);
 
 	return this.list(function (node) {
@@ -68,7 +67,7 @@ Dom.prototype.findByTag = function (tag) {
 	});
 };
 
-Dom.prototype.findByAttribute = function (attribute) {
+View.prototype.findByAttribute = function (attribute) {
 	var attributePattern = new RegExp(attribute);
 
 	return this.list(function (node) {
@@ -83,5 +82,3 @@ Dom.prototype.findByAttribute = function (attribute) {
 		}
 	});
 };
-
-export { Dom };

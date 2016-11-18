@@ -1,0 +1,37 @@
+<!-- { "title": "Other" } -->
+
+<div s-controller="main">
+
+	<section>
+		<h2>Input Disabled</h2>
+		<input s-value="link" s-disabled="isDisabled">
+	</section>
+
+	<section>
+		<h2>Nested Model</h2>
+		<div>
+			<a s-href="i.am.nestedLink" s-text="i.am.nestedLink" target="_blank">Link</a>
+		</div>
+		<input s-value="i.am.nestedLink">
+	</section>
+
+	<section>
+		<h2>Model Change</h2>
+		<div s-text="count"></div>
+	</section>
+
+	<section s-controller="second">
+		<h2>Sub Controller</h2>
+		<div s-text="text">Ignored Becuase this is another controller.</div>
+	</section>
+
+</div>
+
+<script>
+	var controller = Swathe.controller('main', Model);
+
+	setInterval(function () {
+		controller.model.count++;
+	}, 1000);
+
+</script>

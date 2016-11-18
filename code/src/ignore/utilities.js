@@ -4,30 +4,35 @@ export function is (type, value) {
 }
 
 export function each (iterable, callback, scope) {
-	var statment = null, i = null, l = null, k = null;
+	var statment = null;
 
-	if (is('Number', iterable)) {
-		for (i = 0; i < iterable; i++) {
-			statment = callback.call(scope, i, iterable);
-			if (statment === 'break') break;
-			else if (statment === 'continue') continue;
-		}
-	} else if (is('Object', iterable)) {
+	if (is('Object', iterable)) {
+		var k = null;
+
 		for (k in iterable) {
 			if (!iterable.hasOwnProperty(k)) continue;
 			statment = callback.call(scope, iterable[k], k, iterable);
-			if (statment === 'break') break;
-			else if (statment === 'continue') continue;
+			if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
 		}
 	} else {
+		var i = null;
+		var l = null;
+
 		for (i = 0, l = iterable.length; i < l; i++) {
 			statment = callback.call(scope, iterable[i], i, iterable);
-			if (statment === 'break') break;
-			else if (statment === 'continue') continue;
+			if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
 		}
 	}
 
 	return iterable;
+}
+
+export function toCamelCase (string) {
+	var pattern = /(-.)/g;
+
+	return string.replace(pattern, function (match) {
+		return match[1].toUpperCase();
+	});
 }
 
 function getPathKeys (string) {
@@ -74,21 +79,13 @@ export function removeChildren (element) {
 	return element;
 }
 
-export function toCamelCase (string) {
-	var pattern = /(-.)/g;
-
-	return string.replace(pattern, function (match) {
-		return match[1].toUpperCase();
-	});
-}
-
-export function isSwatheAttribute (string) {
-	return /(^s-)|(^data-s)/.test(string);
-}
-
-export function normalizeAttribute (string) {
-	string = string.replace(/^data-s-/, '');
-	string = string.replace(/^s-/, '');
-	string = toCamelCase(string);
-	return string;
-}
+// export function isSwatheAttribute (string) {
+// 	return /(^s-)|(^data-s)/.test(string);
+// }
+//
+// export function normalizeAttribute (string) {
+// 	string = string.replace(/^data-s-/, '');
+// 	string = string.replace(/^s-/, '');
+// 	string = toCamelCase(string);
+// 	return string;
+// }

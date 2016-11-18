@@ -1,0 +1,97 @@
+/*
+	lightgray
+	darkorange
+	lightsalomon
+	lightseagreen
+	lightslategray
+	slategray
+	whitesmoke
+*/
+* {
+	margin: 0;
+	padding: 0;
+	color: #333;
+	font-size: 1rem;
+	transition: all 300ms ease;
+	-o-transition: all 300ms ease;
+	-ms-transition: all 300ms ease;
+	-moz-transition: all 300ms ease;
+	-webkit-transition: all 300ms ease;
+}
+body {
+	background: whitesmoke;
+}
+main {
+	padding: 4%;
+	margin: auto;
+	max-width: 1000px;
+}
+a {
+	color: darkorange;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+h1 {
+	font-size: 3rem;
+	margin: 1rem auto;
+}
+h2 {
+	font-size: 2rem;
+	margin: 1rem auto;
+}
+nav {
+	text-align: center;
+	border-bottom: solid 3px darkorange;
+}
+nav ul {
+	padding: 0;
+	list-style: none;
+}
+nav li {
+	display: inline-block;
+}
+nav a {
+	display: block;
+	padding: 1rem 2rem;
+	text-transform: uppercase;
+}
+nav a:hover {
+	background: rgba(0,0,0,0.3);
+}
+section {
+	padding: 32px;
+	max-width: 900px;
+	margin: 32px auto;
+	color: whitesmoke;
+	background: lightslategray;
+	border: solid 3px slategray;
+	box-shadow: 0 3px 3px rgba(0,0,0,0.3);
+}
+input, textarea {
+	border: none;
+	outline: none;
+	max-width: 100%;
+	padding: 0.5rem;
+	background: whitesmoke;
+}
+ .button, button, input[type="button"], input[type="submit"] {
+	border: none;
+	margin: auto;
+	display: block;
+	cursor: pointer;
+	color: whitesmoke;
+	padding: 1rem 2rem;
+	background: darkorange;
+	box-shadow: 0 3px 3px rgba(0,0,0,0.3);
+}
+.button:hover, button:hover, input[type="button"]:hover, input[type="submit"]:hover {
+	box-shadow: 0 6px 6px rgba(0,0,0,0.3);
+}
+.group {
+	margin: 4px;
+	padding: 4px;
+	display: inline-block;
+	background: lightgray;
+}

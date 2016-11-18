@@ -1,0 +1,27 @@
+<!-- { "title": "On" } -->
+
+<div s-controller="main">
+
+	<h2>See Console</h2>
+
+	<section>
+		<h2>On</h2>
+		<button type="button" s-on-click="onClick(color, 'world', 1)" >On Click</button>
+	</section>
+
+	<section>
+		<h2>Event</h2>
+		<button type="button" s-event-click="eventClick(color, 'world', 1)" >Event Click</button>
+	</section>
+
+</div>
+
+<script>
+	Swathe.controller('main', Model, function (controller) {
+
+		controller.model.onClick = function (modelVariable, string, number, e) {
+			console.log('does not accept dynmic changes this wont work');
+		};
+
+	});
+</script>

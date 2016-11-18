@@ -1,10 +1,21 @@
 (function () {
 	'use strict';
 
-	/*
-	*/
+	var sStyle = `
+	[s-controller], [data-s-controller] {
+		opacity: 0;
+		transition: all 300ms ease;
+		-o-transition: all 300ms ease;
+		-ms-transition: all 300ms ease;
+		-moz-transition: all 300ms ease;
+		-webkit-transition: all 300ms ease;
+	}
+	.s-if-false {
+		display: none;
+	}
+`;
 
-	var Dom = function (options) {
+	var View = function (options) {
 		var self = this;
 
 		self.options = options || {};
@@ -16,19 +27,19 @@
 		}
 	};
 
-	Dom.prototype.isRejected = function (node) {
+	View.prototype.isRejected = function (node) {
 		var rejected = this.options.rejected;
 
 		if (rejected) {
 			var tagsPattern = rejected.tags;
 			var attributesPattern = rejected.attributes;
 
-			if (rejected.tags) {
+			if (tagsPattern) {
 				var tag = node.tagName.toLowerCase();
 				if (tagsPattern.test(tag)) return true;
 			}
 
-			if (rejected.attributes) {
+			if (attributesPattern) {
 				var l = node.attributes.length;
 				var i = 0;
 
@@ -38,12 +49,13 @@
 					else if (i === l-1) return false;
 				}
 			}
+
 		} else {
 			return false;
 		}
 	};
 
-	Dom.prototype.list = function (filter) {
+	View.prototype.list = function (filter) {
 		var l = this.nodes.length;
 		var node =  null;
 		var nodes = [];
@@ -52,7 +64,7 @@
 		for (i; i < l; i++) {
 			node = this.nodes[i];
 
-			if (this.isRejected(node)) { // skips elment and its children
+			if (this.isRejected(node)) { // rejects elment and its children
 				i = i + node.children.length;
 				node = this.nodes[i];
 			} else if (filter ? filter(node) : true) {
@@ -63,7 +75,7 @@
 		return nodes;
 	};
 
-	Dom.prototype.findByTag = function (tag) {
+	View.prototype.findByTag = function (tag) {
 		var tagPattern = new RegExp(tag);
 
 		return this.list(function (node) {
@@ -71,7 +83,7 @@
 		});
 	};
 
-	Dom.prototype.findByAttribute = function (attribute) {
+	View.prototype.findByAttribute = function (attribute) {
 		var attributePattern = new RegExp(attribute);
 
 		return this.list(function (node) {
@@ -92,30 +104,35 @@
 	}
 
 	function each (iterable, callback, scope) {
-		var statment = null, i = null, l = null, k = null;
+		var statment = null;
 
-		if (is('Number', iterable)) {
-			for (i = 0; i < iterable; i++) {
-				statment = callback.call(scope, i, iterable);
-				if (statment === 'break') break;
-				else if (statment === 'continue') continue;
-			}
-		} else if (is('Object', iterable)) {
+		if (is('Object', iterable)) {
+			var k = null;
+
 			for (k in iterable) {
 				if (!iterable.hasOwnProperty(k)) continue;
 				statment = callback.call(scope, iterable[k], k, iterable);
-				if (statment === 'break') break;
-				else if (statment === 'continue') continue;
+				if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
 			}
 		} else {
+			var i = null;
+			var l = null;
+
 			for (i = 0, l = iterable.length; i < l; i++) {
 				statment = callback.call(scope, iterable[i], i, iterable);
-				if (statment === 'break') break;
-				else if (statment === 'continue') continue;
+				if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
 			}
 		}
 
 		return iterable;
+	}
+
+	function toCamelCase (string) {
+		var pattern = /(-.)/g;
+
+		return string.replace(pattern, function (match) {
+			return match[1].toUpperCase();
+		});
 	}
 
 	function getPathKeys (string) {
@@ -162,16 +179,80 @@
 		return element;
 	}
 
-	function toCamelCase (string) {
-		var pattern = /(-.)/g;
+	// export function isSwatheAttribute (string) {
+	// 	return /(^s-)|(^data-s)/.test(string);
+	// }
+	//
+	// export function normalizeAttribute (string) {
+	// 	string = string.replace(/^data-s-/, '');
+	// 	string = string.replace(/^s-/, '');
+	// 	string = toCamelCase(string);
+	// 	return string;
+	// }
 
-		return string.replace(pattern, function (match) {
-			return match[1].toUpperCase();
-		});
+	function serialize (data) {
+		var string = '';
+
+		for (var name in data) {
+			string = string.length > 0 ? string + '&' : string;
+			string = string + encodeURIComponent(name) + '=' + encodeURIComponent(data[name]);
+		}
+
+		return string;
+	}
+
+	function ajax (options) {
+		if (!options) throw new Error('ajax: requires options');
+
+		if (!options.action) options.action = window.location.pathname;
+		if (!options.enctype) options.enctype = 'text/plain';
+		if (!options.method) options.method = 'GET';
+
+		options.method = options.method.toUpperCase();
+
+		if (options.data) {
+			if (options.method === 'GET') {
+				options.action = options.action + '?' + serialize(options.data);
+				options.data = null;
+			} else {
+				if (options.enctype.search('application/x-www-form-urlencoded') !== -1) options.data = serialize(options.data);
+				else if (options.enctype.search('application/json') !== -1) options.data = JSON.stringify(options.data);
+			}
+		}
+
+		var xhr = new XMLHttpRequest();
+		xhr.open(options.method, options.action, true, options.username, options.password);
+
+		if (options.mimeType) xhr.overrideMimeType(options.mimeType);
+		if (options.withCredentials) xhr.withCredentials = options.withCredentials;
+
+		if (options.headers) {
+			for (var name in options.headers) {
+				xhr.setRequestHeader(name, options.headers[name]);
+			}
+		}
+
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState === 4) {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					if (options.success) return options.success(xhr);
+				} else {
+					if (options.error) return options.error(xhr);
+				}
+			}
+		};
+
+		xhr.send(options.data);
 	}
 
 	var PATTERN$1 = {
+		IF: /(^s-if.*)|(^data-s-if.*)/,
 		FOR: /(^s-for.*)|(^data-s-for.*)/,
+		CSS: /(^s-css.*)|(^data-s-css.*)/,
+		HTML: /(^s-html.*)|(^data-s-html.*)/,
+		// VIEW: /(^s-view.*)|(^data-s-view.*)/,
+		TEXT: /(^s-text.*)|(^data-s-text.*)/,
+		STYLE: /(^s-style.*)|(^data-s-style.*)/,
 		VALUE: /(^s-value.*)|(^data-s-value.*)/,
 		ON: /(^s-on.*)|(^s-event.*)|(^data-s-on.*)|(^data-s-event.*)/
 	};
@@ -182,11 +263,14 @@
 		value = value.replace(/\)/g, '');
 		value = value.split(', ');
 
-		name = name.replace(/(s-)|(on-)|(event-)|(-)/g, '');
+		name = name.replace(/(data-)|(s-)|(on-)|(event-)|(-)/g, '');
 		name = name.toLowerCase();
 
 		var methodPath = value[0];
 		var methodParameters = value;
+		var method = getByPath(model, methodPath);
+
+		// if (!method) return null;
 
 		methodParameters.splice(0, 1);
 
@@ -199,21 +283,20 @@
 			}
 		});
 
-		var method = getByPath(model, methodPath);
 		var methodBound = method.bind.apply(method, [element].concat(methodParameters));
 
 		element.addEventListener(name, methodBound);
 	}
 
 	function forElement (model, dom, name, value, element) {
-		var values = value.split(' of ');
-		var variable = values[0];
-		var iterable = values[1];
+		var variable = name.split('-').pop();
+		var iterable = value;
+
 		var iterableArray = getByPath(model, iterable);
 		var fragment = document.createDocumentFragment();
 
 		// clone child elements
-		each(iterableArray.length, function () {
+		iterableArray.forEach(function () {
 			each(element.children, function (child) {
 				fragment.appendChild(child.cloneNode(true));
 			});
@@ -224,7 +307,7 @@
 		var valuePattern = /.*/;
 		var index = 0;
 
-		// change variable name
+		// change forElement child variable names
 		each(elements, function (element) {
 			each(element.attributes, function (attribute) {
 				if (attribute.value === variable) {
@@ -240,43 +323,105 @@
 		element.appendChild(fragment);
 	}
 
-	// function valueElement (model, dom, name, value, element) {
-	// 	console.log(value);
-	// }
+	function cssElement (model, dom, name, value, element) {
+		var styles = value.replace(/\s/g, '').split(';');
+		var cssText = null;
+		var viewValue = null;
+		var modelValue = null;
+		var viewValueClean = null;
+
+		styles.forEach(function (style) {
+			viewValue = style.split(':').pop();
+
+			if (/^\$/.test(viewValue)) {
+				viewValueClean = viewValue.replace('$', '');
+				modelValue = getByPath(model, viewValueClean);
+
+				if (modelValue) {
+					style = style.replace(viewValue, modelValue);
+					cssText = getByPath(element, 'style.cssText');
+					setByPath(element, 'style.cssText', cssText + style);
+				}
+			}
+		});
+	}
+
+	function ifElement (model, dom, name, value, element) {
+		value = getByPath(model, value);
+		if (value) element.classList.remove('s-if-false');
+		else element.classList.add('s-if-false');
+	}
+
+	function styleElement (model, dom, name, value, element) {
+		name = name.replace(/(s-style-)|(data-s-style-)/, 'style.');
+		name = toCamelCase(name);
+		defaultElement(model, dom, name, value, element);
+	}
+
+	function htmlElement (model, dom, name, value, element) {
+		name = 'innerHTML';
+
+		if (/^\//.test(value)) {
+			ajax({
+				action: '/partial/index.html',
+				success: function (xhr) {
+					console.log(xhr);
+				},
+				error: function (xhr) {
+					console.log(xhr);
+				}
+			});
+		} else {
+			defaultElement(model, dom, name, value, element);
+		}
+	}
+
+	function textElement (model, dom, name, value, element) {
+		name = 'innerText';
+		defaultElement(model, dom, name, value, element);
+	}
 
 	function defaultElement (model, dom, name, value, element) {
-		value = getByPath(model, value);
+		value = getByPath(model, value) || value;
 		setByPath(element, name, value);
 	}
 
-	function proxy (model, dom, name, value, element) {
+	function proxyElement (model, dom, name, value, element) {
 		if (PATTERN$1.ON.test(name)) {
 			onElement(model, dom, name, value, element);
+		} else if (PATTERN$1.IF.test(name)) {
+			ifElement(model, dom, name, value, element);
 		} else if (PATTERN$1.FOR.test(name)) {
 			forElement(model, dom, name, value, element);
-		// } else if (PATTERN.VALUE.test(name)) {
-			// valueElement(model, dom, name, value, element);
+		} else if (PATTERN$1.CSS.test(name)) {
+			cssElement(model, dom, name, value, element);
+		} else if (PATTERN$1.HTML.test(name)) {
+			htmlElement(model, dom, name, value, element);
+		} else if (PATTERN$1.TEXT.test(name)) {
+			textElement(model, dom, name, value, element);
+		} else if (PATTERN$1.STYLE.test(name)) {
+			styleElement(model, dom, name, value, element);
 		} else {
 			defaultElement(model, dom, name, value, element);
 		}
 	}
 
 	function handleElements (model, dom, name, value, elements, namePattern, valuePattern) {
-		elements.forEach(function (element) {
+		each(elements, function (element) {
 			each(element.attributes, function (attribute) {
 				if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
-					proxy(model, dom, attribute.name, attribute.value, element);
+					proxyElement(model, dom, attribute.name, attribute.value, element);
 				}
 			});
 		});
 	}
 
 	function Render (model, dom, name, value) {
-		var elements = dom.findByAttribute(name + '="' + value + '"');
-		var namePattern = new RegExp(name);
-		var valuePattern = new RegExp(value);
+		var dollarPattern = '(\\$' + value + ')';
+		var regularPattern = '(' + name + '=\"' + value + '\")';
+		var elements = dom.findByAttribute(regularPattern + '|' + dollarPattern);
 
-		handleElements(model, dom, name, value, elements, namePattern, valuePattern);
+		handleElements(model, dom, name, value, elements, new RegExp(name), new RegExp(value));
 	}
 
 	function observeElements (elements, callback) {
@@ -322,6 +467,8 @@
 	function observeObjectsDefine (object, callback, prefix) {
 		var self = {};
 		var properties = {};
+
+		if (!prefix) prefix = '';
 
 		var handler = function(o, k, p) {
 			return {
@@ -376,34 +523,44 @@
 
 		self.name = name;
 		self.model = model;
-		self.dom = new Dom(options);
-		self.inputs = self.dom.findByAttribute(PATTERN.VALUE);
+		self.view = new View(options);
+		self.inputs = self.view.findByAttribute(PATTERN.VALUE);
 
 		self.model = observeObjects (self.model, function (value) {
-			Render(self.model, self.dom, PATTERN.ALL, value);
+			Render(self.model, self.view, PATTERN.ALL, value);
 		});
 
-		// might need to have a way to add inputs
-		self.observedElements = observeElements (self.inputs, function (name, value, newValue) {
+		self.inputs = observeElements (self.inputs, function (name, value, newValue) {
 			setByPath(self.model, value, newValue);
 		});
 
-		Render(self.model, self.dom, PATTERN.S, PATTERN.ALL);
+		Render(self.model, self.view, PATTERN.S, PATTERN.ALL);
 
-		if (callback) return callback(self);
+		document.addEventListener('DOMContentLoaded', function () {
+			options.scope.style.opacity = '1';
+		});
+
+		if (callback) callback(self);
 	};
 
 	if (!window.Swathe)  {
-		window.Swathe = {};
-		window.Swathe.controllers = {};
-		window.Swathe.controller = function (name, model, callback) {
-			if (!name) throw new Error('Controller - name parameter required');
-			if (!model) throw new Error('Controller - model parameter required');
 
-			this.controllers[name] = new Controller(name, model, callback);
+		var eStyle = document.createElement('style');
+		var nStyle = document.createTextNode(sStyle);
+		eStyle.title = 'swathe';
+		eStyle.appendChild(nStyle);
+		document.head.appendChild(eStyle);
 
-			return this.controllers[name];
+		window.Swathe = {
+			controllers: {},
+			controller: function (name, model, callback) {
+				if (!name) throw new Error('Controller - name parameter required');
+				if (!model) throw new Error('Controller - model parameter required');
+				this.controllers[name] = new Controller(name, model, callback);
+				return this.controllers[name];
+			}
 		};
+
 	}
 
 }());

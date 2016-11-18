@@ -44,6 +44,8 @@ export function observeObjectsDefine (object, callback, prefix) {
 	var self = {};
 	var properties = {};
 
+	if (!prefix) prefix = '';
+
 	var handler = function(o, k, p) {
 		return {
 			enumerable: true,

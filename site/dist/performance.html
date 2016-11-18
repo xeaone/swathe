@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Performance  | Swathe</title>
+	<link rel="stylesheet" href="assets/index.css">
+
+	<link rel="stylesheet" href="assets/prism.css">
+	<script src="assets/prism.js"></script>
+
+	<script src="assets/model.js"></script>
+	<script src="assets/swathe.js"></script>
+</head>
+<body>
+
+	<header>
+		<nav>
+			<ul>
+				<li><a href="if.html">If</a></li>
+				<li><a href="on.html">On</a></li>
+				<li><a href="for.html">For</a></li>
+				<li><a href="performance.html">Performance</a></li>
+				<li><a href="other.html">Other</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		
+
+<div class="container" s-controller="app"></div>
+
+<script>
+
+	var model = {};
+
+	var count = 0;
+	var current = 0;
+
+	var container = document.querySelector('.container');
+	var group = document.createElement('div');
+	var input = document.createElement('input');
+	var div = document.createElement('div');
+
+	group.setAttribute('class', 'group');
+
+	for (var i = 0; i < 10000; i++) {
+		var groupClone = group.cloneNode();
+		var inputClone = input.cloneNode();
+		var divClone = div.cloneNode();
+
+		if (count === 1000) {
+			count = 0;
+			current = i;
+		} else {
+			count++;
+		}
+
+		model[current] = current;
+
+		inputClone.setAttribute('s-value', current);
+		divClone.setAttribute('s-inner-text', current);
+
+		groupClone.appendChild(inputClone);
+		groupClone.appendChild(divClone);
+		container.appendChild(groupClone);
+	}
+
+	console.time('controller');
+	Swathe.controller('app', model, function (controller) {
+		console.log(controller.model);
+	});
+	console.timeEnd('controller');
+
+</script>
+
+	</main>
+
+	<footer></footer>
+
+</body>
+</html>

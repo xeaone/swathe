@@ -13,7 +13,7 @@ Performance seems to be extremely good. Running Chrome with **1,000** bi-directi
 
 
 ## Browser Support ##
-The code is in ES6 but is compiled down to ES5. Swathe uses ES6 Proxy and the browser support is not ideal. Swathe automatically will detect if the browser supports Proxy and if not will fall back to use Object.defineProperties. An important note to keep in mind is that Object.defineProperties does not allow for new properties to be added and watched. Therefore after the controller has been created new properties added to the model will not be watched. Proxies will allow dynamic properties. Either way it would be best practice to declare all properties on the model before creating the controller. Thus browser support is basically anything that can run ES5.
+The code is in ES6 and ES5 but is compiled down to ES5. Swathe uses ES6 Proxy and the browser support is almost there but not ideal yet. Swathe automatically will detect if the browser supports Proxy and if not will fall back to use Object.defineProperties. An important note to keep in mind is that Object.defineProperties does not allow for new properties to be added and watched. Therefore after the controller has been created new properties added to the model will not be watched. Proxies will allow dynamic properties. Either way it would be best practice to declare all properties on the model before creating the controller. Thus browser support is basically anything that can run ES5.
 
 - IE 9+
 - Edge
@@ -77,7 +77,8 @@ setTimeout(function () {
 ### controller ###
 **Parameters**
 - `name`  A controller name. **Required**
-- `model` An observed interactable object. It is best to define all properties that will be observed at this point. **Required**
+- `model` A observed object. It is best to define all properties that will be observed at this point. **Required**
+- `callback` A callback for the controller with the instance of the controller passed as a parameter.
 
 **Returns**
 - `controller` A controller instance.
@@ -85,8 +86,7 @@ setTimeout(function () {
 **Properties**
 - `name`
 - `model` The observed object.
-- `dom` Object containing a reference to DOM elements.
-- `view`
+- `view` Object containing a reference to DOM elements.
 
 ### controllers ###
 **Returns**
@@ -94,7 +94,7 @@ setTimeout(function () {
 
 ## View ##
 ### Attribute Name ###
-Attribute names are used for Swathe to detect elements to interact with. These names map directly to JavaScript element properties. The mapping pattern converts `-` toCamelCase. Dots or periods such as `s-style.background` are an acceptable syntax.
+Attribute names are used for Swathe to detect elements to interact with. These names map directly to JavaScript element properties. **All** JavaScript element properties are available for usage. The mapping pattern typically converts `-` to camel case and leaves dots delimited unchanged. For example `s-style.background` is an acceptable syntax. Although please note that the dot for the `s-style` is not necessary. Both `s-style.background` and `s-style-background` are acceptable because `s-style` is a special attribute.
 
 - `s-*`: The primary prefix for attribute names.
 - `data-s-*`: The secondary prefix for attribute names.
@@ -102,13 +102,23 @@ Attribute names are used for Swathe to detect elements to interact with. These n
 ### Attribute Values ###
 Attribute values are used to access and register an element's property to it's Model. The attribute name `s-inner-text` could have a value set to `array.0`.
 
-- `.`: Dot syntax can be used to access a properties on the model even array indexes.
+- `.`: Dot syntax can be used to access any property on the model.
+- `[]` Bracket syntax can even be used to access array values.
 
 ### Special Attributes ###
-- `s-on-*` This is the event attribute it is used instead of `addEventListener`. Example `s-on-click="say('hello')"`.
+- `s-text` Maps to `innerText`
+- `s-html` Maps to `innerHtml`
+
+- `s-style-[property]` Maps to `style.color`
+
+- `s-css` Maps to `cssText`
+	- `value` The JavaScript `cssText` property accepts a string of css any model variables can also be used by pre-appending the variable name with a `$`.
+
+- `s-event-[event]` Sames as `s-on-[event]`
+- `s-on-[event]` This is the event attribute it is used instead of `addEventListener`. Example `s-on-click="say('hello')"`.
 	- Function parameters can be `Model Variables`, `String`, and `Number`. Numbers are parsed to an actual integer.
 
-- `s-for` This is basically a for of loop. Example `s-for="variable of iterable"`.
+- `s-for-[variable]` A for of loop. Example `s-for-variable="iterable"`.
 	- `for` Clones the first child element.
 	- `variable` The value for the children elements to use.
 	- `iterable` The path to an array/iterable on the model.

@@ -1,4 +1,5 @@
-import { Dom } from './ignore/dom.js';
+import { sStyle } from './ignore/style.js';
+import { View } from './ignore/view.js';
 import { setByPath } from './ignore/utilities.js';
 import { Render } from './ignore/render.js';
 import { observeObjectsProxy, observeObjectsDefine, observeElements } from './ignore/observe.js';
@@ -25,32 +26,42 @@ var Controller = function (name, model, callback) {
 
 	self.name = name;
 	self.model = model;
-	self.view = new Dom(options);
+	self.view = new View(options);
 	self.inputs = self.view.findByAttribute(PATTERN.VALUE);
 
 	self.model = observeObjects (self.model, function (value) {
 		Render(self.model, self.view, PATTERN.ALL, value);
 	});
 
-	// might need to have a way to add inputs
-	self.observedElements = observeElements (self.inputs, function (name, value, newValue) {
+	self.inputs = observeElements (self.inputs, function (name, value, newValue) {
 		setByPath(self.model, value, newValue);
 	});
 
 	Render(self.model, self.view, PATTERN.S, PATTERN.ALL);
 
-	if (callback) return callback(self);
+	document.addEventListener('DOMContentLoaded', function () {
+		options.scope.style.opacity = '1';
+	});
+
+	if (callback) callback(self);
 };
 
 if (!window.Swathe)  {
-	window.Swathe = {};
-	window.Swathe.controllers = {};
-	window.Swathe.controller = function (name, model, callback) {
-		if (!name) throw new Error('Controller - name parameter required');
-		if (!model) throw new Error('Controller - model parameter required');
 
-		this.controllers[name] = new Controller(name, model, callback);
+	var eStyle = document.createElement('style');
+	var nStyle = document.createTextNode(sStyle);
+	eStyle.title = 'swathe';
+	eStyle.appendChild(nStyle);
+	document.head.appendChild(eStyle);
 
-		return this.controllers[name];
+	window.Swathe = {
+		controllers: {},
+		controller: function (name, model, callback) {
+			if (!name) throw new Error('Controller - name parameter required');
+			if (!model) throw new Error('Controller - model parameter required');
+			this.controllers[name] = new Controller(name, model, callback);
+			return this.controllers[name];
+		}
 	};
+
 }
