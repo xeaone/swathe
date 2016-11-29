@@ -1,8 +1,12 @@
 {
   "name": "swathe",
   "version": "1.2.0",
-  "description": "Swathe - Powerful | Small | Data Binding | No Virtual DOM | No Dirty Checks",
+  "description": "Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small",
   "main": "dist/swathe.js",
+  "scripts": {
+    "site-clean": "rm -r site/dist/* && rm -r docs/*",
+    "site-build": "muleify pack -p site -o dist && muleify pack -p site -o ../docs"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AlexanderElias/swathe.git"
@@ -25,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/AlexanderElias/swathe/issues"
   },
-  "homepage": "https://github.com/AlexanderElias/swathe#readme"
+  "homepage": "https://github.com/AlexanderElias/swathe#readme",
+  "dependencies": {
+    "erbium": "^1.3.5"
+  }
 }

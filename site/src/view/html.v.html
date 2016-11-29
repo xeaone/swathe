@@ -1,0 +1,30 @@
+<!-- { "title": "Html" } -->
+
+<h2>Html</h2>
+
+<section>
+
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		model.html = '<div>Hello World</div>';
+	</code>
+	<code class="raw prettyprint">
+		<div s-html="html"></div>;
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<div s-html="html"></div>
+	</div>
+
+</section>
+
+<script>
+	Swathe.controller('main',
+		{
+			html: '<div>Hello World</div>'
+		},
+		function (controller) {
+		}
+	);
+</script>

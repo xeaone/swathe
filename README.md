@@ -1,8 +1,9 @@
 # Swathe #
-**Swathe - Powerful | Small | Data Binding | No Virtual DOM | No Dirty Checks**
+**Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small**
 
 Swathe is a smart 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see for your self. Contributions suggestions welcome and appreciated! 2 Way data binding can be costly thus only elements with value properties are bi-directionally watched using the Input Event.
 
+**Website under construction**
 
 ## Size ##
 Approximately 1.7KB gzipped (4.3KB uncompressed)
@@ -12,7 +13,7 @@ Approximately 1.7KB gzipped (4.3KB uncompressed)
 Performance seems to be extremely good. Running Chrome with **1,000** bi-directional elements changing simultaneously and a total of **10,000** elements being controlled by Swathe there is no apparent UI lag. If you want to check it out for your self pull up the example directory and view the performance html document.
 
 
-## Browser Support ##
+## Compatibility ##
 The code is in ES6 and ES5 but is compiled down to ES5. Swathe uses ES6 Proxy and the browser support is almost there but not ideal yet. Swathe automatically will detect if the browser supports Proxy and if not will fall back to use Object.defineProperties. An important note to keep in mind is that Object.defineProperties does not allow for new properties to be added and watched. Therefore after the controller has been created new properties added to the model will not be watched. Proxies will allow dynamic properties. Either way it would be best practice to declare all properties on the model before creating the controller. Thus browser support is basically anything that can run ES5.
 
 - IE 9+

@@ -1,0 +1,48 @@
+<!-- { "title": "For" } -->
+
+<h2>For</h2>
+
+<section>
+
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<input s-value="iterable[0]">
+		<ul s-for-variable="iterable">
+			<li>
+				<span s-text="variable"></span>
+				<span s-text="number"></span>
+			</li>
+		</ul>
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<input type="text" s-value="iterable[0]">
+		<ul s-for-variable="iterable">
+			<li>
+				<span s-text="number"></span>
+				<span s-text="variable"></span>
+			</li>
+		</ul>
+	</div>
+
+</section>
+
+<script>
+	Swathe.controller('main',
+		{
+			number: 'Number: ',
+			iterable: ['zero', 'one', 'two', 'three']
+		},
+		function (controller) {
+			setTimeout(function () {
+				controller.model.iterable.pop();
+
+				// does not tigger change
+				// delete controller.model.iterable[2]
+
+				console.log(controller.model.iterable);
+			}, 1500);
+		}
+	);
+</script>

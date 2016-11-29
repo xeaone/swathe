@@ -137,8 +137,14 @@ function textElement (model, dom, name, value, element) {
 	defaultElement(model, dom, name, value, element);
 }
 
+// function valueElement (model, dom, name, value, element) {
+// 	value = getByPath(model, value);
+// 	setByPath(element, name, value);
+// }
+
 function defaultElement (model, dom, name, value, element) {
-	value = getByPath(model, value) || value;
+	// value = getByPath(model, value) || value;
+	value = getByPath(model, value);
 	setByPath(element, name, value);
 }
 

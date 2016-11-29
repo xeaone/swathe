@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>View  | Swathe</title>
+	<script src="/assets/nav-bar.js"></script>
+
+	<link rel="stylesheet" href="/assets/index.css">
+	<script src="/assets/index.js"></script>
+
+	<script src="/assets/swathe.js"></script>
+
+	<link rel="stylesheet" href="/assets/prettify-desert-theme.css">
+	<script src="/assets/prettify.js"></script>
+</head>
+<body>
+
+	<header>
+		<div class="logo">
+			<a href="/">
+				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
+			</a>
+		</div>
+		<div class="title">
+			<span class="secondary-f">
+				View
+			</span>
+		</div>
+		<nav class="nav-bar">
+			<ul>
+				<li>
+					<a href="/view">View Documentation</a>
+					<ul>
+						<li><a href="if.html">If</a></li>
+						<li><a href="on.html">On</a></li>
+						<li><a href="for.html">For</a></li>
+						<li><a href="html.html">Html</a></li>
+						<li><a href="style.html">Style</a></li>
+						<li><a href="performance.html">Performance</a></li>
+						<li><a href="other.html">Other</a></li>
+					</ul>
+				</li>
+				<li><a href="/model">Model Documentation</a></li>
+				<li><a href="performance.html">Performance</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		
+
+## View ##
+### Attribute Name ###
+Attribute names are used for Swathe to detect elements to interact with. These names map directly to JavaScript element properties. **All** JavaScript element properties are available for usage. The mapping pattern typically converts `-` to camel case and leaves dots delimited unchanged. For example `s-style.background` is an acceptable syntax. Although please note that the dot for the `s-style` is not necessary. Both `s-style.background` and `s-style-background` are acceptable because `s-style` is a special attribute.
+
+- `s-*`: The primary prefix for attribute names.
+- `data-s-*`: The secondary prefix for attribute names.
+
+### Attribute Values ###
+Attribute values are used to access and register an element's property to it's Model. The attribute name `s-inner-text` could have a value set to `array.0`.
+
+- `.`: Dot syntax can be used to access any property on the model.
+- `[]` Bracket syntax can even be used to access array values.
+
+### Special Attributes ###
+- `s-text` Maps to `innerText`
+- `s-html` Maps to `innerHtml`
+
+- `s-style-[property]` Maps to `style.color`
+
+- `s-css` Maps to `cssText`
+	- `value` The JavaScript `cssText` property accepts a string of css any model variables can also be used by pre-appending the variable name with a `<!DOCTYPE html>
+<html>
+<head>
+	<title>View  | Swathe</title>
+	<script src="/assets/nav-bar.js"></script>
+
+	<link rel="stylesheet" href="/assets/index.css">
+	<script src="/assets/index.js"></script>
+
+	<script src="/assets/swathe.js"></script>
+
+	<link rel="stylesheet" href="/assets/prettify-desert-theme.css">
+	<script src="/assets/prettify.js"></script>
+</head>
+<body>
+
+	<header>
+		<div class="logo">
+			<a href="/">
+				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
+			</a>
+		</div>
+		<div class="title">
+			<span class="secondary-f">
+				View
+			</span>
+		</div>
+		<nav class="nav-bar">
+			<ul>
+				<li>
+					<a href="/view">View Documentation</a>
+					<ul>
+						<li><a href="if.html">If</a></li>
+						<li><a href="on.html">On</a></li>
+						<li><a href="for.html">For</a></li>
+						<li><a href="html.html">Html</a></li>
+						<li><a href="style.html">Style</a></li>
+						<li><a href="performance.html">Performance</a></li>
+						<li><a href="other.html">Other</a></li>
+					</ul>
+				</li>
+				<li><a href="/model">Model Documentation</a></li>
+				<li><a href="performance.html">Performance</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		.
+
+- `s-event-[event]` Sames as `s-on-[event]`
+- `s-on-[event]` This is the event attribute it is used instead of `addEventListener`. Example `s-on-click="say('hello')"`.
+	- Function parameters can be `Model Variables`, `String`, and `Number`. Numbers are parsed to an actual integer.
+
+- `s-for-[variable]` A for of loop. Example `s-for-variable="iterable"`.
+	- `for` Clones the first child element.
+	- `variable` The value for the children elements to use.
+	- `iterable` The path to an array/iterable on the model.
+
+
+## License ##
+Licensed Under MPL 2.0
+
+	</main>
+
+	<footer></footer>
+
+</body>
+</html>

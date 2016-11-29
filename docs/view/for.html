@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>For  | Swathe</title>
+	<script src="/assets/nav-bar.js"></script>
+
+	<link rel="stylesheet" href="/assets/index.css">
+	<script src="/assets/index.js"></script>
+
+	<script src="/assets/swathe.js"></script>
+
+	<link rel="stylesheet" href="/assets/prettify-desert-theme.css">
+	<script src="/assets/prettify.js"></script>
+</head>
+<body>
+
+	<header>
+		<div class="logo">
+			<a href="/">
+				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
+			</a>
+		</div>
+		<div class="title">
+			<span class="secondary-f">
+				For
+			</span>
+		</div>
+		<nav class="nav-bar">
+			<ul>
+				<li>
+					<a href="/view">View Documentation</a>
+					<ul>
+						<li><a href="if.html">If</a></li>
+						<li><a href="on.html">On</a></li>
+						<li><a href="for.html">For</a></li>
+						<li><a href="html.html">Html</a></li>
+						<li><a href="style.html">Style</a></li>
+						<li><a href="performance.html">Performance</a></li>
+						<li><a href="other.html">Other</a></li>
+					</ul>
+				</li>
+				<li><a href="/model">Model Documentation</a></li>
+				<li><a href="performance.html">Performance</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		
+
+<h2>For</h2>
+
+<section>
+
+	<strong>Raw</strong>
+	<code class="raw lang-html">
+		<input s-value="iterable[0]">
+		<ul s-for-variable="iterable">
+			<li>
+				<span s-text="variable"></span>
+				<span s-text="number"></span>
+			</li>
+		</ul>
+	</code>
+
+	<strong>Cooked</strong>
+	<div class="cooked" s-controller="main">
+		<input type="text" s-value="iterable[0]">
+		<ul s-for-variable="iterable">
+			<li>
+				<span s-text="number"></span>
+				<span s-text="variable"></span>
+			</li>
+		</ul>
+	</div>
+
+</section>
+
+<script>
+	Swathe.controller('main',
+		{
+			number: 'Number: ',
+			iterable: ['zero', 'one', 'two', 'three']
+		},
+		function (controller) {
+			setTimeout(function () {
+				controller.model.iterable.pop();
+
+				// does not tigger change
+				// delete controller.model.iterable[2]
+
+				console.log(controller.model.iterable);
+			}, 1500);
+		}
+	);
+</script>
+
+	</main>
+
+	<footer></footer>
+
+</body>
+</html>

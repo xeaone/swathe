@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Model  | Swathe</title>
+	<script src="/assets/nav-bar.js"></script>
+
+	<link rel="stylesheet" href="/assets/index.css">
+	<script src="/assets/index.js"></script>
+
+	<script src="/assets/swathe.js"></script>
+
+	<link rel="stylesheet" href="/assets/prettify-desert-theme.css">
+	<script src="/assets/prettify.js"></script>
+</head>
+<body>
+
+	<header>
+		<div class="logo">
+			<a href="/">
+				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
+			</a>
+		</div>
+		<div class="title">
+			<span class="secondary-f">
+				Model
+			</span>
+		</div>
+		<nav class="nav-bar">
+			<ul>
+				<li>
+					<a href="/view">View Documentation</a>
+					<ul>
+						<li><a href="if.html">If</a></li>
+						<li><a href="on.html">On</a></li>
+						<li><a href="for.html">For</a></li>
+						<li><a href="html.html">Html</a></li>
+						<li><a href="style.html">Style</a></li>
+						<li><a href="performance.html">Performance</a></li>
+						<li><a href="other.html">Other</a></li>
+					</ul>
+				</li>
+				<li><a href="/model">Model Documentation</a></li>
+				<li><a href="performance.html">Performance</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		
+
+<h1>Model</h1>
+
+<section>
+	<h2>Swathe</h2>
+	<strong>Properties</strong>
+	<ul>
+		<li><em>controller</em> Object to interact with the controller.</li>
+		<li><em>controllers</em> Object containing a list of controllers.</li>
+	</ul>
+</section>
+
+<section>
+	<h2>controller</h2>
+
+	<br>
+	<strong>Parameters</strong>
+	<ul>
+		<li><em>name</em> A controller name. <strong>Required</strong></li>
+		<li><em>model</em> A observed object. It is best to define all properties that will be observed at this point. <strong>Required</strong></li>
+		<li><em>callback</em> A callback for the controller with the instance of the controller passed as a parameter.</li>
+	</ul>
+
+	<br>
+	<strong>Returns</strong>
+	<ul>
+		<li><em>controller</em> A controller instance.</li>
+	</ul>
+
+	<br>
+	<strong>Properties</strong>
+	<ul>
+		<li><em>name</em> String name.</li>
+		<li><em>view</em> Object containing a reference to DOM elements.</li>
+		<li><em>view</em> Object containing a reference to DOM elements.</li>
+	</ul>
+</section>
+
+<section>
+	<h2>controllers</h2>
+
+	<br>
+	<strong>Returns</strong>
+	<ul>
+		<li>A list of controller objects.</li>
+	</ul>
+</section>
+
+	</main>
+
+	<footer></footer>
+
+</body>
+</html>

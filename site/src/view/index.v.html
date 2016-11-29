@@ -1,0 +1,60 @@
+<!-- { "title": "View Documentation" } -->
+
+<h2>View Documentation</h2>
+
+<section>
+	<h3>Attribute Name</h3>
+	<p>
+		Attribute names are used for Swathe to detect elements to interact with. These names map directly to JavaScript element properties. **All** JavaScript element properties are available for usage. The mapping pattern typically converts <span class="code">-</span> to camel case and leaves dots delimited unchanged. For example <span class="code">s-style.background</span> is an acceptable syntax. Although please note that the dot for the <span class="code">s-style</span> is not necessary. Both <span class="code">s-style.background</span> and <span class="code">s-style-background</span> are acceptable because <span class="code">s-style</span> is a special attribute.
+	</p>
+	<ul>
+		<li><span class="code">s-*</span> The primary prefix for attribute names.</li>
+		<li><span class="code">data-s-*</span> The secondary prefix for attribute names.</li>
+	</ul>
+</section>
+
+<section>
+	<h3>Attribute Values</h3>
+	<p>
+		Attribute values are used to access and register an element's property to it's Model. The attribute name <span class="code">s-inner-text</span> could have a value set to <span class="code">array.0</span>.
+	</p>
+	<ul>
+		<li><span class="code">.</span> Dot syntax can be used to access any property on the model.</li>
+		<li><span class="code">[]</span> Bracket syntax can even be used to access array values.</li>
+	</ul>
+</section>
+
+<section>
+	<h3>Special Attributes</h3>
+	<ul>
+		<li><span class="code">s-text</span> Maps to <span class="code">innerText</span></li>
+		<li><span class="code">s-html</span> Maps to <span class="code">innerHtml</span></li>
+
+		<li><span class="code">s-style-[property]</span> Maps to <span class="code">style.color</span></li>
+
+		<li>
+			<span class="code">s-css</span> Maps to <span class="code">cssText</span>
+			<ul>
+				<li><span class="code">value</span> The JavaScript <span class="code">cssText</span> property accepts a string of css any model variables can also be used by pre-appending the variable name with a <span class="code">$</span>.</li>
+			</ul>
+		</li>
+
+		<li>
+			<span class="code">s-event-[event]</span> Sames as <span class="code">s-on-[event]</span>
+			<span class="code">s-on-[event]</span> This is the event attribute it is used instead of <span class="code">addEventListener</span>. Example <span class="code">s-on-click="say('hello')"</span>.
+				<ul>
+					<li>Function parameters can be <span class="code">Model Variables</span>, <span class="code">String</span>, and <span class="code">Number</span>. Numbers are parsed to an actual integer.</li>
+				</ul>
+		</li>
+
+		<li>
+			<span class="code">s-for-[variable]</span> A for of loop. Example <span class="code">s-for-variable="iterable"</span>.
+			<ul>
+
+				<li><span class="code">for</span> Clones the first child element.</li>
+				<li><span class="code">variable</span> The value for the children elements to use.</li>
+				<li><span class="code">iterable</span> The path to an array/iterable on the model.</li>
+			</ul>
+		</li>
+	</ul>
+</section>
