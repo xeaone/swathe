@@ -10,7 +10,9 @@
 * {
 	margin: 0;
 	padding: 0;
-	font-size: 1rem;
+	color: dimgray;
+	font-size: 16px;
+	line-height: 1.5;
 	transition: all 300ms ease;
 	-o-transition: all 300ms ease;
 	-ms-transition: all 300ms ease;
@@ -18,7 +20,7 @@
 	-webkit-transition: all 300ms ease;
 }
 body {
-	background: whitesmoke;
+	/*background: whitesmoke;*/
 	font-family: sans-serif;
 }
 main {
@@ -35,14 +37,29 @@ a:hover {
 	text-decoration: underline;
 }
 h1 {
+	font-weight: 400;
 	font-size: 3rem;
 	margin: 1rem auto;
 }
 h2 {
+	font-weight: 400;
+	font-size: 2.5rem;
+	margin: 2rem 0 1rem;
+	padding-bottom: 0.3em;
+	border-bottom: solid 1px dimgray;
+}
+h3 {
 	font-size: 2rem;
-	margin: 1rem auto;
+	font-weight: 400;
+	margin: 1rem 0 1rem;
+}
+h4 {
+	font-size: 1.3rem;
+	font-weight: 400;
+	margin: 0.5rem;
 }
 p {
+	font-size: 1rem;
 	margin: 1rem auto;
 }
 nav {
@@ -61,26 +78,34 @@ nav a {
 	padding: 1rem 2rem;
 	text-transform: uppercase;
 }
-nav a:hover {
-	color: white;
-	background: rgba(0,0,0,0.3);
+.nav-bar {
+	color: darkorange;
+}
+.nav-tool {
+	background: white;
+}
+.nav-list-main {
+	background: whitesmoke;
+}
+.nav-list-sub {
+	background: whitesmoke;
 }
 section {
 	padding: 32px;
 	max-width: 900px;
-	margin: 32px auto;
-	background: lightslategray;
+	margin: 16px auto;
+	/*background: lightslategray;
 	border: solid 3px slategray;
-	box-shadow: 0 3px 3px rgba(0,0,0,0.3);
+	box-shadow: 0 3px 3px rgba(0,0,0,0.3);*/
+}
+li ul {
+	margin-left: 1rem;
 }
 ul {
 	list-style-position: inside;
 }
 code {
-	display: block;
-	overflow-x: auto;
-	tab-size: 4px !important;
-	white-space: pre !important;
+
 }
 input, textarea {
 	border: none;
@@ -105,7 +130,6 @@ input, textarea {
 }
 .logo span {
 	font-size: 4rem;
-	text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 .logo span:first-child {
 	color: darkorange;
@@ -145,11 +169,21 @@ input, textarea {
 	display: inline-block;
 	background: lightgray;
 }
+.code {
+	padding: 0.1rem 0.5rem;
+	border-radius: 2px;
+	background-color: lightgray;
+}
 .raw {
 	padding: 2rem;
 	margin: 1rem;
 	overflow: auto;
 	border-radius: 0;
+
+	tab-size: 8px;
+	display: block;
+	white-space: pre;
+	overflow-x: auto;
 }
 .cooked, .cooked div, .cooked p {
 	color: whitesmoke;

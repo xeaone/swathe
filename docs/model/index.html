@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Model  | Swathe</title>
+	<title>Model Documentation  | Swathe</title>
 	<script src="/assets/nav-bar.js"></script>
 
 	<link rel="stylesheet" href="/assets/index.css">
@@ -22,25 +22,25 @@
 		</div>
 		<div class="title">
 			<span class="secondary-f">
-				Model
+				Model Documentation
 			</span>
 		</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
-					<a href="/view">View Documentation</a>
+					<a href="#!!">View Documentation</a>
 					<ul>
-						<li><a href="if.html">If</a></li>
-						<li><a href="on.html">On</a></li>
-						<li><a href="for.html">For</a></li>
-						<li><a href="html.html">Html</a></li>
-						<li><a href="style.html">Style</a></li>
-						<li><a href="performance.html">Performance</a></li>
-						<li><a href="other.html">Other</a></li>
+						<li><a href="/view">View Documentation</a></li>
+						<li><a href="/viewif.html">If</a></li>
+						<li><a href="/viewon.html">On</a></li>
+						<li><a href="/viewfor.html">For</a></li>
+						<li><a href="/viewhtml.html">Html</a></li>
+						<li><a href="/viewstyle.html">Style</a></li>
+						<li><a href="/viewother.html">Other</a></li>
 					</ul>
 				</li>
 				<li><a href="/model">Model Documentation</a></li>
-				<li><a href="performance.html">Performance</a></li>
+				<li><a href="/performance">Performance</a></li>
 			</ul>
 		</nav>
 	</header>
@@ -48,48 +48,45 @@
 	<main>
 		
 
-<h1>Model</h1>
+<h2>Model Documentation</h2>
 
 <section>
-	<h2>Swathe</h2>
-	<strong>Properties</strong>
+	<h3>Swathe</h3>
+
+	<h4>Properties</h4>
 	<ul>
-		<li><em>controller</em> Object to interact with the controller.</li>
-		<li><em>controllers</em> Object containing a list of controllers.</li>
+		<li><span class="code">controller</span> Object to interact with the controller.</li>
+		<li><span class="code">controllers</span> Object containing a list of controllers.</li>
 	</ul>
 </section>
 
 <section>
-	<h2>controller</h2>
+	<h3>controller</h3>
 
-	<br>
-	<strong>Parameters</strong>
+	<h4>Parameters</h4>
 	<ul>
-		<li><em>name</em> A controller name. <strong>Required</strong></li>
-		<li><em>model</em> A observed object. It is best to define all properties that will be observed at this point. <strong>Required</strong></li>
-		<li><em>callback</em> A callback for the controller with the instance of the controller passed as a parameter.</li>
+		<li><span class="code">name</span> A controller name. <em>Required</em></li>
+		<li><span class="code">model</span> A observed object. It is best to define all properties that will be observed at this point. <em>Required</em></li>
+		<li><span class="code">callback</span> A callback for the controller with the instance of the controller passed as a parameter.</li>
 	</ul>
 
-	<br>
-	<strong>Returns</strong>
+	<h4>Returns</h4>
 	<ul>
-		<li><em>controller</em> A controller instance.</li>
+		<li><span class="code">controller</span> A controller instance.</li>
 	</ul>
 
-	<br>
-	<strong>Properties</strong>
+	<h4>Properties</h4>
 	<ul>
-		<li><em>name</em> String name.</li>
-		<li><em>view</em> Object containing a reference to DOM elements.</li>
-		<li><em>view</em> Object containing a reference to DOM elements.</li>
+		<li><span class="code">name</span> String name.</li>
+		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
+		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
 	</ul>
 </section>
 
 <section>
-	<h2>controllers</h2>
+	<h3>controllers</h3>
 
-	<br>
-	<strong>Returns</strong>
+	<h4>Returns</h4>
 	<ul>
 		<li>A list of controller objects.</li>
 	</ul>

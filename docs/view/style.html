@@ -28,19 +28,19 @@
 		<nav class="nav-bar">
 			<ul>
 				<li>
-					<a href="/view">View Documentation</a>
+					<a href="#!!">View Documentation</a>
 					<ul>
-						<li><a href="if.html">If</a></li>
-						<li><a href="on.html">On</a></li>
-						<li><a href="for.html">For</a></li>
-						<li><a href="html.html">Html</a></li>
-						<li><a href="style.html">Style</a></li>
-						<li><a href="performance.html">Performance</a></li>
-						<li><a href="other.html">Other</a></li>
+						<li><a href="/view">View Documentation</a></li>
+						<li><a href="/viewif.html">If</a></li>
+						<li><a href="/viewon.html">On</a></li>
+						<li><a href="/viewfor.html">For</a></li>
+						<li><a href="/viewhtml.html">Html</a></li>
+						<li><a href="/viewstyle.html">Style</a></li>
+						<li><a href="/viewother.html">Other</a></li>
 					</ul>
 				</li>
 				<li><a href="/model">Model Documentation</a></li>
-				<li><a href="performance.html">Performance</a></li>
+				<li><a href="/performance">Performance</a></li>
 			</ul>
 		</nav>
 	</header>
@@ -50,16 +50,18 @@
 
 <div s-controller="main">
 
-	<h1>Style</h1>
-	<section>
+	<h2>Style | Css</h2>
 
-		<strong>Raw</strong>
-		<code class="raw lang-html">
+	<section>
+		<h3>Style</h3>
+
+		<h4>Raw</h4>
+		<code class="raw prettyprint">
 			<div s-style-background-color="backgroundColor" s-text="backgroundColor"></div>
 			<input s-value="backgroundColor">
 		</code>
 
-		<strong>Cooked</strong>
+		<h4>Cooked</h4>
 		<div class="cooked">
 			<div s-style-background-color="backgroundColor" s-text="backgroundColor"></div>
 			<input s-value="backgroundColor">
@@ -67,18 +69,16 @@
 
 	</section>
 
-	<br>
-
-	<h1>Css</h1>
 	<section>
+		<h3>Css</h3>
 
-		<strong>Raw</strong>
-		<code class="raw lang-html">
+		<h4>Raw</h4>
+		<code class="raw prettyprint">
 			<div s-css="background: $backgroundColor; color: $textColor;" s-text="textColor"></div>
 			<input s-value="textColor">
 		</code>
 
-		<strong>Cooked</strong>
+		<h4>Cooked</h4>
 		<div class="cooked">
 			<div s-css="background: $backgroundColor; color: $textColor;" s-text="textColor"></div>
 			<input s-value="textColor"/>
