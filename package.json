@@ -4,8 +4,7 @@
   "description": "Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small",
   "main": "dist/swathe.js",
   "scripts": {
-    "site-clean": "rm -r site/dist/* && rm -r docs/*",
-    "site-build": "muleify pack -p site -o dist && muleify pack -p site -o ../docs"
+    "build": "rm -r site/dist/* && rm -r docs/* && muleify pack -p site -o dist && muleify pack -p site -o ../docs"
   },
   "repository": {
     "type": "git",
