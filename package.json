@@ -3,8 +3,10 @@
   "version": "1.2.1",
   "description": "Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small",
   "main": "dist/swathe.js",
+  "module": "src/swathe.b.m.js",
   "scripts": {
-    "build": "rm -r site/dist/* && rm -r docs/* && muleify pack -p site -o dist && muleify pack -p site -o ../docs && git add . && git commit -m 'rebuilt' && git push origin master"
+	  "build": "rm -r site/dist/* && rm -r docs/* && muleify pack -p site -o dist && muleify pack -p site -o ../docs && git add . && git commit -m 'rebuilt' && git push origin master",
+    	"dev": "muleify pack src dist && cp dist/swathe.js site/src/assets/. &&  muleify serve site/src site/dist"
   },
   "repository": {
     "type": "git",
@@ -30,6 +32,7 @@
   },
   "homepage": "https://github.com/AlexanderElias/swathe#readme",
   "dependencies": {
+    "axa": "^1.0.5",
     "erbium": "^1.3.5"
   }
 }

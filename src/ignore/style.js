@@ -8,7 +8,10 @@ export var sStyle = `
 		-moz-transition: all 300ms ease;
 		-webkit-transition: all 300ms ease;
 	}
-	.s-if-false {
+	.s-if-false, .data-s-if-false {
 		display: none;
+	}
+	.s-opacity {
+		opacity: 0;
 	}
 `;

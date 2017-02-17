@@ -1,5 +1,8 @@
-(function () {
-	'use strict';
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define('Swathe', factory) :
+	(global.Swathe = factory());
+}(this, (function () { 'use strict';
 
 	var sStyle = `
 	[s-controller], [data-s-controller] {
@@ -10,58 +13,149 @@
 		-moz-transition: all 300ms ease;
 		-webkit-transition: all 300ms ease;
 	}
-	.s-if-false {
+	.s-if-false, .data-s-if-false {
 		display: none;
+	}
+	.s-opacity {
+		opacity: 0;
 	}
 `;
 
-	var View = function (options) {
-		var self = this;
+	var Utility = {
 
-		self.options = options || {};
-		self.nodes = self.options.scope.getElementsByTagName('*');
+		is: function (type, value) {
+			return !value ? false : value.constructor.name === type;
+		},
 
-		if (this.options.rejected) {
-			if (this.options.rejected.tags) this.options.rejected.tags = new RegExp(this.options.rejected.tags.join('|'));
-			if (this.options.rejected.attributes) this.options.rejected.attributes = new RegExp(this.options.rejected.attributes.join('|'));
-		}
-	};
+		each: function (iterable, callback, scope) {
+			var statment = null;
 
-	View.prototype.isRejected = function (node) {
-		var rejected = this.options.rejected;
+			if (this.is('Object', iterable)) {
+				var k = null;
 
-		if (rejected) {
-			var tagsPattern = rejected.tags;
-			var attributesPattern = rejected.attributes;
+				for (k in iterable) {
+					if (!iterable.hasOwnProperty(k)) continue;
+					statment = callback.call(scope, iterable[k], k, iterable);
+					if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
+				}
+			} else {
+				var i = null;
+				var l = null;
 
-			if (tagsPattern) {
-				var tag = node.tagName.toLowerCase();
-				if (tagsPattern.test(tag)) return true;
-			}
-
-			if (attributesPattern) {
-				var l = node.attributes.length;
-				var i = 0;
-
-				for (i; i < l; i++) {
-					var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
-					if (attributesPattern.test(attribute)) return true;
-					else if (i === l-1) return false;
+				for (i = 0, l = iterable.length; i < l; i++) {
+					statment = callback.call(scope, iterable[i], i, iterable);
+					if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
 				}
 			}
 
-		} else {
-			return false;
+			return iterable;
+		},
+
+		toCamelCase: function (string) {
+			var pattern = /(-.)/g;
+
+			return string.replace(pattern, function (match) {
+				return match[1].toUpperCase();
+			});
+		},
+
+		getPathKeys: function (string) {
+			string = string.replace(/(\])|(^data-s-)|(^s-)/g, '');
+			string = string.replace('[', '.');
+			string = this.toCamelCase(string);
+			return string.split('.');
+		},
+
+		getByPath: function (object, path) {
+			var keys = this.getPathKeys(path);
+			var last = keys.length - 1;
+			var obj = object;
+
+			for (var i = 0; i < last; i++) {
+				var prop = keys[i];
+				if (!obj[prop]) return undefined;
+				obj = obj[prop];
+			}
+
+			return obj[keys[last]];
+		},
+
+		setByPath: function (object, path, value) {
+			var keys = this.getPathKeys(path);
+			var last = keys.length - 1;
+			var obj = object;
+
+			for (var i = 0; i < last; i++) {
+				var prop = keys[i];
+				if (!obj[prop]) obj[prop] = {};
+				obj = obj[prop];
+			}
+
+			obj[keys[last]] = value;
+			return object;
+		},
+
+		removeChildren: function (element) {
+			while (element.firstChild) {
+				element.removeChild(element.firstChild);
+			}
+
+			return element;
 		}
+
+	};
+
+	// export function isSwatheAttribute (string) {
+	// 	return /(^s-)|(^data-s)/.test(string);
+	// }
+	//
+	// export function normalizeAttribute (string) {
+	// 	string = string.replace(/^data-s-/, '');
+	// 	string = string.replace(/^s-/, '');
+	// 	string = toCamelCase(string);
+	// 	return string;
+	// }
+
+	var REJECTED_TAGS = /(iframe)|(script)|(style)|(link)|(object)/;
+	var REJECTED_ATTRIBUTES = /(s-controller=")|(data-s-controller=")/;
+
+	function View (data) {
+		this.scope = data.scope;
+		this.nodes = this.scope.getElementsByTagName('*');
+	}
+
+	View.prototype.isTag = function (node, pattern) {
+		var tag = node.tagName.toLowerCase();
+
+		if (pattern.test(tag)) {
+			return true;
+		}
+
+		return false;
+	};
+
+	View.prototype.isAttribute = function (node, pattern) {
+		var attributes = node.attributes;
+
+		for (var i = 0, l = attributes.length; i < l; i++) {
+			var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
+			if (pattern.test(attribute)) return true;
+		}
+
+		return false;
+	};
+
+	View.prototype.isRejected = function (node) {
+		var isTag = this.isTag(node, REJECTED_TAGS);
+		var isAttribute = this.isAttribute(node, REJECTED_ATTRIBUTES);
+		return isTag || isAttribute;
 	};
 
 	View.prototype.list = function (filter) {
-		var l = this.nodes.length;
 		var node =  null;
 		var nodes = [];
-		var i = 0;
 
-		for (i; i < l; i++) {
+		for (var i = 0, l = this.nodes.length; i < l; i++) {
 			node = this.nodes[i];
 
 			if (this.isRejected(node)) { // rejects elment and its children
@@ -75,120 +169,42 @@
 		return nodes;
 	};
 
-	View.prototype.findByTag = function (tag) {
-		var tagPattern = new RegExp(tag);
+	View.prototype.findByTag = function (pattern) {
+		var self = this;
 
-		return this.list(function (node) {
-			return tagPattern.test(node.tagName.toLowerCase());
+		pattern = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+
+		return self.list(function (node) {
+			return self.isTag(node, pattern);
 		});
 	};
 
-	View.prototype.findByAttribute = function (attribute) {
-		var attributePattern = new RegExp(attribute);
+	View.prototype.findByAttribute = function (pattern) {
+		var self = this;
 
-		return this.list(function (node) {
-			var attributes = node.attributes;
-			var l = attributes.length;
-			var i = 0;
+		pattern = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
 
-			for (i; i < l; i++) {
-				var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
-				if (attributePattern.test(attribute)) return true;
-				else if (i === l-1) return false;
-			}
+		return self.list(function (node) {
+			return self.isAttribute(node, pattern);
 		});
 	};
 
-	function is (type, value) {
-		return !value ? false : value.constructor.name === type;
-	}
+	/*
+		@preserve
+		title: axa
+		version: 1.0.5
+		author: Alexander Elias
+		descript: Axa a low level Ajax Xhr library.
+	*/
 
-	function each (iterable, callback, scope) {
-		var statment = null;
-
-		if (is('Object', iterable)) {
-			var k = null;
-
-			for (k in iterable) {
-				if (!iterable.hasOwnProperty(k)) continue;
-				statment = callback.call(scope, iterable[k], k, iterable);
-				if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
-			}
-		} else {
-			var i = null;
-			var l = null;
-
-			for (i = 0, l = iterable.length; i < l; i++) {
-				statment = callback.call(scope, iterable[i], i, iterable);
-				if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
-			}
-		}
-
-		return iterable;
-	}
-
-	function toCamelCase (string) {
-		var pattern = /(-.)/g;
-
-		return string.replace(pattern, function (match) {
-			return match[1].toUpperCase();
-		});
-	}
-
-	function getPathKeys (string) {
-		string = string.replace(/(\])|(^data-s-)|(^s-)/g, '');
-		string = string.replace('[', '.');
-		string = toCamelCase(string);
-		return string.split('.');
-	}
-
-	function getByPath (object, path) {
-		var keys = getPathKeys(path);
-		var last = keys.length - 1;
-		var obj = object;
-
-		for (var i = 0; i < last; i++) {
-			var prop = keys[i];
-			if (!obj[prop]) return undefined;
-			obj = obj[prop];
-		}
-
-		return obj[keys[last]];
-	}
-
-	function setByPath (object, path, value) {
-		var keys = getPathKeys(path);
-		var last = keys.length - 1;
-		var obj = object;
-
-		for (var i = 0; i < last; i++) {
-			var prop = keys[i];
-			if (!obj[prop]) obj[prop] = {};
-			obj = obj[prop];
-		}
-
-		obj[keys[last]] = value;
-		return object;
-	}
-
-	function removeChildren (element) {
-		while (element.firstChild) {
-			element.removeChild(element.firstChild);
-		}
-
-		return element;
-	}
-
-	// export function isSwatheAttribute (string) {
-	// 	return /(^s-)|(^data-s)/.test(string);
-	// }
-	//
-	// export function normalizeAttribute (string) {
-	// 	string = string.replace(/^data-s-/, '');
-	// 	string = string.replace(/^s-/, '');
-	// 	string = toCamelCase(string);
-	// 	return string;
-	// }
+	var mime = {
+		script: 'text/javascript, application/javascript, application/x-javascript',
+		json: 'application/json, text/javascript',
+		xml: 'application/xml, text/xml',
+		html: 'text/html',
+		text: 'text/plain',
+		urlencoded: 'application/x-www-form-urlencoded'
+	};
 
 	function serialize (data) {
 		var string = '';
@@ -201,30 +217,50 @@
 		return string;
 	}
 
-	function ajax (options) {
-		if (!options) throw new Error('ajax: requires options');
-
-		if (!options.action) options.action = window.location.pathname;
-		if (!options.enctype) options.enctype = 'text/plain';
+	function request (options) {
+		if (!options) throw new Error('Axa: requires options');
+		if (!options.action) throw new Error('Axa: requires options.action');
 		if (!options.method) options.method = 'GET';
-
-		options.method = options.method.toUpperCase();
+		if (!options.headers) options.headers = {};
 
 		if (options.data) {
 			if (options.method === 'GET') {
 				options.action = options.action + '?' + serialize(options.data);
 				options.data = null;
 			} else {
-				if (options.enctype.search('application/x-www-form-urlencoded') !== -1) options.data = serialize(options.data);
-				else if (options.enctype.search('application/json') !== -1) options.data = JSON.stringify(options.data);
+				options.requestType = options.requestType.toLowerCase();
+				options.responseType = options.responseType.toLowerCase();
+
+				switch (options.requestType) {
+					case 'script': options.contentType = mime.script; break;
+					case 'json': options.contentType = mime.json; break;
+					case 'xml': options.contentType = mime.xm; break;
+					case 'html': options.contentType = mime.html; break;
+					case 'text': options.contentType = mime.text; break;
+					default: options.contentType = mime.urlencoded;
+				}
+
+				switch (options.responseType) {
+					case 'script': options.accept = mime.script; break;
+					case 'json': options.accept = mime.json; break;
+					case 'xml': options.accept = mime.xml; break;
+					case 'html': options.accept = mime.html; break;
+					case 'text': options.accept = mime.text; break;
+				}
+
+				if (options.contentType === mime.json) options.data = JSON.stringify(options.data);
+				if (options.contentType === mime.urlencoded) options.data = serialize(options.data);
 			}
 		}
 
 		var xhr = new XMLHttpRequest();
-		xhr.open(options.method, options.action, true, options.username, options.password);
+		xhr.open(options.method.toUpperCase(), options.action, true, options.username, options.password);
 
 		if (options.mimeType) xhr.overrideMimeType(options.mimeType);
 		if (options.withCredentials) xhr.withCredentials = options.withCredentials;
+
+		if (options.accept) options.headers['Accept'] = options.accept;
+		if (options.contentType) options.headers['Content-Type'] = options.contentType;
 
 		if (options.headers) {
 			for (var name in options.headers) {
@@ -232,12 +268,12 @@
 			}
 		}
 
-		xhr.onreadystatechange = function() {
+		xhr.onreadystatechange = function () {
 			if (xhr.readyState === 4) {
-				if (xhr.status >= 200 && xhr.status < 300) {
-					if (options.success) return options.success(xhr);
+				if (xhr.status >= 200 && xhr.status < 400) {
+					return options.success(xhr);
 				} else {
-					if (options.error) return options.error(xhr);
+					return options.error(xhr);
 				}
 			}
 		};
@@ -245,19 +281,30 @@
 		xhr.send(options.data);
 	}
 
-	var PATTERN$1 = {
-		IF: /(^s-if.*)|(^data-s-if.*)/,
-		FOR: /(^s-for.*)|(^data-s-for.*)/,
-		CSS: /(^s-css.*)|(^data-s-css.*)/,
-		HTML: /(^s-html.*)|(^data-s-html.*)/,
-		// VIEW: /(^s-view.*)|(^data-s-view.*)/,
-		TEXT: /(^s-text.*)|(^data-s-text.*)/,
-		STYLE: /(^s-style.*)|(^data-s-style.*)/,
-		VALUE: /(^s-value.*)|(^data-s-value.*)/,
-		ON: /(^s-on.*)|(^s-event.*)|(^data-s-on.*)|(^data-s-event.*)/
+	var Axa = {
+		mime: mime,
+		request: request,
+		serialize: serialize
 	};
 
-	function onElement (model, dom, name, value, element) {
+	var IF = /(s-if)|(data-s-if)/;
+	var FOR = /(s-for)|(data-s-for)/;
+	var CSS = /(s-css)|(data-s-css)/;
+	var HTML = /(s-html)|(data-s-html)/;
+	// var VIEW = /(s-view)|(data-s-view)/;
+	var TEXT = /(s-text)|(data-s-text)/;
+	var STYLE = /(s-style)|(data-s-style)/;
+	// var VALUE = /(s-value)|(data-s-value)/;
+	var ON = /(s-on)|(s-event)|(data-s-on)|(data-s-event)/;
+
+	function Render (data) {
+		this.doc = document;
+		this.view = data.view;
+		this.model = data.model;
+	}
+
+	Render.prototype.eOn = function (model, view, name, value, element) {
+		var self = this;
 
 		value = value.replace(/\(/g, ', ');
 		value = value.replace(/\)/g, '');
@@ -268,7 +315,7 @@
 
 		var methodPath = value[0];
 		var methodParameters = value;
-		var method = getByPath(model, methodPath);
+		var method = Utility.getByPath(model, methodPath);
 
 		// if (!method) return null;
 
@@ -279,37 +326,39 @@
 			if (/^[0-9]*$/.test(parameter)) {
 				methodParameters[index] = parseInt(parameter);
 			} else if (!/(')|(")|(`)/.test(parameter)) {
-				methodParameters[index] = getByPath(model, parameter);
+				methodParameters[index] = Utility.getByPath(model, parameter);
 			}
 		});
 
 		var methodBound = method.bind.apply(method, [element].concat(methodParameters));
 
 		element.addEventListener(name, methodBound);
-	}
+	};
 
-	function forElement (model, dom, name, value, element) {
+	Render.prototype.eFor = function (model, view, name, value, element) {
+		var self = this;
+
 		var variable = name.split('-').pop();
 		var iterable = value;
 
-		var iterableArray = getByPath(model, iterable);
-		var fragment = document.createDocumentFragment();
+		var iterableArray = Utility.getByPath(model, iterable);
+		var fragment = self.doc.createDocumentFragment();
 
 		// clone child elements
 		iterableArray.forEach(function () {
-			each(element.children, function (child) {
+			Utility.each(element.children, function (child) {
 				fragment.appendChild(child.cloneNode(true));
 			});
 		});
 
 		var elements = fragment.querySelectorAll('*');
-		var namePattern = /(^s-.*)|(^data-s-.*)/;
-		var valuePattern = /.*/;
+		// var namePattern = /(^s-.*)|(^data-s-.*)/;
+		// var valuePattern = /.*/;
 		var index = 0;
 
-		// change forElement child variable names
-		each(elements, function (element) {
-			each(element.attributes, function (attribute) {
+		// change eFor child variable names
+		Utility.each(elements, function (element) {
+			Utility.each(element.attributes, function (attribute) {
 				if (attribute.value === variable) {
 					attribute.value = iterable + '.'+ index;
 					index++;
@@ -317,13 +366,16 @@
 			});
 		});
 
-		handleElements (model, dom, name, value, elements, namePattern, valuePattern);
+		// TODO impoment better loop
+		// self._elements (model, view, name, value, elements, namePattern, valuePattern);
 
-		element = removeChildren(element);
+		// element = removeChildren(element);
 		element.appendChild(fragment);
-	}
+	};
 
-	function cssElement (model, dom, name, value, element) {
+	Render.prototype.eCss = function (model, view, name, value, element) {
+		var self = this;
+
 		var styles = value.replace(/\s/g, '').split(';');
 		var cssText = null;
 		var viewValue = null;
@@ -335,34 +387,41 @@
 
 			if (/^\$/.test(viewValue)) {
 				viewValueClean = viewValue.replace('$', '');
-				modelValue = getByPath(model, viewValueClean);
+				modelValue = Utility.getByPath(model, viewValueClean);
 
 				if (modelValue) {
 					style = style.replace(viewValue, modelValue);
-					cssText = getByPath(element, 'style.cssText');
-					setByPath(element, 'style.cssText', cssText + style);
+					cssText = Utility.getByPath(element, 'style.cssText');
+					Utility.setByPath(element, 'style.cssText', cssText + style);
 				}
 			}
 		});
-	}
+	};
 
-	function ifElement (model, dom, name, value, element) {
-		value = getByPath(model, value);
+	Render.prototype.eIf = function (model, view, name, value, element) {
+		var self = this;
+
+		value = Utility.getByPath(model, value);
 		if (value) element.classList.remove('s-if-false');
 		else element.classList.add('s-if-false');
-	}
+	};
 
-	function styleElement (model, dom, name, value, element) {
+	Render.prototype.eStyle = function (model, view, name, value, element) {
+		var self = this;
+
 		name = name.replace(/(s-style-)|(data-s-style-)/, 'style.');
-		name = toCamelCase(name);
-		defaultElement(model, dom, name, value, element);
-	}
+		name = Utility.toCamelCase(name);
+		self.eDefault(model, view, name, value, element);
+	};
 
-	function htmlElement (model, dom, name, value, element) {
+	Render.prototype.eHtml = function (model, view, name, value, element) {
+		var self = this;
+
 		name = 'innerHTML';
 
+		// TODO handle all external resources
 		if (/^\//.test(value)) {
-			ajax({
+			Axa.request({
 				action: '/partial/index.html',
 				success: function (xhr) {
 					console.log(xhr);
@@ -372,87 +431,95 @@
 				}
 			});
 		} else {
-			defaultElement(model, dom, name, value, element);
+			self.eDefault(model, view, name, value, element);
 		}
-	}
+	};
 
-	function textElement (model, dom, name, value, element) {
+	Render.prototype.eText = function (model, view, name, value, element) {
+		var self = this;
 		name = 'innerText';
-		defaultElement(model, dom, name, value, element);
-	}
+		self.eDefault(model, view, name, value, element);
+	};
 
-	// function valueElement (model, dom, name, value, element) {
+	// function valueElement (model, view, name, value, element) {
+	// 	var self = this;
 	// 	value = getByPath(model, value);
 	// 	setByPath(element, name, value);
 	// }
 
-	function defaultElement (model, dom, name, value, element) {
+	Render.prototype.eDefault = function (model, view, name, value, element) {
+		var self = this;
 		// value = getByPath(model, value) || value;
-		value = getByPath(model, value);
-		setByPath(element, name, value);
-	}
+		value = Utility.getByPath(model, value);
+		Utility.setByPath(element, name, value);
+	};
 
-	function proxyElement (model, dom, name, value, element) {
-		if (PATTERN$1.ON.test(name)) {
-			onElement(model, dom, name, value, element);
-		} else if (PATTERN$1.IF.test(name)) {
-			ifElement(model, dom, name, value, element);
-		} else if (PATTERN$1.FOR.test(name)) {
-			forElement(model, dom, name, value, element);
-		} else if (PATTERN$1.CSS.test(name)) {
-			cssElement(model, dom, name, value, element);
-		} else if (PATTERN$1.HTML.test(name)) {
-			htmlElement(model, dom, name, value, element);
-		} else if (PATTERN$1.TEXT.test(name)) {
-			textElement(model, dom, name, value, element);
-		} else if (PATTERN$1.STYLE.test(name)) {
-			styleElement(model, dom, name, value, element);
+	Render.prototype._switch = function (model, view, name, value, element) {
+		var self = this;
+
+		if (ON.test(name)) {
+			self.eOn(model, view, name, value, element);
+		} else if (IF.test(name)) {
+			self.eIf(model, view, name, value, element);
+		} else if (FOR.test(name)) {
+			self.eFor(model, view, name, value, element);
+		} else if (CSS.test(name)) {
+			self.eCss(model, view, name, value, element);
+		} else if (HTML.test(name)) {
+			self.eHtml(model, view, name, value, element);
+		} else if (TEXT.test(name)) {
+			self.eText(model, view, name, value, element);
+		} else if (STYLE.test(name)) {
+			self.eStyle(model, view, name, value, element);
 		} else {
-			defaultElement(model, dom, name, value, element);
+			self.eDefault(model, view, name, value, element);
 		}
-	}
+	};
 
-	function handleElements (model, dom, name, value, elements, namePattern, valuePattern) {
-		each(elements, function (element) {
-			each(element.attributes, function (attribute) {
+	// Render.prototype._elements = function (model, view, name, value, elements, namePattern, valuePattern) {
+	// 	var self = this;
+	//
+	// 	each(elements, function (element) {
+	// 		each(element.attributes, function (attribute) {
+	// 			if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
+	// 				self._switch(model, view, attribute.name, attribute.value, element);
+	// 			}
+	// 		});
+	// 	});
+	// };
+
+	Render.prototype.elements = function (model, view, name, value) {
+		var self = this;
+
+		var dollarPattern = '(\\$' + value + ')';
+		var regularPattern = '(' + name + '=\"' + value + '\")';
+		var elements = view.findByAttribute(regularPattern + '|' + dollarPattern);
+
+		var namePattern = new RegExp(name);
+		var valuePattern = new RegExp(value);
+
+		Utility.each(elements, function (element) {
+			Utility.each(element.attributes, function (attribute) {
 				if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
-					proxyElement(model, dom, attribute.name, attribute.value, element);
+					self._switch(model, view, attribute.name, attribute.value, element);
 				}
 			});
 		});
+	};
+
+	function Observe () {
+		self.isProxy = Proxy ? true : false;
 	}
 
-	function Render (model, dom, name, value) {
-		var dollarPattern = '(\\$' + value + ')';
-		var regularPattern = '(' + name + '=\"' + value + '\")';
-		var elements = dom.findByAttribute(regularPattern + '|' + dollarPattern);
+	Observe.prototype._proxy = function (object, callback, prefix) {
+		var self = this;
 
-		handleElements(model, dom, name, value, elements, new RegExp(name), new RegExp(value));
-	}
-
-	function observeElements (elements, callback) {
-
-		// event input works on: input, select, textarea
-		var eventHandler = function (e) {
-			var target = e.target;
-			var value = target.getAttribute('s-value') || target.getAttribute('data-s-value');
-			callback(name, value, target.value, target);
-		};
-
-		elements.forEach(function (element) {
-			element.addEventListener('input', eventHandler);
-		});
-
-		return elements;
-	}
-
-	function observeObjectsProxy (object, callback, prefix) {
 		if (!prefix) prefix = '';
 
 		var handler = {
 			get: function (target, property) {
-				if (is('Object', target[property]) || is('Array', target[property])) {
-					return observeObjectsProxy(target[property], callback, prefix + property + '.');
+				if (Utility.is('Object', target[property]) || Utility.is('Array', target[property])) {
+					return self._proxy(target[property], callback, prefix + property + '.');
 				} else {
 					return target[property];
 				}
@@ -468,10 +535,12 @@
 		};
 
 		return new Proxy(object, handler);
-	}
+	};
 
-	function observeObjectsDefine (object, callback, prefix) {
-		var self = {};
+	Observe.prototype._define = function (object, callback, prefix) {
+		var self = this;
+
+		var newObject = {};
 		var properties = {};
 
 		if (!prefix) prefix = '';
@@ -497,76 +566,113 @@
 			var prefixObject = !prefix ? key : prefix + '.' + key;
 			var prefixVariable = !prefix ? key : prefix + '.' + key;
 
-			if (is('Object', value)) {
-				self[key] = observeObjectsDefine(value, callback, prefixObject);
+			if (Utility.is('Object', value)) {
+				newObject[key] = self._define(value, callback, prefixObject);
 			} else {
 				properties[key] = handler(object, key, prefixVariable);
 			}
 		}
 
-		return Object.defineProperties(self, properties);
-	}
-
-	var PATTERN = {
-		ALL: '.*',
-		S: '(s-.*)|(data-s-.*)',
-		VALUE: '(s-value.*)|(data-s-value.*)',
-		TAGS: ['iframe', 'script', 'style', 'link', 'object'],
-		ATTRIBUTES: ['(s-controller.*)|(data-s-controller.*)']
+		return Object.defineProperties(newObject, properties);
 	};
 
-	var Controller = function (name, model, callback) {
-		var observeObjects = window.Proxy ? observeObjectsProxy : observeObjectsDefine;
+	Observe.prototype.object = function (object, callback, prefix) {
+		if (this.isProxy) this._proxy(object, callback, prefix);
+		else this._define(object, callback, prefix);
+	};
+
+	Observe.prototype.elements = function (elements, callback) {
+
+		// event input works on: input, select, textarea
+		var eventHandler = function (e) {
+			var target = e.target;
+			var value = target.getAttribute('s-value') || target.getAttribute('data-s-value');
+			callback(name, value, target.value, target);
+		};
+
+		elements.forEach(function (element) {
+			element.addEventListener('input', eventHandler);
+		});
+
+		return elements;
+	};
+
+	/*
+		title: swathe
+		version: 1.2.0
+		author: alexander elias
+	*/
+
+	var ALL = '.*?';
+	var S = '(s-)|(data-s-)';
+	var VALUE = /(s-value)|(data-s-value)/;
+
+	function Controller (data) {
 		var self = this;
 
-		var options = {
-			scope: document.querySelector('[s-controller=' + name + ']') || document.querySelector('[data-s-controller=' + name + ']'),
-			rejected: {
-				tags: PATTERN.TAGS,
-				attributes: PATTERN.ATTRIBUTES
-			}
-		};
+		self.doc = data.doc;
+		self.name = data.name;
+		self.model = data.model;
+		self.created = data.created;
 
-		self.name = name;
-		self.model = model;
-		self.view = new View(options);
-		self.inputs = self.view.findByAttribute(PATTERN.VALUE);
+		console.log(self.doc);
+		console.log(self.name);
 
-		self.model = observeObjects (self.model, function (value) {
-			Render(self.model, self.view, PATTERN.ALL, value);
+		self.scope = self.doc.querySelector('[s-controller=' + self.name + ']') || self.doc.querySelector('[data-s-controller=' + self.name + ']');
+		self.scope.classList.toggle('s-opacity');
+
+		self.view = new View({
+			scope: self.scope
 		});
 
-		self.inputs = observeElements (self.inputs, function (name, value, newValue) {
-			setByPath(self.model, value, newValue);
+		self.render = new Render({
+			model: self.model,
+			view: self.view
 		});
 
-		Render(self.model, self.view, PATTERN.S, PATTERN.ALL);
-
-		document.addEventListener('DOMContentLoaded', function () {
-			options.scope.style.opacity = '1';
+		self.observe = new Observe({
+			model: self.model,
+			view: self.view,
+			render: self.render
 		});
 
-		if (callback) callback(self);
-	};
+		self.render.elements(self.model, self.view, S, ALL);
 
-	if (!window.Swathe)  {
+		self.inputs = self.view.findByAttribute(VALUE);
 
-		var eStyle = document.createElement('style');
-		var nStyle = document.createTextNode(sStyle);
-		eStyle.title = 'swathe';
-		eStyle.appendChild(nStyle);
-		document.head.appendChild(eStyle);
+		self.model = self.observe.object(self.model, function (value) {
+			self.render.elements(self.model, self.view, ALL, value);
+		});
 
-		window.Swathe = {
-			controllers: {},
-			controller: function (name, model, callback) {
-				if (!name) throw new Error('Controller - name parameter required');
-				if (!model) throw new Error('Controller - model parameter required');
-				this.controllers[name] = new Controller(name, model, callback);
-				return this.controllers[name];
-			}
-		};
+		self.inputs = self.observe.elements(self.inputs, function (name, value, newValue) {
+			Utility.setByPath(self.model, value, newValue);
+		});
 
+		self.doc.addEventListener('DOMContentLoaded', function () {
+			self.scope.classList.toggle('s-opacity');
+		});
+
+		if (self.created) self.created(self);
 	}
 
-}());
+	document.head.appendChild(
+		document.createElement('style').appendChild(
+			document.createTextNode(sStyle)
+		)
+	);
+
+	var Swathe = {
+		controllers: {},
+		controller: function (options) {
+			if (!options.name) throw new Error('Controller - name parameter required');
+			if (!options.model) throw new Error('Controller - model parameter required');
+			if (this.controllers[options.name]) throw new Error('Controller - name ' + options.name + ' exists');
+			options.doc = options.doc || document;
+			this.controllers[options.name] = new Controller(options);
+			return this.controllers[options.name];
+		}
+	};
+
+	return Swathe;
+
+})));
