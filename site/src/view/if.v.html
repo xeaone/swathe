@@ -19,14 +19,15 @@
 </section>
 
 <script>
-	Swathe.controller({
+	var options = {
 		name: 'main',
 		model: {
 			isTrue: true,
 			isFalse: false,
-		},
-		created: function (controller) {
-			console.log('loaded');
 		}
+	};
+
+	Swathe.controller(options, function (controller) {
+		console.log(controller.model);
 	});
 </script>

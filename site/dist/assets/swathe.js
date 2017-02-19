@@ -13,13 +13,21 @@
 		-moz-transition: all 300ms ease;
 		-webkit-transition: all 300ms ease;
 	}
-	.s-if-false, .data-s-if-false {
+	.s-if-false, .s-if-false {
 		display: none;
 	}
-	.s-opacity {
+	.s-show-true {
+		opacity: 1;
+	}
+	.s-show-false {
 		opacity: 0;
 	}
 `;
+
+	var eStyle = document.createElement('style');
+	var nStyle = document.createTextNode(sStyle);
+
+	eStyle.appendChild(nStyle);
 
 	var Utility = {
 
@@ -507,8 +515,11 @@
 		});
 	};
 
-	function Observe () {
-		self.isProxy = Proxy ? true : false;
+	function Observe (data) {
+		this.view = data.view;
+		this.model = data.model;
+		this.render = data.render;
+		this.isProxy = Proxy ? true : false;
 	}
 
 	Observe.prototype._proxy = function (object, callback, prefix) {
@@ -576,9 +587,16 @@
 		return Object.defineProperties(newObject, properties);
 	};
 
-	Observe.prototype.object = function (object, callback, prefix) {
-		if (this.isProxy) this._proxy(object, callback, prefix);
-		else this._define(object, callback, prefix);
+	Observe.prototype.object = function (object, callback) {
+		if (typeof object === 'function') {
+			callback = object;
+			object = null;
+		}
+
+		object = object || this.model;
+
+		if (this.isProxy) return this._proxy(object, callback);
+		else return this._define(object, callback);
 	};
 
 	Observe.prototype.elements = function (elements, callback) {
@@ -607,19 +625,14 @@
 	var S = '(s-)|(data-s-)';
 	var VALUE = /(s-value)|(data-s-value)/;
 
-	function Controller (data) {
+	function Controller (data, callback) {
 		var self = this;
 
 		self.doc = data.doc;
 		self.name = data.name;
 		self.model = data.model;
-		self.created = data.created;
-
-		console.log(self.doc);
-		console.log(self.name);
 
 		self.scope = self.doc.querySelector('[s-controller=' + self.name + ']') || self.doc.querySelector('[data-s-controller=' + self.name + ']');
-		self.scope.classList.toggle('s-opacity');
 
 		self.view = new View({
 			scope: self.scope
@@ -640,7 +653,7 @@
 
 		self.inputs = self.view.findByAttribute(VALUE);
 
-		self.model = self.observe.object(self.model, function (value) {
+		self.model = self.observe.object(function (value) {
 			self.render.elements(self.model, self.view, ALL, value);
 		});
 
@@ -648,30 +661,29 @@
 			Utility.setByPath(self.model, value, newValue);
 		});
 
-		self.doc.addEventListener('DOMContentLoaded', function () {
-			self.scope.classList.toggle('s-opacity');
-		});
-
-		if (self.created) self.created(self);
+		if (callback) callback(self);
 	}
-
-	document.head.appendChild(
-		document.createElement('style').appendChild(
-			document.createTextNode(sStyle)
-		)
-	);
 
 	var Swathe = {
 		controllers: {},
-		controller: function (options) {
-			if (!options.name) throw new Error('Controller - name parameter required');
-			if (!options.model) throw new Error('Controller - model parameter required');
-			if (this.controllers[options.name]) throw new Error('Controller - name ' + options.name + ' exists');
-			options.doc = options.doc || document;
-			this.controllers[options.name] = new Controller(options);
-			return this.controllers[options.name];
+		controller: function (data, callback) {
+			if (!data.name) throw new Error('Controller - name parameter required');
+			if (!data.model) throw new Error('Controller - model parameter required');
+			if (this.controllers[data.name]) throw new Error('Controller - name ' + data.name + ' exists');
+			data.doc = data.doc || document;
+			this.controllers[data.name] = new Controller(data, callback);
+			return this.controllers[data.name];
 		}
 	};
+
+	window.addEventListener('DOMContentLoaded', function () {
+		document.head.appendChild(eStyle);
+		for (var name in window.Swathe.controllers) {
+			if (window.Swathe.controllers.hasOwnProperty(name)) {
+				window.Swathe.controllers[name].scope.classList.toggle('s-show-true');
+			}
+		}
+	});
 
 	return Swathe;
 

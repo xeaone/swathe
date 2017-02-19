@@ -1,7 +1,10 @@
 import Utility from './utility.js';
 
-export default function Observe () {
-	self.isProxy = Proxy ? true : false;
+export default function Observe (data) {
+	this.view = data.view;
+	this.model = data.model;
+	this.render = data.render;
+	this.isProxy = Proxy ? true : false;
 }
 
 Observe.prototype._proxy = function (object, callback, prefix) {
@@ -69,9 +72,16 @@ Observe.prototype._define = function (object, callback, prefix) {
 	return Object.defineProperties(newObject, properties);
 };
 
-Observe.prototype.object = function (object, callback, prefix) {
-	if (this.isProxy) this._proxy(object, callback, prefix);
-	else this._define(object, callback, prefix);
+Observe.prototype.object = function (object, callback) {
+	if (typeof object === 'function') {
+		callback = object;
+		object = null;
+	}
+
+	object = object || this.model;
+
+	if (this.isProxy) return this._proxy(object, callback);
+	else return this._define(object, callback);
 };
 
 Observe.prototype.elements = function (elements, callback) {

@@ -1,5 +1,5 @@
 
-export var sStyle = `
+var sStyle = `
 	[s-controller], [data-s-controller] {
 		opacity: 0;
 		transition: all 300ms ease;
@@ -8,10 +8,20 @@ export var sStyle = `
 		-moz-transition: all 300ms ease;
 		-webkit-transition: all 300ms ease;
 	}
-	.s-if-false, .data-s-if-false {
+	.s-if-false, .s-if-false {
 		display: none;
 	}
-	.s-opacity {
+	.s-show-true {
+		opacity: 1;
+	}
+	.s-show-false {
 		opacity: 0;
 	}
 `;
+
+var eStyle = document.createElement('style');
+var nStyle = document.createTextNode(sStyle);
+
+eStyle.appendChild(nStyle);
+
+export { eStyle };

@@ -4,7 +4,7 @@
 	author: alexander elias
 */
 
-import { sStyle } from './ignore/style.js';
+import { eStyle } from './ignore/style.js';
 import Utility from './ignore/utility.js';
 import View from './ignore/view.js';
 import Render from './ignore/render.js';
@@ -14,19 +14,14 @@ var ALL = '.*?';
 var S = '(s-)|(data-s-)';
 var VALUE = /(s-value)|(data-s-value)/;
 
-function Controller (data) {
+function Controller (data, callback) {
 	var self = this;
 
 	self.doc = data.doc;
 	self.name = data.name;
 	self.model = data.model;
-	self.created = data.created;
-
-	console.log(self.doc);
-	console.log(self.name);
 
 	self.scope = self.doc.querySelector('[s-controller=' + self.name + ']') || self.doc.querySelector('[data-s-controller=' + self.name + ']');
-	self.scope.classList.toggle('s-opacity');
 
 	self.view = new View({
 		scope: self.scope
@@ -47,7 +42,7 @@ function Controller (data) {
 
 	self.inputs = self.view.findByAttribute(VALUE);
 
-	self.model = self.observe.object(self.model, function (value) {
+	self.model = self.observe.object(function (value) {
 		self.render.elements(self.model, self.view, ALL, value);
 	});
 
@@ -55,29 +50,28 @@ function Controller (data) {
 		Utility.setByPath(self.model, value, newValue);
 	});
 
-	self.doc.addEventListener('DOMContentLoaded', function () {
-		self.scope.classList.toggle('s-opacity');
-	});
-
-	if (self.created) self.created(self);
+	if (callback) callback(self);
 }
-
-document.head.appendChild(
-	document.createElement('style').appendChild(
-		document.createTextNode(sStyle)
-	)
-);
 
 var Swathe = {
 	controllers: {},
-	controller: function (options) {
-		if (!options.name) throw new Error('Controller - name parameter required');
-		if (!options.model) throw new Error('Controller - model parameter required');
-		if (this.controllers[options.name]) throw new Error('Controller - name ' + options.name + ' exists');
-		options.doc = options.doc || document;
-		this.controllers[options.name] = new Controller(options);
-		return this.controllers[options.name];
+	controller: function (data, callback) {
+		if (!data.name) throw new Error('Controller - name parameter required');
+		if (!data.model) throw new Error('Controller - model parameter required');
+		if (this.controllers[data.name]) throw new Error('Controller - name ' + data.name + ' exists');
+		data.doc = data.doc || document;
+		this.controllers[data.name] = new Controller(data, callback);
+		return this.controllers[data.name];
 	}
 };
+
+window.addEventListener('DOMContentLoaded', function () {
+	document.head.appendChild(eStyle);
+	for (var name in window.Swathe.controllers) {
+		if (window.Swathe.controllers.hasOwnProperty(name)) {
+			window.Swathe.controllers[name].scope.classList.toggle('s-show-true');
+		}
+	}
+});
 
 export default Swathe;
