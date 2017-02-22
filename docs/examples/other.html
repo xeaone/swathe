@@ -8,16 +8,21 @@
 
 	<title>Other  | Swathe</title>
 
-	<!-- <base href="https://alexanderelias.github.io/swathe/"> -->
-	<base href="/">
+	<script>
+	if (location.hostname !=== 'localhost') {
+		var bases = document.createElement('base');
+		base.href = location.origin + '/swathe/'
+		document.head.appendChild(base);
+	}
+	</script>
 
-	<link rel="stylesheet" href="assets/index.css">
-	<script src="assets/nav-bar.js"></script>
-	<script src="assets/swathe.js"></script>
-	<script src="assets/index.js"></script>
+	<link rel="stylesheet" href="/assets/index.css">
+	<script src="/assets/nav-bar.js"></script>
+	<script src="/assets/swathe.js"></script>
+	<script src="/assets/index.js"></script>
 
-	<link rel="stylesheet" href="assets/prettify-desert-theme.css" async>
-	<script src="assets/prettify.js" async></script>
+	<link rel="stylesheet" href="/assets/prettify-desert-theme.css" async>
+	<script src="/assets/prettify.js" async></script>
 </head>
 <body>
 
