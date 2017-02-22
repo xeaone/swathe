@@ -7,48 +7,42 @@
 import { eStyle } from './ignore/style.js';
 import Utility from './ignore/utility.js';
 import View from './ignore/view.js';
+import Model from './ignore/model.js';
 import Render from './ignore/render.js';
-import Observe from './ignore/observe.js';
-
-var ALL = '.*?';
-var S = '(s-)|(data-s-)';
-var VALUE = /(s-value)|(data-s-value)/;
 
 function Controller (data, callback) {
 	var self = this;
 
 	self.doc = data.doc;
 	self.name = data.name;
-	self.model = data.model;
+	self.query = '[s-controller="' + self.name + '"], [data-s-controller="' + self.name + '"]';
 
-	self.scope = self.doc.querySelector('[s-controller=' + self.name + ']') || self.doc.querySelector('[data-s-controller=' + self.name + ']');
-
-	self.view = new View({
-		scope: self.scope
+	self.View = new View({
+		view: self.doc.querySelector(self.query)
 	});
 
-	self.render = new Render({
-		model: self.model,
-		view: self.view
+	self.Model = new Model({
+		model: data.model
 	});
 
-	self.observe = new Observe({
-		model: self.model,
-		view: self.view,
-		render: self.render
+	self.Render = new Render({
+		doc: self.doc,
+		view: self.View,
+		model: self.Model
 	});
 
-	self.render.elements(self.model, self.view, S, ALL);
-
-	self.inputs = self.view.findByAttribute(VALUE);
-
-	self.model = self.observe.object(function (value) {
-		self.render.elements(self.model, self.view, ALL, value);
+	self.Model.change(function (name, value) {
+		self.Render.update(name, value);
 	});
 
-	self.inputs = self.observe.elements(self.inputs, function (name, value, newValue) {
-		Utility.setByPath(self.model, value, newValue);
+	self.View.change(function (key, value) {
+		Utility.setByPath(self.Model.model, key, value);
 	});
+
+	self.Render.setup();
+
+	self.view = self.View.view;
+	self.model = self.Model.model;
 
 	if (callback) callback(self);
 }
@@ -69,7 +63,7 @@ window.addEventListener('DOMContentLoaded', function () {
 	document.head.appendChild(eStyle);
 	for (var name in window.Swathe.controllers) {
 		if (window.Swathe.controllers.hasOwnProperty(name)) {
-			window.Swathe.controllers[name].scope.classList.toggle('s-show-true');
+			window.Swathe.controllers[name].view.classList.toggle('s-show-true');
 		}
 	}
 });

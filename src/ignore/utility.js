@@ -1,76 +1,67 @@
 
 export default {
+	GET: 2, SET: 3,
 
-	is: function (type, value) {
-		return !value ? false : value.constructor.name === type;
-	},
+	interact: function (type, collection, path, value) {
+		var keys = this.getPathKeys(path);
+		var last = keys.length - 1;
+		var temporary = collection;
 
-	each: function (iterable, callback, scope) {
-		var statment = null;
+		for (var i = 0; i < last; i++) {
+			var property = keys[i];
 
-		if (this.is('Object', iterable)) {
-			var k = null;
-
-			for (k in iterable) {
-				if (!iterable.hasOwnProperty(k)) continue;
-				statment = callback.call(scope, iterable[k], k, iterable);
-				if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
+			if (temporary[property] === null || temporary[property] === undefined) {
+				if (type === this.GET) {
+					return undefined;
+				} else if (type === this.SET) {
+					temporary[property] = {};
+				}
 			}
-		} else {
-			var i = null;
-			var l = null;
 
-			for (i = 0, l = iterable.length; i < l; i++) {
-				statment = callback.call(scope, iterable[i], i, iterable);
-				if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
-			}
+			temporary = temporary[property];
 		}
 
-		return iterable;
+		if (type === this.GET) {
+			return temporary[keys[last]];
+		} else if (type === this.SET) {
+			temporary[keys[last]] = value;
+			return collection;
+		}
+	},
+
+	toCleanCase: function (string) {
+		return string.replace(/(\])|(\])|(((data)?)(-?)s-)/g, function (match) {
+			return match === ']' ? '.' : '';
+		});
 	},
 
 	toCamelCase: function (string) {
-		var pattern = /(-.)/g;
-
-		return string.replace(pattern, function (match) {
+		return string.replace(/-[a-z]/g, function (match) {
 			return match[1].toUpperCase();
 		});
 	},
 
+	toDashCase: function ( string ) {
+		return string.replace(/[A-Z]/g, function (match) {
+			return '-' + match.toLowerCase();
+		});
+	},
+
 	getPathKeys: function (string) {
-		string = string.replace(/(\])|(^data-s-)|(^s-)/g, '');
-		string = string.replace('[', '.');
-		string = this.toCamelCase(string);
-		return string.split('.');
+		return this.toCamelCase(this.toCleanCase(string)).split('.');
 	},
 
-	getByPath: function (object, path) {
-		var keys = this.getPathKeys(path);
-		var last = keys.length - 1;
-		var obj = object;
-
-		for (var i = 0; i < last; i++) {
-			var prop = keys[i];
-			if (!obj[prop]) return undefined;
-			obj = obj[prop];
-		}
-
-		return obj[keys[last]];
+	getPathParent: function (string) {
+		var parent = string.split('.').slice(0, -1).join('.');
+		return parent === '' ? string : parent;
 	},
 
-	setByPath: function (object, path, value) {
-		var keys = this.getPathKeys(path);
-		var last = keys.length - 1;
-		var obj = object;
+	getByPath: function (collection, path) {
+		return this.interact(this.GET, collection, path);
+	},
 
-		for (var i = 0; i < last; i++) {
-			var prop = keys[i];
-			if (!obj[prop]) obj[prop] = {};
-			obj = obj[prop];
-		}
-
-		obj[keys[last]] = value;
-		return object;
+	setByPath: function (collection, path, value) {
+		return this.interact(this.SET, collection, path, value);
 	},
 
 	removeChildren: function (element) {
@@ -83,13 +74,28 @@ export default {
 
 };
 
-// export function isSwatheAttribute (string) {
-// 	return /(^s-)|(^data-s)/.test(string);
-// }
+// isVoid: function (value) {
+// 	return value === null || value === undefined;
+// },
+
+// is: function (type, value) {
+// 	return !value ? false : value.constructor.name === type;
+// },
+
+// each: function (iterable, callback, scope) {
+// 	var i = null, l = null;
 //
-// export function normalizeAttribute (string) {
-// 	string = string.replace(/^data-s-/, '');
-// 	string = string.replace(/^s-/, '');
-// 	string = toCamelCase(string);
-// 	return string;
-// }
+// 	if (iterable && iterable.constructor.name === 'Object') {
+// 		for (i in iterable) {
+// 			if (iterable.hasOwnProperty(i)) {
+// 				callback.call(scope, iterable[i], i, iterable);
+// 			}
+// 		}
+// 	} else {
+// 		for (i = 0, l = iterable.length; i < l; i++) {
+// 			callback.call(scope, iterable[i], i, iterable);
+// 		}
+// 	}
+//
+// 	return iterable;
+// },

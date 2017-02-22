@@ -6,14 +6,17 @@
 
 	var sStyle = `
 	[s-controller], [data-s-controller] {
-		opacity: 0;
+		// opacity: 0;
 		transition: all 300ms ease;
 		-o-transition: all 300ms ease;
 		-ms-transition: all 300ms ease;
 		-moz-transition: all 300ms ease;
 		-webkit-transition: all 300ms ease;
 	}
-	.s-if-false, .s-if-false {
+	.s-if-true {
+		display: inherit;
+	}
+	.s-if-false {
 		display: none;
 	}
 	.s-show-true {
@@ -30,77 +33,68 @@
 	eStyle.appendChild(nStyle);
 
 	var Utility = {
+		GET: 2, SET: 3,
 
-		is: function (type, value) {
-			return !value ? false : value.constructor.name === type;
-		},
+		interact: function (type, collection, path, value) {
+			var keys = this.getPathKeys(path);
+			var last = keys.length - 1;
+			var temporary = collection;
 
-		each: function (iterable, callback, scope) {
-			var statment = null;
+			for (var i = 0; i < last; i++) {
+				var property = keys[i];
 
-			if (this.is('Object', iterable)) {
-				var k = null;
-
-				for (k in iterable) {
-					if (!iterable.hasOwnProperty(k)) continue;
-					statment = callback.call(scope, iterable[k], k, iterable);
-					if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
+				if (temporary[property] === null || temporary[property] === undefined) {
+					if (type === this.GET) {
+						return undefined;
+					} else if (type === this.SET) {
+						temporary[property] = {};
+					}
 				}
-			} else {
-				var i = null;
-				var l = null;
 
-				for (i = 0, l = iterable.length; i < l; i++) {
-					statment = callback.call(scope, iterable[i], i, iterable);
-					if (statment) if (statment === 'break') break; else if (statment === 'continue') continue;
-				}
+				temporary = temporary[property];
 			}
 
-			return iterable;
+			if (type === this.GET) {
+				return temporary[keys[last]];
+			} else if (type === this.SET) {
+				temporary[keys[last]] = value;
+				return collection;
+			}
+		},
+
+		toCleanCase: function (string) {
+			return string.replace(/(\])|(\])|(((data)?)(-?)s-)/g, function (match) {
+				return match === ']' ? '.' : '';
+			});
 		},
 
 		toCamelCase: function (string) {
-			var pattern = /(-.)/g;
-
-			return string.replace(pattern, function (match) {
+			return string.replace(/-[a-z]/g, function (match) {
 				return match[1].toUpperCase();
 			});
 		},
 
+		toDashCase: function ( string ) {
+			return string.replace(/[A-Z]/g, function (match) {
+				return '-' + match.toLowerCase();
+			});
+		},
+
 		getPathKeys: function (string) {
-			string = string.replace(/(\])|(^data-s-)|(^s-)/g, '');
-			string = string.replace('[', '.');
-			string = this.toCamelCase(string);
-			return string.split('.');
+			return this.toCamelCase(this.toCleanCase(string)).split('.');
 		},
 
-		getByPath: function (object, path) {
-			var keys = this.getPathKeys(path);
-			var last = keys.length - 1;
-			var obj = object;
-
-			for (var i = 0; i < last; i++) {
-				var prop = keys[i];
-				if (!obj[prop]) return undefined;
-				obj = obj[prop];
-			}
-
-			return obj[keys[last]];
+		getPathParent: function (string) {
+			var parent = string.split('.').slice(0, -1).join('.');
+			return parent === '' ? string : parent;
 		},
 
-		setByPath: function (object, path, value) {
-			var keys = this.getPathKeys(path);
-			var last = keys.length - 1;
-			var obj = object;
+		getByPath: function (collection, path) {
+			return this.interact(this.GET, collection, path);
+		},
 
-			for (var i = 0; i < last; i++) {
-				var prop = keys[i];
-				if (!obj[prop]) obj[prop] = {};
-				obj = obj[prop];
-			}
-
-			obj[keys[last]] = value;
-			return object;
+		setByPath: function (collection, path, value) {
+			return this.interact(this.SET, collection, path, value);
 		},
 
 		removeChildren: function (element) {
@@ -113,27 +107,63 @@
 
 	};
 
-	// export function isSwatheAttribute (string) {
-	// 	return /(^s-)|(^data-s)/.test(string);
-	// }
-	//
-	// export function normalizeAttribute (string) {
-	// 	string = string.replace(/^data-s-/, '');
-	// 	string = string.replace(/^s-/, '');
-	// 	string = toCamelCase(string);
-	// 	return string;
-	// }
+	// isVoid: function (value) {
+	// 	return value === null || value === undefined;
+	// },
 
-	var REJECTED_TAGS = /(iframe)|(script)|(style)|(link)|(object)/;
-	var REJECTED_ATTRIBUTES = /(s-controller=")|(data-s-controller=")/;
+	// is: function (type, value) {
+	// 	return !value ? false : value.constructor.name === type;
+	// },
+
+	// each: function (iterable, callback, scope) {
+	// 	var i = null, l = null;
+	//
+	// 	if (iterable && iterable.constructor.name === 'Object') {
+	// 		for (i in iterable) {
+	// 			if (iterable.hasOwnProperty(i)) {
+	// 				callback.call(scope, iterable[i], i, iterable);
+	// 			}
+	// 		}
+	// 	} else {
+	// 		for (i = 0, l = iterable.length; i < l; i++) {
+	// 			callback.call(scope, iterable[i], i, iterable);
+	// 		}
+	// 	}
+	//
+	// 	return iterable;
+	// },
+
+	var REJECTED_TAGS = /(iframe)|(script)|(style)|(link)|(object)/i;
+	var REJECTED_ATTRIBUTES = /(s-controller")|(data-s-controller")/i;
 
 	function View (data) {
-		this.scope = data.scope;
-		this.nodes = this.scope.getElementsByTagName('*');
+		this.view = data.view;
+		this.elements = this.view.getElementsByTagName('*');
 	}
 
-	View.prototype.isTag = function (node, pattern) {
-		var tag = node.tagName.toLowerCase();
+	View.prototype.atts = function (element, pattern, callback) {
+		var attributes = element.attributes;
+		var results = [];
+		var result = {};
+
+		for (var i = 0, l = attributes.length; i < l; i++) {
+			result.value = attributes[i].value;
+			result.name = attributes[i].name;
+			result.attribute = result.name + '="' + result.value + '"';
+
+			if (pattern.test(result.attribute)) {
+				results.push(result);
+				if (callback) callback(result);
+				else return true;
+			}
+		}
+
+		if (callback) return results;
+		else return false;
+	};
+
+	View.prototype.isTag = function (element, pattern) {
+		var tag = element.tagName.toLowerCase();
 
 		if (pattern.test(tag)) {
 			return true;
@@ -142,59 +172,189 @@
 		return false;
 	};
 
-	View.prototype.isAttribute = function (node, pattern) {
-		var attributes = node.attributes;
-
-		for (var i = 0, l = attributes.length; i < l; i++) {
-			var attribute = node.attributes[i].name + '="' + node.attributes[i].value + '"';
-			if (pattern.test(attribute)) return true;
-		}
-
-		return false;
+	View.prototype.isAttribute = function (element, pattern) {
+		return this.atts(element, pattern);
 	};
 
-	View.prototype.isRejected = function (node) {
-		var isTag = this.isTag(node, REJECTED_TAGS);
-		var isAttribute = this.isAttribute(node, REJECTED_ATTRIBUTES);
+	View.prototype.isRejected = function (element) {
+		var isTag = this.isTag(element, REJECTED_TAGS);
+		var isAttribute = this.isAttribute(element, REJECTED_ATTRIBUTES);
 		return isTag || isAttribute;
 	};
 
-	View.prototype.list = function (filter) {
-		var node =  null;
-		var nodes = [];
+	View.prototype.eles = function (elements, callback) {
+		var i = 0, element = null, results = [];
 
-		for (var i = 0, l = this.nodes.length; i < l; i++) {
-			node = this.nodes[i];
+		for (i; i < elements.length; i++) {
+			element = elements[i];
 
-			if (this.isRejected(node)) { // rejects elment and its children
-				i = i + node.children.length;
-				node = this.nodes[i];
-			} else if (filter ? filter(node) : true) {
-				nodes.push(node);
+			if (this.isRejected(element)) { // rejects element and its children
+				i = i + element.children.length;
+				element = elements[i];
+			} else {
+				results.push(element);
+				if (callback) callback(element);
 			}
 		}
 
-		return nodes;
+		return results;
 	};
 
-	View.prototype.findByTag = function (pattern) {
+	View.prototype.each = function (elements, pattern, callback) {
 		var self = this;
 
 		pattern = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
 
-		return self.list(function (node) {
-			return self.isTag(node, pattern);
+		self.eles(elements, function (element) {
+			self.atts(element, pattern, function (attribute) {
+				callback(element, attribute);
+			});
 		});
 	};
 
-	View.prototype.findByAttribute = function (pattern) {
+	View.prototype.change = function (callback) {
+		var value = null;
+
+		this.view.addEventListener('change', function (e) {
+			value = e.target.getAttribute('s-value') || e.target.getAttribute('data-s-value');
+			// TODO might need to check correct view
+			if (value) callback(value, e.target.value);
+		}, false);
+	};
+
+	// View.prototype.traverseAttributes = function (pattern, callback) {
+	// 	var self = this;
+	// 	var elements = self.elements;
+	//
+	// 	pattern = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+	//
+	// 	self.eles(elements, function (element) {
+	// 		self.atts(element, pattern, function (attribute) {
+	// 			callback(element, attribute);
+	// 		});
+	// 	});
+	// };
+
+	// View.prototype.filter = function (callback) {
+	// 	var elements = [];
+	//
+	// 	this.eles(function (element) {
+	// 		if (callback ? callback(element) : true) {
+	// 			elements.push(element);
+	// 		}
+	// 	});
+	//
+	// 	return elements;
+	// };
+
+	// View.prototype.findByTag = function (pattern, callback) {
+	// 	var self = this;
+	// 	var result = null;
+	//
+	// 	pattern = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+	//
+	// 	return self.filter(function (element) {
+	// 		result = self.isTag(element, pattern);
+	// 		if (result && callback) callback(element, result);
+	// 		return result;
+	// 	});
+	// };
+
+	// View.prototype.findByAttribute = function (pattern, callback) {
+	// 	var self = this;
+	// 	var result = null;
+	//
+	// 	pattern = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+	//
+	// 	return self.filter(function (element) {
+	// 		result = self.isAttribute(element, pattern);
+	// 		if (result && callback) callback(element, result);
+	// 		return result;
+	// 	});
+	// };
+
+	function proxy (object, callback, prefix) {
+		var value = null;
+
+		if (!prefix) prefix = '';
+
+		var handler = {
+			get: function (target, property) {
+				value = target[property];
+
+				if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
+					return proxy(value, callback, prefix + property + '.');
+				} else {
+					return value;
+				}
+			},
+			set: function (target, property, value) {
+				if (target[property] !== value) { // send change if value is different
+					target[property] = value;
+					if (callback) callback(prefix + property, value);
+				}
+
+				return true;
+			}
+		};
+
+		return new Proxy(object, handler);
+	}
+
+	function define (object, callback, prefix) {
+		var newObject = {};
+		var properties = {};
+
+		var key = null;
+		var value = null;
+		var prefixObject = null;
+		var prefixVariable = null;
+
+		if (!prefix) prefix = '';
+
+		function handler (o, k, p) {
+			return {
+				enumerable: true,
+				configurable: true,
+				get: function () {
+					return o[k];
+				},
+				set: function (nv) {
+					if (nv !== o[k]) {
+						o[k] = nv;
+						if (callback) callback(p, nv);
+					}
+				}
+			};
+		}
+
+		for (key in object) {
+			value = object[key];
+			prefixObject = !prefix ? key : prefix + '.' + key;
+			prefixVariable = !prefix ? key : prefix + '.' + key;
+
+			if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
+				newObject[key] = define(value, callback, prefixObject);
+			} else {
+				properties[key] = handler(object, key, prefixVariable);
+			}
+		}
+
+		return Object.defineProperties(newObject, properties);
+	}
+
+	function Model (data) {
 		var self = this;
 
-		pattern = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+		self.isProxy = Proxy ? true : false;
+		self.callback = function (key, value) { self._change(key, value); };
 
-		return self.list(function (node) {
-			return self.isAttribute(node, pattern);
-		});
+		if (self.isProxy) self.model = proxy(data.model, self.callback);
+		else self.model = define(data.model, self.callback);
+	}
+
+	Model.prototype.change = function (callback) {
+		this._change = callback;
 	};
 
 	/*
@@ -295,35 +455,35 @@
 		serialize: serialize
 	};
 
-	var IF = /(s-if)|(data-s-if)/;
-	var FOR = /(s-for)|(data-s-for)/;
-	var CSS = /(s-css)|(data-s-css)/;
-	var HTML = /(s-html)|(data-s-html)/;
+	var ALL = /((data)?)(-?)s-/;
+	var IF = /((data)?)(-?)s-if(-?)/;
+	var FOR = /((data)?)(-?)s-for(-?)/;
+	var HTML = /((data)?)(-?)s-html(-?)/;
 	// var VIEW = /(s-view)|(data-s-view)/;
-	var TEXT = /(s-text)|(data-s-text)/;
-	var STYLE = /(s-style)|(data-s-style)/;
-	// var VALUE = /(s-value)|(data-s-value)/;
-	var ON = /(s-on)|(s-event)|(data-s-on)|(data-s-event)/;
+	var TEXT = /((data)?)(-?)s-text(-?)/;
+	var STYLE = /((data)?)(-?)s-style(-?)/;
+	var VALUE = /((data)?)(-?)s-value(-?)/;
+	var ON = /(((data)?)(-?)s-on(-?))|(((data)?)(-?)s-event(-?))/;
 
 	function Render (data) {
-		this.doc = document;
+		this.doc = data.doc;
 		this.view = data.view;
 		this.model = data.model;
 	}
 
-	Render.prototype.eOn = function (model, view, name, value, element) {
+	Render.prototype._on = function (element, attribute, path, value) {
 		var self = this;
 
 		value = value.replace(/\(/g, ', ');
 		value = value.replace(/\)/g, '');
 		value = value.split(', ');
 
-		name = name.replace(/(data-)|(s-)|(on-)|(event-)|(-)/g, '');
-		name = name.toLowerCase();
+		// attribute.name = attribute.name.replace(/(data-)|(s-)|(on-)|(event-)|(-)/g, '');
+		path = path.toLowerCase();
 
 		var methodPath = value[0];
 		var methodParameters = value;
-		var method = Utility.getByPath(model, methodPath);
+		var method = Utility.getByPath(self.model.model, methodPath);
 
 		// if (!method) return null;
 
@@ -334,22 +494,30 @@
 			if (/^[0-9]*$/.test(parameter)) {
 				methodParameters[index] = parseInt(parameter);
 			} else if (!/(')|(")|(`)/.test(parameter)) {
-				methodParameters[index] = Utility.getByPath(model, parameter);
+				methodParameters[index] = Utility.getByPath(self.model.model, parameter);
 			}
 		});
 
-		var methodBound = method.bind.apply(method, [element].concat(methodParameters));
+		var methodBound = method.bind.apply(method, [node].concat(methodParameters));
 
-		element.addEventListener(name, methodBound);
+		node.addEventListener(path, methodBound);
 	};
 
-	Render.prototype.eFor = function (model, view, name, value, element) {
+	Render.prototype._if = function (element, attribute, path, value) {
+		if (typeof value === 'string') {
+			value = new Boolean(value);
+		}
+
+		element.hidden = !value;
+	};
+
+	Render.prototype._for = function (element, attribute, path, value) {
 		var self = this;
 
-		var variable = name.split('-').pop();
+		var variable = path.split('-').pop();
 		var iterable = value;
 
-		var iterableArray = Utility.getByPath(model, iterable);
+		var iterableArray = Utility.getByPath(self.model.model, iterable);
 		var fragment = self.doc.createDocumentFragment();
 
 		// clone child elements
@@ -364,255 +532,106 @@
 		// var valuePattern = /.*/;
 		var index = 0;
 
-		// change eFor child variable names
+		// change _for child variable names
 		Utility.each(elements, function (element) {
 			Utility.each(element.attributes, function (attribute) {
-				if (attribute.value === variable) {
-					attribute.value = iterable + '.'+ index;
+				if (value === variable) {
+					value = iterable + '.'+ index;
 					index++;
 				}
 			});
 		});
 
 		// TODO impoment better loop
-		// self._elements (model, view, name, value, elements, namePattern, valuePattern);
+		// self._elements (element, attribute, path, values, namePattern, valuePattern);
 
 		// element = removeChildren(element);
 		element.appendChild(fragment);
 	};
 
-	Render.prototype.eCss = function (model, view, name, value, element) {
+	Render.prototype._html = function (element, attribute, path, value) {
 		var self = this;
 
-		var styles = value.replace(/\s/g, '').split(';');
-		var cssText = null;
-		var viewValue = null;
-		var modelValue = null;
-		var viewValueClean = null;
-
-		styles.forEach(function (style) {
-			viewValue = style.split(':').pop();
-
-			if (/^\$/.test(viewValue)) {
-				viewValueClean = viewValue.replace('$', '');
-				modelValue = Utility.getByPath(model, viewValueClean);
-
-				if (modelValue) {
-					style = style.replace(viewValue, modelValue);
-					cssText = Utility.getByPath(element, 'style.cssText');
-					Utility.setByPath(element, 'style.cssText', cssText + style);
-				}
-			}
-		});
-	};
-
-	Render.prototype.eIf = function (model, view, name, value, element) {
-		var self = this;
-
-		value = Utility.getByPath(model, value);
-		if (value) element.classList.remove('s-if-false');
-		else element.classList.add('s-if-false');
-	};
-
-	Render.prototype.eStyle = function (model, view, name, value, element) {
-		var self = this;
-
-		name = name.replace(/(s-style-)|(data-s-style-)/, 'style.');
-		name = Utility.toCamelCase(name);
-		self.eDefault(model, view, name, value, element);
-	};
-
-	Render.prototype.eHtml = function (model, view, name, value, element) {
-		var self = this;
-
-		name = 'innerHTML';
-
-		// TODO handle all external resources
-		if (/^\//.test(value)) {
+		if (/^</.test(value)) {
+			element.innerHTML = value;
+			self.each(element.children, ALL);
+		} else {
 			Axa.request({
-				action: '/partial/index.html',
+				action: value,
 				success: function (xhr) {
-					console.log(xhr);
+					element.innerHTML = xhr.response;
+					self.each(element.children, ALL);
 				},
 				error: function (xhr) {
-					console.log(xhr);
+					throw xhr;
 				}
 			});
-		} else {
-			self.eDefault(model, view, name, value, element);
 		}
 	};
 
-	Render.prototype.eText = function (model, view, name, value, element) {
-		var self = this;
-		name = 'innerText';
-		self.eDefault(model, view, name, value, element);
+	Render.prototype._text = function (element, attribute, path, value) {
+		if (typeof value === 'object') {
+			value = JSON.stringify(value);
+		} else if (typeof value === 'number') {
+			value = value.toString();
+		}
+		element.innerText = value.toString();
 	};
 
-	// function valueElement (model, view, name, value, element) {
-	// 	var self = this;
-	// 	value = getByPath(model, value);
-	// 	setByPath(element, name, value);
-	// }
-
-	Render.prototype.eDefault = function (model, view, name, value, element) {
-		var self = this;
-		// value = getByPath(model, value) || value;
-		value = Utility.getByPath(model, value);
-		Utility.setByPath(element, name, value);
-	};
-
-	Render.prototype._switch = function (model, view, name, value, element) {
-		var self = this;
-
-		if (ON.test(name)) {
-			self.eOn(model, view, name, value, element);
-		} else if (IF.test(name)) {
-			self.eIf(model, view, name, value, element);
-		} else if (FOR.test(name)) {
-			self.eFor(model, view, name, value, element);
-		} else if (CSS.test(name)) {
-			self.eCss(model, view, name, value, element);
-		} else if (HTML.test(name)) {
-			self.eHtml(model, view, name, value, element);
-		} else if (TEXT.test(name)) {
-			self.eText(model, view, name, value, element);
-		} else if (STYLE.test(name)) {
-			self.eStyle(model, view, name, value, element);
+	Render.prototype._style = function (element, attribute, path, value) {
+		if (typeof value === 'string') {
+			path = Utility.toCamelCase(path).replace('.', '');
+			element.style[path] = value;
 		} else {
-			self.eDefault(model, view, name, value, element);
+			for (var key in value) {
+				if (value.hasOwnProperty(key)) {
+					key = Utility.toDashCase(key);
+					element.style.cssText += key + ':' + value[key] + ';';
+				}
+			}
 		}
 	};
 
-	// Render.prototype._elements = function (model, view, name, value, elements, namePattern, valuePattern) {
-	// 	var self = this;
-	//
-	// 	each(elements, function (element) {
-	// 		each(element.attributes, function (attribute) {
-	// 			if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
-	// 				self._switch(model, view, attribute.name, attribute.value, element);
-	// 			}
-	// 		});
-	// 	});
-	// };
+	Render.prototype._value = function (element, attribute, path, value) {
+		if (element.value !== value) element.value = value;
+	};
 
-	Render.prototype.elements = function (model, view, name, value) {
+	Render.prototype._default = function (element, attribute, path, value) {
+		Utility.setByPath(element, path, value);
+	};
+
+	Render.prototype._switch = function (element, attribute, value) {
+		if (ON.test(attribute.name)) this._on(element, attribute, attribute.name.replace(ON, ''), value);
+		else if (IF.test(attribute.name)) this._if(element, attribute, attribute.name.replace(IF, ''), value);
+		else if (FOR.test(attribute.name)) this._for(element, attribute, attribute.name.replace(FOR, ''), value);
+		else if (HTML.test(attribute.name)) this._html(element, attribute, attribute.name.replace(HTML, ''), value);
+		else if (TEXT.test(attribute.name)) this._text(element, attribute, attribute.name.replace(TEXT, ''), value);
+		else if (STYLE.test(attribute.name)) this._style(element, attribute, attribute.name.replace(STYLE, ''), value);
+		else if (VALUE.test(attribute.name)) this._value(element, attribute, attribute.name.replace(VALUE, ''), value);
+		else this._default(element, attribute, attribute.name, value);
+	};
+
+	Render.prototype.each = function (elements, pattern, value) {
 		var self = this;
 
-		var dollarPattern = '(\\$' + value + ')';
-		var regularPattern = '(' + name + '=\"' + value + '\")';
-		var elements = view.findByAttribute(regularPattern + '|' + dollarPattern);
+		// var isValue = value === null || value === undefined ? false : true;
 
-		var namePattern = new RegExp(name);
-		var valuePattern = new RegExp(value);
-
-		Utility.each(elements, function (element) {
-			Utility.each(element.attributes, function (attribute) {
-				if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
-					self._switch(model, view, attribute.name, attribute.value, element);
-				}
-			});
+		self.view.each(elements, pattern, function (element, attribute) {
+			// value = isValue ? value : Utility.getByPath(self.model.model, attribute.value);
+			value = Utility.getByPath(self.model.model, attribute.value);
+			value = value === null || value === undefined ? attribute.value : value;
+			self._switch(element, attribute, value);
 		});
 	};
 
-	function Observe (data) {
-		this.view = data.view;
-		this.model = data.model;
-		this.render = data.render;
-		this.isProxy = Proxy ? true : false;
-	}
-
-	Observe.prototype._proxy = function (object, callback, prefix) {
-		var self = this;
-
-		if (!prefix) prefix = '';
-
-		var handler = {
-			get: function (target, property) {
-				if (Utility.is('Object', target[property]) || Utility.is('Array', target[property])) {
-					return self._proxy(target[property], callback, prefix + property + '.');
-				} else {
-					return target[property];
-				}
-			},
-			set: function (target, property, value) {
-				if (target[property] !== value) { // send change if value is different
-					target[property] = value;
-					callback(prefix + property, value);
-				}
-
-				return true;
-			}
-		};
-
-		return new Proxy(object, handler);
+	Render.prototype.update = function (name) {
+		name = Utility.getPathParent(name);
+		name = '(((s-)|(data-s-))(.*?)="' + name +'(.*?)")';
+		this.each(this.view.elements, name);
 	};
 
-	Observe.prototype._define = function (object, callback, prefix) {
-		var self = this;
-
-		var newObject = {};
-		var properties = {};
-
-		if (!prefix) prefix = '';
-
-		var handler = function(o, k, p) {
-			return {
-				enumerable: true,
-				configurable: true,
-				get: function () {
-					return o[k];
-				},
-				set: function (nv) {
-					if (nv !== o[k]) {
-						o[k] = nv;
-						callback(p, nv);
-					}
-				}
-			};
-		};
-
-		for (var key in object) {
-			var value = object[key];
-			var prefixObject = !prefix ? key : prefix + '.' + key;
-			var prefixVariable = !prefix ? key : prefix + '.' + key;
-
-			if (Utility.is('Object', value)) {
-				newObject[key] = self._define(value, callback, prefixObject);
-			} else {
-				properties[key] = handler(object, key, prefixVariable);
-			}
-		}
-
-		return Object.defineProperties(newObject, properties);
-	};
-
-	Observe.prototype.object = function (object, callback) {
-		if (typeof object === 'function') {
-			callback = object;
-			object = null;
-		}
-
-		object = object || this.model;
-
-		if (this.isProxy) return this._proxy(object, callback);
-		else return this._define(object, callback);
-	};
-
-	Observe.prototype.elements = function (elements, callback) {
-
-		// event input works on: input, select, textarea
-		var eventHandler = function (e) {
-			var target = e.target;
-			var value = target.getAttribute('s-value') || target.getAttribute('data-s-value');
-			callback(name, value, target.value, target);
-		};
-
-		elements.forEach(function (element) {
-			element.addEventListener('input', eventHandler);
-		});
-
-		return elements;
+	Render.prototype.setup = function () {
+		this.each(this.view.elements, ALL);
 	};
 
 	/*
@@ -621,45 +640,39 @@
 		author: alexander elias
 	*/
 
-	var ALL = '.*?';
-	var S = '(s-)|(data-s-)';
-	var VALUE = /(s-value)|(data-s-value)/;
-
 	function Controller (data, callback) {
 		var self = this;
 
 		self.doc = data.doc;
 		self.name = data.name;
-		self.model = data.model;
+		self.query = '[s-controller="' + self.name + '"], [data-s-controller="' + self.name + '"]';
 
-		self.scope = self.doc.querySelector('[s-controller=' + self.name + ']') || self.doc.querySelector('[data-s-controller=' + self.name + ']');
-
-		self.view = new View({
-			scope: self.scope
+		self.View = new View({
+			view: self.doc.querySelector(self.query)
 		});
 
-		self.render = new Render({
-			model: self.model,
-			view: self.view
+		self.Model = new Model({
+			model: data.model
 		});
 
-		self.observe = new Observe({
-			model: self.model,
-			view: self.view,
-			render: self.render
+		self.Render = new Render({
+			doc: self.doc,
+			view: self.View,
+			model: self.Model
 		});
 
-		self.render.elements(self.model, self.view, S, ALL);
-
-		self.inputs = self.view.findByAttribute(VALUE);
-
-		self.model = self.observe.object(function (value) {
-			self.render.elements(self.model, self.view, ALL, value);
+		self.Model.change(function (name, value) {
+			self.Render.update(name, value);
 		});
 
-		self.inputs = self.observe.elements(self.inputs, function (name, value, newValue) {
-			Utility.setByPath(self.model, value, newValue);
+		self.View.change(function (key, value) {
+			Utility.setByPath(self.Model.model, key, value);
 		});
+
+		self.Render.setup();
+
+		self.view = self.View.view;
+		self.model = self.Model.model;
 
 		if (callback) callback(self);
 	}
@@ -680,7 +693,7 @@
 		document.head.appendChild(eStyle);
 		for (var name in window.Swathe.controllers) {
 			if (window.Swathe.controllers.hasOwnProperty(name)) {
-				window.Swathe.controllers[name].scope.classList.toggle('s-show-true');
+				window.Swathe.controllers[name].view.classList.toggle('s-show-true');
 			}
 		}
 	});

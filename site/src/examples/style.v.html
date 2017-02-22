@@ -1,0 +1,37 @@
+<!-- { "title": "Style" } -->
+
+<h2>Style</h2>
+
+<section>
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<div s-style="style" s-text="style"></div>
+		<div s-style-background="style.background" s-text="style.background"></div>
+		<input s-value="style.backgroundColor">
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<div s-style="style" s-text="style"></div>
+		<div s-style.background-color="style.background" s-text="style.background"></div>
+		<input s-value="style.background">
+	</div>
+</section>
+
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			style: {
+				color: 'white',
+				background: 'blue'
+			}
+		}
+	};
+
+	Swathe.controller(options, function (controller) {
+		setTimeout(function () {
+			console.log(controller.model);
+		}, 3000);
+	});
+</script>

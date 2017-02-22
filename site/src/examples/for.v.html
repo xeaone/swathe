@@ -29,20 +29,22 @@
 </section>
 
 <script>
-	Swathe.controller('main',
-		{
+	var options = {
+		name: 'main',
+		model: {
 			number: 'Number: ',
 			iterable: ['zero', 'one', 'two', 'three']
-		},
-		function (controller) {
-			setTimeout(function () {
-				controller.model.iterable.pop();
-
-				// does not tigger change
-				// delete controller.model.iterable[2]
-
-				console.log(controller.model.iterable);
-			}, 1500);
 		}
-	);
+	};
+
+	Swathe.controller(options, function (controller) {
+		setTimeout(function () {
+			controller.model.iterable.pop();
+
+			// does not tigger change
+			// delete controller.model.iterable[2]
+
+			console.log(controller.model.iterable);
+		}, 1500);
+	});
 </script>

@@ -62,6 +62,30 @@ p {
 	font-size: 1rem;
 	margin: 1rem auto;
 }
+section {
+	padding: 32px;
+	max-width: 900px;
+	margin: 16px auto;
+	/*background: lightslategray;
+	border: solid 3px slategray;
+	box-shadow: 0 3px 3px rgba(0,0,0,0.3);*/
+}
+ul {
+	list-style-position: inside;
+}
+li ul {
+	margin-left: 1rem;
+}
+code {
+
+}
+input, textarea {
+	border: none;
+	outline: none;
+	max-width: 100%;
+	padding: 0.5rem;
+	background: whitesmoke;
+}
 nav {
 	text-align: center;
 	border-bottom: solid 3px darkorange;
@@ -78,6 +102,9 @@ nav a {
 	padding: 1rem 2rem;
 	text-transform: uppercase;
 }
+footer p {
+	text-align: center;
+}
 .nav-bar {
 	color: darkorange;
 }
@@ -88,30 +115,6 @@ nav a {
 	background: whitesmoke;
 }
 .nav-list-sub {
-	background: whitesmoke;
-}
-section {
-	padding: 32px;
-	max-width: 900px;
-	margin: 16px auto;
-	/*background: lightslategray;
-	border: solid 3px slategray;
-	box-shadow: 0 3px 3px rgba(0,0,0,0.3);*/
-}
-li ul {
-	margin-left: 1rem;
-}
-ul {
-	list-style-position: inside;
-}
-code {
-
-}
-input, textarea {
-	border: none;
-	outline: none;
-	max-width: 100%;
-	padding: 0.5rem;
 	background: whitesmoke;
 }
 .primary-f {

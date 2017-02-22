@@ -6,7 +6,7 @@
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<title>Model Documentation  | Swathe</title>
+	<title>If  | Swathe</title>
 
 	<!-- <base href="https://alexanderelias.github.io/swathe/"> -->
 	<base href="/">
@@ -27,7 +27,7 @@
 				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
 			</a>
 		</div>
-		<div class="title secondary-f">Model Documentation</div>
+		<div class="title secondary-f">If</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
@@ -51,49 +51,34 @@
 	<main>
 		
 
-<h2>Model Documentation</h2>
+<h2>If</h2>
 
 <section>
-	<h3>Swathe</h3>
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<div s-if="true">true</div>
+		<div s-if="isFalse">isFalse</div>
+	</code>
 
-	<h4>Properties</h4>
-	<ul>
-		<li><span class="code">controller</span> Object to interact with the controller.</li>
-		<li><span class="code">controllers</span> Object containing a list of controllers.</li>
-	</ul>
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<div s-if="true">true</div>
+		<div s-if="isFalse">isFalse</div>
+	</div>
 </section>
 
-<section>
-	<h3>controller</h3>
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			isFalse: false,
+		}
+	};
 
-	<h4>Parameters</h4>
-	<ul>
-		<li><span class="code">name</span> A controller name. <em>Required</em></li>
-		<li><span class="code">model</span> A observed object. It is best to define all properties that will be observed at this point. <em>Required</em></li>
-		<li><span class="code">callback</span> A callback for the controller with the instance of the controller passed as a parameter.</li>
-	</ul>
-
-	<h4>Returns</h4>
-	<ul>
-		<li><span class="code">controller</span> A controller instance.</li>
-	</ul>
-
-	<h4>Properties</h4>
-	<ul>
-		<li><span class="code">name</span> String name.</li>
-		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
-		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
-	</ul>
-</section>
-
-<section>
-	<h3>controllers</h3>
-
-	<h4>Returns</h4>
-	<ul>
-		<li>A list of controller objects.</li>
-	</ul>
-</section>
+	Swathe.controller(options, function (controller) {
+		console.log(controller.model);
+	});
+</script>
 
 	</main>
 

@@ -1,35 +1,35 @@
 import Utility from './utility.js';
 import Axa from 'axa';
 
-var IF = /(s-if)|(data-s-if)/;
-var FOR = /(s-for)|(data-s-for)/;
-var CSS = /(s-css)|(data-s-css)/;
-var HTML = /(s-html)|(data-s-html)/;
+var ALL = /((data)?)(-?)s-/;
+var IF = /((data)?)(-?)s-if(-?)/;
+var FOR = /((data)?)(-?)s-for(-?)/;
+var HTML = /((data)?)(-?)s-html(-?)/;
 // var VIEW = /(s-view)|(data-s-view)/;
-var TEXT = /(s-text)|(data-s-text)/;
-var STYLE = /(s-style)|(data-s-style)/;
-// var VALUE = /(s-value)|(data-s-value)/;
-var ON = /(s-on)|(s-event)|(data-s-on)|(data-s-event)/;
+var TEXT = /((data)?)(-?)s-text(-?)/;
+var STYLE = /((data)?)(-?)s-style(-?)/;
+var VALUE = /((data)?)(-?)s-value(-?)/;
+var ON = /(((data)?)(-?)s-on(-?))|(((data)?)(-?)s-event(-?))/;
 
 export default function Render (data) {
-	this.doc = document;
+	this.doc = data.doc;
 	this.view = data.view;
 	this.model = data.model;
 }
 
-Render.prototype.eOn = function (model, view, name, value, element) {
+Render.prototype._on = function (element, attribute, path, value) {
 	var self = this;
 
 	value = value.replace(/\(/g, ', ');
 	value = value.replace(/\)/g, '');
 	value = value.split(', ');
 
-	name = name.replace(/(data-)|(s-)|(on-)|(event-)|(-)/g, '');
-	name = name.toLowerCase();
+	// attribute.name = attribute.name.replace(/(data-)|(s-)|(on-)|(event-)|(-)/g, '');
+	path = path.toLowerCase();
 
 	var methodPath = value[0];
 	var methodParameters = value;
-	var method = Utility.getByPath(model, methodPath);
+	var method = Utility.getByPath(self.model.model, methodPath);
 
 	// if (!method) return null;
 
@@ -40,22 +40,30 @@ Render.prototype.eOn = function (model, view, name, value, element) {
 		if (/^[0-9]*$/.test(parameter)) {
 			methodParameters[index] = parseInt(parameter);
 		} else if (!/(')|(")|(`)/.test(parameter)) {
-			methodParameters[index] = Utility.getByPath(model, parameter);
+			methodParameters[index] = Utility.getByPath(self.model.model, parameter);
 		}
 	});
 
-	var methodBound = method.bind.apply(method, [element].concat(methodParameters));
+	var methodBound = method.bind.apply(method, [node].concat(methodParameters));
 
-	element.addEventListener(name, methodBound);
+	node.addEventListener(path, methodBound);
 };
 
-Render.prototype.eFor = function (model, view, name, value, element) {
+Render.prototype._if = function (element, attribute, path, value) {
+	if (typeof value === 'string') {
+		value = new Boolean(value);
+	}
+
+	element.hidden = !value;
+};
+
+Render.prototype._for = function (element, attribute, path, value) {
 	var self = this;
 
-	var variable = name.split('-').pop();
+	var variable = path.split('-').pop();
 	var iterable = value;
 
-	var iterableArray = Utility.getByPath(model, iterable);
+	var iterableArray = Utility.getByPath(self.model.model, iterable);
 	var fragment = self.doc.createDocumentFragment();
 
 	// clone child elements
@@ -70,153 +78,104 @@ Render.prototype.eFor = function (model, view, name, value, element) {
 	// var valuePattern = /.*/;
 	var index = 0;
 
-	// change eFor child variable names
+	// change _for child variable names
 	Utility.each(elements, function (element) {
 		Utility.each(element.attributes, function (attribute) {
-			if (attribute.value === variable) {
-				attribute.value = iterable + '.'+ index;
+			if (value === variable) {
+				value = iterable + '.'+ index;
 				index++;
 			}
 		});
 	});
 
 	// TODO impoment better loop
-	// self._elements (model, view, name, value, elements, namePattern, valuePattern);
+	// self._elements (element, attribute, path, values, namePattern, valuePattern);
 
 	// element = removeChildren(element);
 	element.appendChild(fragment);
 };
 
-Render.prototype.eCss = function (model, view, name, value, element) {
+Render.prototype._html = function (element, attribute, path, value) {
 	var self = this;
 
-	var styles = value.replace(/\s/g, '').split(';');
-	var cssText = null;
-	var viewValue = null;
-	var modelValue = null;
-	var viewValueClean = null;
-
-	styles.forEach(function (style) {
-		viewValue = style.split(':').pop();
-
-		if (/^\$/.test(viewValue)) {
-			viewValueClean = viewValue.replace('$', '');
-			modelValue = Utility.getByPath(model, viewValueClean);
-
-			if (modelValue) {
-				style = style.replace(viewValue, modelValue);
-				cssText = Utility.getByPath(element, 'style.cssText');
-				Utility.setByPath(element, 'style.cssText', cssText + style);
-			}
-		}
-	});
-};
-
-Render.prototype.eIf = function (model, view, name, value, element) {
-	var self = this;
-
-	value = Utility.getByPath(model, value);
-	if (value) element.classList.remove('s-if-false');
-	else element.classList.add('s-if-false');
-};
-
-Render.prototype.eStyle = function (model, view, name, value, element) {
-	var self = this;
-
-	name = name.replace(/(s-style-)|(data-s-style-)/, 'style.');
-	name = Utility.toCamelCase(name);
-	self.eDefault(model, view, name, value, element);
-};
-
-Render.prototype.eHtml = function (model, view, name, value, element) {
-	var self = this;
-
-	name = 'innerHTML';
-
-	// TODO handle all external resources
-	if (/^\//.test(value)) {
+	if (/^</.test(value)) {
+		element.innerHTML = value;
+		self.each(element.children, ALL);
+	} else {
 		Axa.request({
-			action: '/partial/index.html',
+			action: value,
 			success: function (xhr) {
-				console.log(xhr);
+				element.innerHTML = xhr.response;
+				self.each(element.children, ALL);
 			},
 			error: function (xhr) {
-				console.log(xhr);
+				throw xhr;
 			}
 		});
-	} else {
-		self.eDefault(model, view, name, value, element);
 	}
 };
 
-Render.prototype.eText = function (model, view, name, value, element) {
-	var self = this;
-	name = 'innerText';
-	self.eDefault(model, view, name, value, element);
+Render.prototype._text = function (element, attribute, path, value) {
+	if (typeof value === 'object') {
+		value = JSON.stringify(value);
+	} else if (typeof value === 'number') {
+		value = value.toString();
+	}
+	element.innerText = value.toString();
 };
 
-// function valueElement (model, view, name, value, element) {
-// 	var self = this;
-// 	value = getByPath(model, value);
-// 	setByPath(element, name, value);
-// }
-
-Render.prototype.eDefault = function (model, view, name, value, element) {
-	var self = this;
-	// value = getByPath(model, value) || value;
-	value = Utility.getByPath(model, value);
-	Utility.setByPath(element, name, value);
-};
-
-Render.prototype._switch = function (model, view, name, value, element) {
-	var self = this;
-
-	if (ON.test(name)) {
-		self.eOn(model, view, name, value, element);
-	} else if (IF.test(name)) {
-		self.eIf(model, view, name, value, element);
-	} else if (FOR.test(name)) {
-		self.eFor(model, view, name, value, element);
-	} else if (CSS.test(name)) {
-		self.eCss(model, view, name, value, element);
-	} else if (HTML.test(name)) {
-		self.eHtml(model, view, name, value, element);
-	} else if (TEXT.test(name)) {
-		self.eText(model, view, name, value, element);
-	} else if (STYLE.test(name)) {
-		self.eStyle(model, view, name, value, element);
+Render.prototype._style = function (element, attribute, path, value) {
+	if (typeof value === 'string') {
+		path = Utility.toCamelCase(path).replace('.', '');
+		element.style[path] = value;
 	} else {
-		self.eDefault(model, view, name, value, element);
+		for (var key in value) {
+			if (value.hasOwnProperty(key)) {
+				key = Utility.toDashCase(key);
+				element.style.cssText += key + ':' + value[key] + ';';
+			}
+		}
 	}
 };
 
-// Render.prototype._elements = function (model, view, name, value, elements, namePattern, valuePattern) {
-// 	var self = this;
-//
-// 	each(elements, function (element) {
-// 		each(element.attributes, function (attribute) {
-// 			if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
-// 				self._switch(model, view, attribute.name, attribute.value, element);
-// 			}
-// 		});
-// 	});
-// };
+Render.prototype._value = function (element, attribute, path, value) {
+	if (element.value !== value) element.value = value;
+};
 
-Render.prototype.elements = function (model, view, name, value) {
+Render.prototype._default = function (element, attribute, path, value) {
+	Utility.setByPath(element, path, value);
+};
+
+Render.prototype._switch = function (element, attribute, value) {
+	if (ON.test(attribute.name)) this._on(element, attribute, attribute.name.replace(ON, ''), value);
+	else if (IF.test(attribute.name)) this._if(element, attribute, attribute.name.replace(IF, ''), value);
+	else if (FOR.test(attribute.name)) this._for(element, attribute, attribute.name.replace(FOR, ''), value);
+	else if (HTML.test(attribute.name)) this._html(element, attribute, attribute.name.replace(HTML, ''), value);
+	else if (TEXT.test(attribute.name)) this._text(element, attribute, attribute.name.replace(TEXT, ''), value);
+	else if (STYLE.test(attribute.name)) this._style(element, attribute, attribute.name.replace(STYLE, ''), value);
+	else if (VALUE.test(attribute.name)) this._value(element, attribute, attribute.name.replace(VALUE, ''), value);
+	else this._default(element, attribute, attribute.name, value);
+};
+
+Render.prototype.each = function (elements, pattern, value) {
 	var self = this;
 
-	var dollarPattern = '(\\$' + value + ')';
-	var regularPattern = '(' + name + '=\"' + value + '\")';
-	var elements = view.findByAttribute(regularPattern + '|' + dollarPattern);
+	// var isValue = value === null || value === undefined ? false : true;
 
-	var namePattern = new RegExp(name);
-	var valuePattern = new RegExp(value);
-
-	Utility.each(elements, function (element) {
-		Utility.each(element.attributes, function (attribute) {
-			if (attribute && (namePattern.test(attribute.name) && valuePattern.test(attribute.value))) {
-				self._switch(model, view, attribute.name, attribute.value, element);
-			}
-		});
+	self.view.each(elements, pattern, function (element, attribute) {
+		// value = isValue ? value : Utility.getByPath(self.model.model, attribute.value);
+		value = Utility.getByPath(self.model.model, attribute.value);
+		value = value === null || value === undefined ? attribute.value : value;
+		self._switch(element, attribute, value);
 	});
+};
+
+Render.prototype.update = function (name) {
+	name = Utility.getPathParent(name);
+	name = '(((s-)|(data-s-))(.*?)="' + name +'(.*?)")';
+	this.each(this.view.elements, name);
+};
+
+Render.prototype.setup = function () {
+	this.each(this.view.elements, ALL);
 };

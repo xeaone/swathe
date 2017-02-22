@@ -1,9 +1,15 @@
 import Utility from './utility.js';
 
 export default function Observe (data) {
+	this.scope = data.scope;
 	this.view = data.view;
 	this.model = data.model;
 	this.render = data.render;
+
+	this.event = data.event || 'change';
+
+	this.isObservingObject = false;
+	this.isObservingElement = false;
 	this.isProxy = Proxy ? true : false;
 }
 
@@ -79,23 +85,33 @@ Observe.prototype.object = function (object, callback) {
 	}
 
 	object = object || this.model;
+	this.isObservingObject = true;
 
 	if (this.isProxy) return this._proxy(object, callback);
 	else return this._define(object, callback);
 };
 
-Observe.prototype.elements = function (elements, callback) {
+Observe.prototype._mutation = function () {
 
-	// event input works on: input, select, textarea
-	var eventHandler = function (e) {
-		var target = e.target;
-		var value = target.getAttribute('s-value') || target.getAttribute('data-s-value');
-		callback(name, value, target.value, target);
-	};
+};
 
-	elements.forEach(function (element) {
-		element.addEventListener('input', eventHandler);
-	});
+Observe.prototype._change = function (element, callback) {
+	var value = null;
 
-	return elements;
+	document.addEventListener(this.event, function (e) {
+		value = e.target.getAttribute('s-value') || e.target.getAttribute('data-s-value');
+		if (value) callback(name, value, e.target.value, e.target);
+	}, false);
+};
+
+Observe.prototype.element = function (element, callback) {
+	if (typeof element === 'function') {
+		callback = element;
+		element = null;
+	}
+
+	element = element || this.scope;
+	this.isObservingElement = true;
+
+	this._change(element, callback);
 };

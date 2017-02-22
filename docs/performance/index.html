@@ -8,47 +8,42 @@
 
 	<title>Performance  | Swathe</title>
 
-	<base href="https://alexanderelias.github.io/swathe/">
-
-	<script src="assets/nav-bar.js"></script>
+	<!-- <base href="https://alexanderelias.github.io/swathe/"> -->
+	<base href="/">
 
 	<link rel="stylesheet" href="assets/index.css">
+	<script src="assets/nav-bar.js"></script>
+	<script src="assets/swathe.js"></script>
 	<script src="assets/index.js"></script>
 
-	<script src="assets/swathe.js"></script>
-
-	<link rel="stylesheet" href="assets/prettify-desert-theme.css">
-	<script src="assets/prettify.js"></script>
+	<link rel="stylesheet" href="assets/prettify-desert-theme.css" async>
+	<script src="assets/prettify.js" async></script>
 </head>
 <body>
 
 	<header>
 		<div class="logo">
-			<a href=".">
+			<a href="/">
 				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
 			</a>
 		</div>
-		<div class="title">
-			<span class="secondary-f">
-				Performance
-			</span>
-		</div>
+		<div class="title secondary-f">Performance</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
-					<a href="#">View Documentation</a>
+					<a>Examples</a>
 					<ul>
-						<li><a href="view">View Documentation</a></li>
-						<li><a href="view/if.html">If</a></li>
-						<li><a href="view/on.html">On</a></li>
-						<li><a href="view/for.html">For</a></li>
-						<li><a href="view/html.html">Html</a></li>
-						<li><a href="view/style.html">Style</a></li>
-						<li><a href="view/other.html">Other</a></li>
+						<li><a href="/examples/if.html">If</a></li>
+						<li><a href="/examples/on.html">On</a></li>
+						<li><a href="/examples/for.html">For</a></li>
+						<li><a href="/examples/html.html">Html</a></li>
+						<li><a href="/examples/style.html">Style</a></li>
+						<li><a href="/examples/other.html">Other</a></li>
 					</ul>
 				</li>
-				<li><a href="model">Model Documentation</a></li>
-				<li><a href="performance">Performance</a></li>
+				<li><a href="/view">View Documentation</a></li>
+				<li><a href="/model">Model Documentation</a></li>
+				<li><a href="/performance">Performance</a></li>
 			</ul>
 		</nav>
 	</header>
@@ -60,6 +55,7 @@
 
 <script>
 
+	console.log('started creating elements');
 	var model = {};
 
 	var count = 0;
@@ -72,12 +68,12 @@
 
 	group.setAttribute('class', 'group');
 
-	for (var i = 0; i < 10000; i++) {
+	for (var i = 0; i < 9000; i++) {
 		var groupClone = group.cloneNode();
 		var inputClone = input.cloneNode();
 		var divClone = div.cloneNode();
 
-		if (count === 1000) {
+		if (count === 300) {
 			count = 0;
 			current = i;
 		} else {
@@ -94,8 +90,14 @@
 		container.appendChild(groupClone);
 	}
 
+	var options = {
+		name: 'app',
+		model: model
+	};
+	console.log('ended creating elements');
+
 	console.time('controller');
-	Swathe.controller('app', model, function (controller) {
+	Swathe.controller(options, function (controller) {
 		console.log(controller.model);
 	});
 	console.timeEnd('controller');
@@ -104,7 +106,9 @@
 
 	</main>
 
-	<footer></footer>
+	<footer>
+		<p>Copyright Alexander Elias Lincense MPL-2.0</p>
+	</footer>
 
 </body>
 </html>

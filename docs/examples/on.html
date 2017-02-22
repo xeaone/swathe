@@ -8,47 +8,42 @@
 
 	<title>On  | Swathe</title>
 
-	<base href="https://alexanderelias.github.io/swathe/">
-
-	<script src="assets/nav-bar.js"></script>
+	<!-- <base href="https://alexanderelias.github.io/swathe/"> -->
+	<base href="/">
 
 	<link rel="stylesheet" href="assets/index.css">
+	<script src="assets/nav-bar.js"></script>
+	<script src="assets/swathe.js"></script>
 	<script src="assets/index.js"></script>
 
-	<script src="assets/swathe.js"></script>
-
-	<link rel="stylesheet" href="assets/prettify-desert-theme.css">
-	<script src="assets/prettify.js"></script>
+	<link rel="stylesheet" href="assets/prettify-desert-theme.css" async>
+	<script src="assets/prettify.js" async></script>
 </head>
 <body>
 
 	<header>
 		<div class="logo">
-			<a href=".">
+			<a href="/">
 				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
 			</a>
 		</div>
-		<div class="title">
-			<span class="secondary-f">
-				On
-			</span>
-		</div>
+		<div class="title secondary-f">On</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
-					<a href="#">View Documentation</a>
+					<a>Examples</a>
 					<ul>
-						<li><a href="view">View Documentation</a></li>
-						<li><a href="view/if.html">If</a></li>
-						<li><a href="view/on.html">On</a></li>
-						<li><a href="view/for.html">For</a></li>
-						<li><a href="view/html.html">Html</a></li>
-						<li><a href="view/style.html">Style</a></li>
-						<li><a href="view/other.html">Other</a></li>
+						<li><a href="/examples/if.html">If</a></li>
+						<li><a href="/examples/on.html">On</a></li>
+						<li><a href="/examples/for.html">For</a></li>
+						<li><a href="/examples/html.html">Html</a></li>
+						<li><a href="/examples/style.html">Style</a></li>
+						<li><a href="/examples/other.html">Other</a></li>
 					</ul>
 				</li>
-				<li><a href="model">Model Documentation</a></li>
-				<li><a href="performance">Performance</a></li>
+				<li><a href="/view">View Documentation</a></li>
+				<li><a href="/model">Model Documentation</a></li>
+				<li><a href="/performance">Performance</a></li>
 			</ul>
 		</nav>
 	</header>
@@ -94,8 +89,9 @@
 </section>
 
 <script>
-	Swathe.controller('main',
-		{
+	var options = {
+		name: 'main',
+		model: {
 			onClick: function (modelVariable, string, number, e) {
 				console.log(modelVariable);
 				console.log(string);
@@ -112,18 +108,21 @@
 				console.log(this);
 				window.alert('eventClick');
 			}
-		},
-		function (controller) {
-			controller.model.onClick = function (modelVariable, string, number, e) {
-				console.log('does not accept dynmic changes this wont work');
-			};
 		}
-	);
+	};
+
+	Swathe.controller(options, function (controller) {
+		controller.model.onClick = function (modelVariable, string, number, e) {
+			console.log('does not accept dynmic changes this wont work');
+		};
+	});
 </script>
 
 	</main>
 
-	<footer></footer>
+	<footer>
+		<p>Copyright Alexander Elias Lincense MPL-2.0</p>
+	</footer>
 
 </body>
 </html>

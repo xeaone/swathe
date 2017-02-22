@@ -6,7 +6,7 @@
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<title>Model Documentation  | Swathe</title>
+	<title>Other  | Swathe</title>
 
 	<!-- <base href="https://alexanderelias.github.io/swathe/"> -->
 	<base href="/">
@@ -27,7 +27,7 @@
 				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
 			</a>
 		</div>
-		<div class="title secondary-f">Model Documentation</div>
+		<div class="title secondary-f">Other</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
@@ -51,49 +51,59 @@
 	<main>
 		
 
-<h2>Model Documentation</h2>
+<h2>Other</h2>
 
-<section>
-	<h3>Swathe</h3>
+<div s-controller="main">
 
-	<h4>Properties</h4>
-	<ul>
-		<li><span class="code">controller</span> Object to interact with the controller.</li>
-		<li><span class="code">controllers</span> Object containing a list of controllers.</li>
-	</ul>
-</section>
+	<section>
+		<h4>Input Disabled</h4>
+		<input type="text" s-value="link" s-disabled="isDisabled">
+	</section>
 
-<section>
-	<h3>controller</h3>
+	<section>
+		<h4>Nested Model</h4>
+		<div>
+			<a s-href="i.am.nested" s-text="i.am.nested" target="_blank">Link</a>
+		</div>
+		<input type="text" s-value="i.am.nested">
+	</section>
 
-	<h4>Parameters</h4>
-	<ul>
-		<li><span class="code">name</span> A controller name. <em>Required</em></li>
-		<li><span class="code">model</span> A observed object. It is best to define all properties that will be observed at this point. <em>Required</em></li>
-		<li><span class="code">callback</span> A callback for the controller with the instance of the controller passed as a parameter.</li>
-	</ul>
+	<section>
+		<h4>Model Change</h4>
+		<div s-text="count"></div>
+	</section>
 
-	<h4>Returns</h4>
-	<ul>
-		<li><span class="code">controller</span> A controller instance.</li>
-	</ul>
+	<section s-controller="sub">
+		<h4>Sub Controller</h4>
+		<input type="text" s-value="text">
+		<div s-text="text">You should see this text becuase this controller is ignored.</div>
+	</section>
 
-	<h4>Properties</h4>
-	<ul>
-		<li><span class="code">name</span> String name.</li>
-		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
-		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
-	</ul>
-</section>
+</div>
 
-<section>
-	<h3>controllers</h3>
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			count: 0,
+			isDisabled: true,
+			link: 'Empty',
+			text: 'text stuff',
+			i: {
+				am: {
+					nested: 'www.google.com'
+				}
+			}
+		}
+	};
 
-	<h4>Returns</h4>
-	<ul>
-		<li>A list of controller objects.</li>
-	</ul>
-</section>
+	Swathe.controller(options, function (controller) {
+		setInterval(function () {
+			controller.model.count++;
+		}, 1000);
+	});
+
+</script>
 
 	</main>
 

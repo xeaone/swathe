@@ -4,6 +4,7 @@
 
 <script>
 
+	console.log('started creating elements');
 	var model = {};
 
 	var count = 0;
@@ -16,12 +17,12 @@
 
 	group.setAttribute('class', 'group');
 
-	for (var i = 0; i < 10000; i++) {
+	for (var i = 0; i < 9000; i++) {
 		var groupClone = group.cloneNode();
 		var inputClone = input.cloneNode();
 		var divClone = div.cloneNode();
 
-		if (count === 1000) {
+		if (count === 300) {
 			count = 0;
 			current = i;
 		} else {
@@ -38,8 +39,14 @@
 		container.appendChild(groupClone);
 	}
 
+	var options = {
+		name: 'app',
+		model: model
+	};
+	console.log('ended creating elements');
+
 	console.time('controller');
-	Swathe.controller('app', model, function (controller) {
+	Swathe.controller(options, function (controller) {
 		console.log(controller.model);
 	});
 	console.timeEnd('controller');

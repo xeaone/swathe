@@ -1,0 +1,55 @@
+<!-- { "title": "Other" } -->
+
+<h2>Other</h2>
+
+<div s-controller="main">
+
+	<section>
+		<h4>Input Disabled</h4>
+		<input type="text" s-value="link" s-disabled="isDisabled">
+	</section>
+
+	<section>
+		<h4>Nested Model</h4>
+		<div>
+			<a s-href="i.am.nested" s-text="i.am.nested" target="_blank">Link</a>
+		</div>
+		<input type="text" s-value="i.am.nested">
+	</section>
+
+	<section>
+		<h4>Model Change</h4>
+		<div s-text="count"></div>
+	</section>
+
+	<section s-controller="sub">
+		<h4>Sub Controller</h4>
+		<input type="text" s-value="text">
+		<div s-text="text">You should see this text becuase this controller is ignored.</div>
+	</section>
+
+</div>
+
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			count: 0,
+			isDisabled: true,
+			link: 'Empty',
+			text: 'text stuff',
+			i: {
+				am: {
+					nested: 'www.google.com'
+				}
+			}
+		}
+	};
+
+	Swathe.controller(options, function (controller) {
+		setInterval(function () {
+			controller.model.count++;
+		}, 1000);
+	});
+
+</script>

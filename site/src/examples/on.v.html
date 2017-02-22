@@ -38,8 +38,9 @@
 </section>
 
 <script>
-	Swathe.controller('main',
-		{
+	var options = {
+		name: 'main',
+		model: {
 			onClick: function (modelVariable, string, number, e) {
 				console.log(modelVariable);
 				console.log(string);
@@ -56,11 +57,12 @@
 				console.log(this);
 				window.alert('eventClick');
 			}
-		},
-		function (controller) {
-			controller.model.onClick = function (modelVariable, string, number, e) {
-				console.log('does not accept dynmic changes this wont work');
-			};
 		}
-	);
+	};
+
+	Swathe.controller(options, function (controller) {
+		controller.model.onClick = function (modelVariable, string, number, e) {
+			console.log('does not accept dynmic changes this wont work');
+		};
+	});
 </script>
