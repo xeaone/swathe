@@ -9,11 +9,13 @@
 	<title>View Documentation  | Swathe</title>
 
 	<script>
-	if (location.hostname !== 'localhost') {
 		var base = document.createElement('base');
-		base.href = location.origin + '/swathe/'
+		if (location.hostname !== 'localhost') {
+			base.href = location.origin + '/swathe/'
+		} else {
+			base.href = location.origin + '/'
+		}
 		document.head.appendChild(base);
-	}
 	</script>
 
 	<link rel="stylesheet" href="/assets/index.css">
