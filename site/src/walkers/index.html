@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Walkers</title>
+	<style>
+		.profiles table {
+			width: 100%;
+			margin: 5px 0 50px 0;
+		}
+		.profiles table tr:nth-child(1) td {
+			padding: 5px;
+			background-color: #CCC;
+		}
+		.profiles table tr td:not(:nth-child(1)) {
+			text-align: right;
+		}
+	</style>
+
+	<script>
+	document.addEventListener('DOMContentLoaded', function () {
+
+		// customWalker
+		function customWalker (element, reject, skip, accept) {
+			var elements = element.children;
+			var results = [], child, string;
+
+			for (var i = 0, l = elements.length; i < l; i++) {
+				child = elements[i];
+				string = child.outerHTML.replace(child.innerHTML, '');
+
+				if (reject && reject.test(string)) {
+					continue;
+				} else if (skip && skip.test(string)) {
+					results = results.concat(customWalker(child, reject, skip, accept));
+				} else if (accept && accept.test(string)) {
+					results = results.concat(child, customWalker(child, reject, skip, accept))
+				}
+			}
+
+			return results;
+		}
+
+		// createTreeWalker
+		function createTreeWalker (element, reject, skip, accept) {
+			var filter = {
+				acceptNode: function (node) {
+					node = node.outerHTML.replace(node.innerHTML, '');
+					if (reject && reject.test(node)) return NodeFilter.FILTER_REJECT;
+					if (skip && skip.test(node)) return NodeFilter.FILTER_SKIP;
+					if (accept && accept.test(node)) return NodeFilter.FILTER_ACCEPT;
+					return NodeFilter.FILTER_SKIP;
+				}
+			};
+
+			var walker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT, filter, false);
+			var results = [], node;
+			while (node = walker.nextNode()) results.push(node);
+			return results;
+		}
+
+		// querySelectorAll
+		function querySelectorAll (element, reject, skip, accept) {
+			var elements = element.querySelectorAll('*');
+			var results = [], child, string;
+
+			for (var i = 0; i < elements.length; i++) {
+		        child = elements[i];
+				string = child.outerHTML.replace(child.innerHTML, '');
+
+				if (reject && reject.test(string)) {
+					i += child.children.length;
+				} else if (skip && skip.test(string)) {
+					continue;
+				} else if (accept && accept.test(string)) {
+					results.push(child);
+				}
+		    }
+
+			return results;
+		}
+
+		// getElementsByTagName
+		function getElementsByTagName (element, reject, skip, accept) {
+			var elements = element.getElementsByTagName('*');
+			var results = [], child, string;
+
+		    for (var i = 0; i < elements.length; i++) {
+				child = elements[i];
+				string = child.outerHTML.replace(child.innerHTML, '');
+
+				if (reject && reject.test(string)) {
+					i += child.children.length;
+				} else if (skip && skip.test(string)) {
+					continue;
+				} else if (accept && accept.test(string)) {
+					results.push(child);
+				}
+		    }
+
+			return results;
+		}
+
+		var container = document.querySelector('.container');
+		var accept = /(accept)/;
+		var skip = /(skip)/;
+		var reject = /(reject)/;
+
+		function CreateProfile (method, name, times) {
+			var runTimes = [], totalTime = 0, start, end, elements;
+
+			for (var i = 0; i < times; i++) {
+				start = new Date().getTime();
+				elements = method(container, reject, skip, accept);
+				end = new Date().getTime();
+				totalTime += (end - start);
+				runTimes.push(end - start);
+			}
+
+			// console.log(elements);
+
+			return { 'name': name, 'average': (totalTime/times), 'total': totalTime, 'individual': runTimes };
+		}
+
+		function DisplayResults (results, times) {
+			var table = '<table><tr><td>Method</td><td>Total ms</td><td>Average ms</td></tr>';
+
+			results.forEach(function (result, index) {
+				var row = '<tr></tr>';
+				row += '<td>' + result.name + '</td>';
+				row += '<td>' + result.total + '</td>';
+				row += '<td>' + result.average + '</td>';
+				table += row;
+			});
+
+			table += '</table>';
+
+			var profile = document.querySelector('.profiles');
+			profile.innerHTML += '<div>' + 'Ran each test ' + times + ' times.' + '</div>';
+			profile.innerHTML += table;
+		}
+
+		var tests = [
+			{ name: 'customWalker', method: customWalker },
+			{ name: 'createTreeWalker', method: createTreeWalker} ,
+			{ name: 'querySelectorAll', method: querySelectorAll },
+			{ name: 'getElementsByTagName', method: getElementsByTagName }
+		];
+
+		var times = 100;
+
+		// Number of times each method should be run
+		var results = tests.map(function (test) {
+			return CreateProfile(test.method, test.name, times);
+		});
+
+		DisplayResults(results, times);
+
+	});
+	</script>
+</head>
+<body>
+
+	<h1>Provided By Alexander Elias</h1>
+	<div class="profiles"></div>
+	<hr />
+
+	<div class="container">
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+		<p id="find" accept><span>accept</span></p>
+		<p skip><span accept>skip</span></p>
+		<p reject><span accept>reject</span></p>
+
+
+
+	</div>
+
+</body>
+</html>

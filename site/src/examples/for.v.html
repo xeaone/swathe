@@ -3,14 +3,13 @@
 <h2>For</h2>
 
 <section>
-
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<input s-value="iterable[0]">
+		<input type="text" s-value="iterable[0]">
 		<ul s-for-variable="iterable">
 			<li>
-				<span s-text="variable"></span>
 				<span s-text="number"></span>
+				<span s-text="variable"></span>
 			</li>
 		</ul>
 	</code>
@@ -25,7 +24,6 @@
 			</li>
 		</ul>
 	</div>
-
 </section>
 
 <script>
@@ -44,7 +42,10 @@
 			// does not tigger change
 			// delete controller.model.iterable[2]
 
-			console.log(controller.model.iterable);
-		}, 1500);
+			setTimeout(function () {
+				controller.model.iterable.push('new');
+			}, 2000);
+
+		}, 2000);
 	});
 </script>

@@ -33,12 +33,13 @@
 				<li>
 					<a>Examples</a>
 					<ul>
-						<li><a href="examples/if.html">If</a></li>
-						<li><a href="examples/on.html">On</a></li>
+						<li><a href="examples/class.html">Class</a></li>
 						<li><a href="examples/for.html">For</a></li>
 						<li><a href="examples/html.html">Html</a></li>
-						<li><a href="examples/style.html">Style</a></li>
+						<li><a href="examples/if.html">If</a></li>
+						<li><a href="examples/on.html">On</a></li>
 						<li><a href="examples/other.html">Other</a></li>
+						<li><a href="examples/style.html">Style</a></li>
 					</ul>
 				</li>
 				<li><a href="view">View Documentation</a></li>
@@ -54,57 +55,58 @@
 <h2>View Documentation</h2>
 
 <section>
-	<h3>Attribute Name</h3>
+	<h3>Binders | Attribute Names</h3>
 	<p>
-		Attribute names are used for Swathe to detect elements to interact with. These names map directly to JavaScript element properties. **All** JavaScript element properties are available for usage. The mapping pattern typically converts <span class="code">-</span> to camel case and leaves dots delimited unchanged. For example <span class="code">s-style.background</span> is an acceptable syntax. Although please note that the dot for the <span class="code">s-style</span> is not necessary. Both <span class="code">s-style.background</span> and <span class="code">s-style-background</span> are acceptable because <span class="code">s-style</span> is a special attribute.
+		Attribute names or Binders are used for Swathe to detect elements to interact with. There are special Binders listed beneath which have special actions. You are not limited to these though you have full access to map directly to any JavaScript property on an Element.
+		The mapping pattern except for special Binders will convert <span class="code">-</span> or dashes to camel case and leave <span class="code">.</span> dots unchanged. For example <span class="code">s-this-style.background</span> is an acceptable syntax.
 	</p>
 	<ul>
-		<li><span class="code">s-*</span> The primary prefix for attribute names.</li>
-		<li><span class="code">data-s-*</span> The secondary prefix for attribute names.</li>
+		<li><span class="code">s-[*]</span> The primary prefix for attribute names.</li>
+		<li><span class="code">data-s-[*]</span> The secondary prefix for attribute names.</li>
 	</ul>
 </section>
 
 <section>
-	<h3>Attribute Values</h3>
+	<h3>Adapters | Attribute Values</h3>
 	<p>
-		Attribute values are used to access and register an element's property to it's Model. The attribute name <span class="code">s-inner-text</span> could have a value set to <span class="code">array.0</span>.
+		Attribute values or Adapters are used to access the Model. The attribute name <span class="code">s-text</span> could have a Adapter set to <span class="code">array.0</span>, <span class="code">array[0]</span>, this would then assign the value of the Adapter to the elements innerText.
 	</p>
 	<ul>
-		<li><span class="code">.</span> Dot syntax can be used to access any property on the model.</li>
-		<li><span class="code">[]</span> Bracket syntax can even be used to access array values.</li>
+		<li><span class="code">.</span> Dot syntax can be used to access any property/array on the model.</li>
+		<li><span class="code">[]</span> Bracket syntax can also be used.</li>
 	</ul>
 </section>
 
 <section>
-	<h3>Special Attributes</h3>
+	<h3>Special Binders</h3>
 	<ul>
+		<li><span class="code">s-if</span> Shows or hides the element if the Adapter is <span class="code">false || true</span> can be a path on the model or simple false or true.
+		<li><span class="code">s-class-[name]</span> Adds or removes the element if the Adapter is <span class="code">false || true</span> can be a path on the model or simple false or true.
+
 		<li><span class="code">s-text</span> Maps to <span class="code">innerText</span></li>
-		<li><span class="code">s-html</span> Maps to <span class="code">innerHtml</span></li>
-
-		<li><span class="code">s-style-[property]</span> Maps to <span class="code">style.color</span></li>
-
 		<li>
-			<span class="code">s-css</span> Maps to <span class="code">cssText</span>
+			<span class="code">s-html</span> Maps to <span class="code">innerHtml</span>
 			<ul>
-				<li><span class="code">value</span> The JavaScript <span class="code">cssText</span> property accepts a string of css any model variables can also be used by pre-appending the variable name with a <span class="code">$</span>.</li>
+				<li>Acceptable values are an html string or a local path for an Ajax file request.</li>
 			</ul>
 		</li>
 
+		<li><span class="code">s-style</span> Parses a single level deep object with key value pairs to css properties.</li>
+
 		<li>
-			<span class="code">s-event-[event]</span> Sames as <span class="code">s-on-[event]</span>
-			<span class="code">s-on-[event]</span> This is the event attribute it is used instead of <span class="code">addEventListener</span>. Example <span class="code">s-on-click="say('hello')"</span>.
+			<span class="code">s-on-[event name]</span> A browser event. Example <span class="code">s-on-click="clicked(model.value, 'string', 1, true)"</span>.
 				<ul>
-					<li>Function parameters can be <span class="code">Model Variables</span>, <span class="code">String</span>, and <span class="code">Number</span>. Numbers are parsed to an actual integer.</li>
+					<li>Function parameters can be <span class="code">Model Properties</span>, <span class="code">String</span>, <span class="code">Number</span>, and <span class="code">Boolean</span>. Numbers and Booleans are parsed to the native type. (Currently strings can not have commas)</li>
+					<li>The last arguemnt is the Event that was fired.</li>
 				</ul>
 		</li>
 
 		<li>
-			<span class="code">s-for-[variable]</span> A for of loop. Example <span class="code">s-for-variable="iterable"</span>.
+			<span class="code">s-for-[variable name]</span> A for of loop. Example <span class="code">s-for-index="iterable"</span>.
 			<ul>
-
 				<li><span class="code">for</span> Clones the first child element.</li>
 				<li><span class="code">variable</span> The value for the children elements to use.</li>
-				<li><span class="code">iterable</span> The path to an array/iterable on the model.</li>
+				<li><span class="code">index</span> The key or index of an array/iterable on the model.</li>
 			</ul>
 		</li>
 	</ul>

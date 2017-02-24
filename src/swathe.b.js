@@ -4,11 +4,13 @@
 	author: alexander elias
 */
 
+// import Utility from './ignore/utility.js';
+
 import { eStyle } from './ignore/style.js';
-import Utility from './ignore/utility.js';
-import View from './ignore/view.js';
-import Model from './ignore/model.js';
-import Render from './ignore/render.js';
+import ViewInterface from './ignore/view.js';
+import ModelInterface from './ignore/model.js';
+
+// HTMLElement.prototype.swathe = {};
 
 function Controller (data, callback) {
 	var self = this;
@@ -17,34 +19,35 @@ function Controller (data, callback) {
 	self.name = data.name;
 	self.query = '[s-controller="' + self.name + '"], [data-s-controller="' + self.name + '"]';
 
-	self.View = new View({
-		view: self.doc.querySelector(self.query)
+	self.model = data.model;
+	self.view = self.doc.querySelector(self.query);
+
+	self.ModelInterface = new ModelInterface({
+		model: self.model
 	});
 
-	self.Model = new Model({
-		model: data.model
+	self.ViewInterface = new ViewInterface({
+		view: self.view
 	});
 
-	self.Render = new Render({
-		doc: self.doc,
-		view: self.View,
-		model: self.Model
-	});
+	self.ModelInterface.setup(self.ViewInterface);
+	self.ViewInterface.setup(self.ModelInterface);
 
-	self.Model.change(function (name, value) {
-		self.Render.update(name, value);
-	});
-
-	self.View.change(function (key, value) {
-		Utility.setByPath(self.Model.model, key, value);
-	});
-
-	self.Render.setup();
-
-	self.view = self.View.view;
-	self.model = self.Model.model;
+	self.model = self.ModelInterface.model;
+	self.view = self.ViewInterface.view;
 
 	if (callback) callback(self);
+
+	// window.addEventListener('DOMContentLoaded', function () {
+	// 	self.viewdb = {};
+	// 	var elements = self.view.getElementsByTagName('*');
+	// 	for (var i = 0, l = elements.length; i < l; i++) {
+	// 		var id = Utility.id();
+	// 		elements[i].id = id;
+	// 		self.viewdb[id] = { element: elements[i] };
+	// 	}
+	// 	console.log(self.viewdb);
+	// });
 }
 
 var Swathe = {
@@ -61,11 +64,11 @@ var Swathe = {
 
 window.addEventListener('DOMContentLoaded', function () {
 	document.head.appendChild(eStyle);
-	for (var name in window.Swathe.controllers) {
-		if (window.Swathe.controllers.hasOwnProperty(name)) {
-			window.Swathe.controllers[name].view.classList.toggle('s-show-true');
-		}
-	}
+	// for (var name in window.Swathe.controllers) {
+	// 	if (window.Swathe.controllers.hasOwnProperty(name)) {
+	// 		window.Swathe.controllers[name].view.classList.toggle('s-show-true');
+	// 	}
+	// }
 });
 
 export default Swathe;

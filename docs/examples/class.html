@@ -6,7 +6,7 @@
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<title>On  | Swathe</title>
+	<title>Class  | Swathe</title>
 
 	<base href="https://alexanderelias.github.io/swathe/">
 	<!-- <base href="/"> -->
@@ -27,7 +27,7 @@
 				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
 			</a>
 		</div>
-		<div class="title secondary-f">On</div>
+		<div class="title secondary-f">Class</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
@@ -52,43 +52,41 @@
 	<main>
 		
 
-<h2>On</h2>
+<h2>Class</h2>
 
 <section>
-
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<button type="button" s-on-click="onClick(numbers, 'world', 1)">On Click</button>
+		<style>
+			.background-green {
+				background: green;
+			}
+		</style>
+		<div s-class-background-green="classname">True adds the class and false removes the class.</div>
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
-		<button type="button" s-on-click="onClick(numbers, 'world', 1)">On Click</button>
+		<style>
+			.background-green {
+				background: green;
+			}
+		</style>
+		<div s-class-background-green="classname">True adds the class and false removes the class.</div>
 	</div>
-
 </section>
 
 <script>
 	var options = {
 		name: 'main',
 		model: {
-			numbers: [1,2,3],
-			onClick: function (numbers, world, one, e) {
-				console.log('old');
-				console.log(numbers);
-				console.log(world);
-				console.log(one);
-				console.log(e);
-			}
+			classname: true
 		}
 	};
 
 	Swathe.controller(options, function (controller) {
-		setTimeout(function () {
-			controller.model.onClick = function (numbers, world, one, e) {
-				console.log('new');
-			};
-			console.log(controller.model);
+		setInterval(function () {
+			controller.model.classname = !controller.model.classname;
 		}, 3000);
 	});
 </script>

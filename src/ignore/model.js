@@ -1,6 +1,12 @@
+import Utility from './utility.js';
 
-function proxy (object, callback, prefix) {
-	var value = null;
+export default function ModelInterface (data) {
+	this.model = data.model;
+	this.isProxy = Proxy ? true : false;
+}
+
+ModelInterface.prototype.proxy = function (object, callback, prefix) {
+	var self = this, value;
 
 	if (!prefix) prefix = '';
 
@@ -9,7 +15,7 @@ function proxy (object, callback, prefix) {
 			value = target[property];
 
 			if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
-				return proxy(value, callback, prefix + property + '.');
+				return self.proxy(value, callback, prefix + property + '.');
 			} else {
 				return value;
 			}
@@ -25,11 +31,10 @@ function proxy (object, callback, prefix) {
 	};
 
 	return new Proxy(object, handler);
-}
+};
 
-function define (object, callback, prefix) {
-	var newObject = {};
-	var properties = {};
+ModelInterface.prototype.define = function (object, callback, prefix) {
+	var self = this, newObject = {}, properties = {};
 
 	var key = null;
 	var value = null;
@@ -60,25 +65,40 @@ function define (object, callback, prefix) {
 		prefixVariable = !prefix ? key : prefix + '.' + key;
 
 		if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
-			newObject[key] = define(value, callback, prefixObject);
+			newObject[key] = self.define(value, callback, prefixObject);
 		} else {
 			properties[key] = handler(object, key, prefixVariable);
 		}
 	}
 
 	return Object.defineProperties(newObject, properties);
-}
+};
 
-export default function Model (data) {
+ModelInterface.prototype.get = function (path) {
+	return Utility.getByPath(this.model, path);
+};
+
+ModelInterface.prototype.set = function (path, data) {
+	Utility.setByPath(this.model, path, data);
+};
+
+ModelInterface.prototype.setup = function (ViewInterface) {
 	var self = this;
 
-	self.isProxy = Proxy ? true : false;
-	self.callback = function (key, value) { self._change(key, value); };
+	self.ViewInterface = ViewInterface;
 
-	if (self.isProxy) self.model = proxy(data.model, self.callback);
-	else self.model = define(data.model, self.callback);
-}
+	// value is provided maybe usefull
+	function change (key) {
+		key = Utility.getPathParent(key);
+		key = '(((s-)|(data-s-))(.*?)="' + key +'(.*?)")';
+		key = new RegExp(key);
 
-Model.prototype.change = function (callback) {
-	this._change = callback;
+		self.ViewInterface.update(key);
+	}
+
+	if (self.isProxy) {
+		self.model = self.proxy(self.model, change);
+	} else {
+		self.model = self.define(self.model, change);
+	}
 };

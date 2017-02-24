@@ -33,12 +33,13 @@
 				<li>
 					<a>Examples</a>
 					<ul>
-						<li><a href="examples/if.html">If</a></li>
-						<li><a href="examples/on.html">On</a></li>
+						<li><a href="examples/class.html">Class</a></li>
 						<li><a href="examples/for.html">For</a></li>
 						<li><a href="examples/html.html">Html</a></li>
-						<li><a href="examples/style.html">Style</a></li>
+						<li><a href="examples/if.html">If</a></li>
+						<li><a href="examples/on.html">On</a></li>
 						<li><a href="examples/other.html">Other</a></li>
+						<li><a href="examples/style.html">Style</a></li>
 					</ul>
 				</li>
 				<li><a href="view">View Documentation</a></li>
@@ -57,14 +58,14 @@
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
 		<div s-style="style" s-text="style"></div>
-		<div s-style-background="style.background" s-text="style.background"></div>
-		<input s-value="style.backgroundColor">
+		<div s-this.style.background-color="style.background" s-text="style.background"></div>
+		<input s-value="style.background">
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
 		<div s-style="style" s-text="style"></div>
-		<div s-style.background-color="style.background" s-text="style.background"></div>
+		<div s-this.style.background-color="style.background" s-text="style.background"></div>
 		<input s-value="style.background">
 	</div>
 </section>
@@ -75,14 +76,14 @@
 		model: {
 			style: {
 				color: 'white',
-				background: 'blue'
+				background: '#999999'
 			}
 		}
 	};
 
 	Swathe.controller(options, function (controller) {
-		setTimeout(function () {
-			console.log(controller.model);
+		setInterval(function () {
+			controller.model.style.background = RandomHex();
 		}, 3000);
 	});
 </script>

@@ -1,38 +1,17 @@
 <!-- { "title": "On" } -->
 
-<h2>On | Event</h2>
+<h2>On</h2>
 
 <section>
 
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		model.onClick = function (modelVariable, string, number, e) {
-			console.log(modelVariable);
-			console.log(string);
-			console.log(number + ' ' + typeof number);
-			console.log(e);
-			console.log(this);
-			window.alert('onClick');
-		};
-
-		model.eventClick = function (modelVariable, string, number, e) {
-			console.log(modelVariable);
-			console.log(string);
-			console.log(number + ' ' + typeof number);
-			console.log(e);
-			console.log(this);
-			window.alert('eventClick');
-		};
-	</code>
-	<code class="raw prettyprint">
-		<button type="button" s-on-click="onClick(iterable, 'world', 1)" >On Click</button>
-		<button type="button" s-event-click="eventClick(iterable, 'world', 1)" >Event Click</button>
+		<button type="button" s-on-click="onClick(numbers, 'world', 1)">On Click</button>
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
-		<button type="button" s-on-click="onClick(iterable, 'world', 1)" >On Click</button>
-		<button type="button" s-event-click="eventClick(iterable, 'world', 1)" >Event Click</button>
+		<button type="button" s-on-click="onClick(numbers, 'world', 1)">On Click</button>
 	</div>
 
 </section>
@@ -41,28 +20,23 @@
 	var options = {
 		name: 'main',
 		model: {
-			onClick: function (modelVariable, string, number, e) {
-				console.log(modelVariable);
-				console.log(string);
-				console.log(number + ' ' + typeof number);
+			numbers: [1,2,3],
+			onClick: function (numbers, world, one, e) {
+				console.log('old');
+				console.log(numbers);
+				console.log(world);
+				console.log(one);
 				console.log(e);
-				console.log(this);
-				window.alert('onClick');
-			},
-			eventClick: function (modelVariable, string, number, e) {
-				console.log(modelVariable);
-				console.log(string);
-				console.log(number + ' ' + typeof number);
-				console.log(e);
-				console.log(this);
-				window.alert('eventClick');
 			}
 		}
 	};
 
 	Swathe.controller(options, function (controller) {
-		controller.model.onClick = function (modelVariable, string, number, e) {
-			console.log('does not accept dynmic changes this wont work');
-		};
+		setTimeout(function () {
+			controller.model.onClick = function (numbers, world, one, e) {
+				console.log('new');
+			};
+			console.log(controller.model);
+		}, 3000);
 	});
 </script>

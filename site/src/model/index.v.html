@@ -18,8 +18,8 @@
 	<h4>Parameters</h4>
 	<ul>
 		<li><span class="code">name</span> A controller name. <em>Required</em></li>
-		<li><span class="code">model</span> A observed object. It is best to define all properties that will be observed at this point. <em>Required</em></li>
-		<li><span class="code">callback</span> A callback for the controller with the instance of the controller passed as a parameter.</li>
+		<li><span class="code">model</span> A observed object. It is best to define all properties that will be observed for backwards browsers compatibility. <em>Required</em></li>
+		<li><span class="code">callback</span> A callback for the controller with the instance of the controller passed as the first argument.</li>
 	</ul>
 
 	<h4>Returns</h4>
@@ -29,9 +29,9 @@
 
 	<h4>Properties</h4>
 	<ul>
-		<li><span class="code">name</span> String name.</li>
-		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
-		<li><span class="code">view</span> Object containing a reference to DOM elEents.</li>
+		<li><span class="code">name</span> String name of the controller.</li>
+		<li><span class="code">view</span> Object containing a reference to the View.</li>
+		<li><span class="code">model</span> Object containing a reference to the Model.</li>
 	</ul>
 </section>
 
@@ -40,6 +40,6 @@
 
 	<h4>Returns</h4>
 	<ul>
-		<li>A list of controller objects.</li>
+		<li><span class="code">Object</span> A list of controllers.</li>
 	</ul>
 </section>

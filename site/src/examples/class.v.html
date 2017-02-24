@@ -1,0 +1,40 @@
+<!-- { "title": "Class" } -->
+
+<h2>Class</h2>
+
+<section>
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<style>
+			.background-green {
+				background: green;
+			}
+		</style>
+		<div s-class-background-green="classname">True adds the class and false removes the class.</div>
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<style>
+			.background-green {
+				background: green;
+			}
+		</style>
+		<div s-class-background-green="classname">True adds the class and false removes the class.</div>
+	</div>
+</section>
+
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			classname: true
+		}
+	};
+
+	Swathe.controller(options, function (controller) {
+		setInterval(function () {
+			controller.model.classname = !controller.model.classname;
+		}, 3000);
+	});
+</script>

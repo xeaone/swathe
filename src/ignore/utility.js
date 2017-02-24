@@ -2,6 +2,10 @@
 export default {
 	GET: 2, SET: 3,
 
+	id: function () {
+		return Math.random().toString(36).substr(2, 9);
+	},
+
 	interact: function (type, collection, path, value) {
 		var keys = this.getPathKeys(path);
 		var last = keys.length - 1;
@@ -30,8 +34,8 @@ export default {
 	},
 
 	toCleanCase: function (string) {
-		return string.replace(/(\])|(\])|(((data)?)(-?)s-)/g, function (match) {
-			return match === ']' ? '.' : '';
+		return string.replace(/(\[)|(\])/g, function (match) {
+			return match === '[' ? '.' : '';
 		});
 	},
 
@@ -64,12 +68,57 @@ export default {
 		return this.interact(this.SET, collection, path, value);
 	},
 
+	/*
+		DOM
+	*/
+
 	removeChildren: function (element) {
 		while (element.firstChild) {
 			element.removeChild(element.firstChild);
 		}
 
 		return element;
+	},
+
+	forEachAttribute: function (element, pattern, callback) {
+		var attributes = element.attributes;
+		var i = 0, results = [];
+
+		for (i; i < attributes.length; i++) {
+			var result = {
+				value: attributes[i].value,
+				name: attributes[i].name,
+				attribute: attributes[i].name + '="' + attributes[i].value + '"'
+			};
+
+			if (pattern.test(result.attribute)) {
+				results.push(result);
+				if (callback) callback(result);
+			}
+		}
+
+		return results;
+	},
+
+	forEachElement: function (element, reject, skip, accept, callback) {
+		var elements = element.getElementsByTagName('*');
+		var i = 0, results = [], string;
+
+		for (i; i < elements.length; i++) {
+			var result = elements[i];
+			string = result.outerHTML.replace(result.innerHTML, '');
+
+			if (reject && reject.test(string)) {
+				i += result.children.length;
+			} else if (skip && skip.test(string)) {
+				continue;
+			} else if (accept && accept.test(string)) {
+				results.push(result);
+				if (callback) callback(result);
+			}
+		}
+
+		return results;
 	}
 
 };

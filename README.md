@@ -1,7 +1,7 @@
 # Swathe #
 **Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small**
 
-**NEW VERSION COMING SOON**
+**NEW VERSION 2.0.0 see website for changes**
 
 Swathe is a smart 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see for your self. Contributions suggestions welcome and appreciated! 2 Way data binding can be costly thus only elements with value properties are bi-directionally watched using the Input Event.
 
