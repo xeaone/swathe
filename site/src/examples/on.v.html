@@ -5,12 +5,12 @@
 <section>
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<button s-on-click="onClick(numbers, 'world', 1)">On Click</button>
+		<button s-on-click="onClick">On Click</button>
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
-		<button s-on-click="onClick(numbers, 'world', 1)">On Click</button>
+		<button s-on-click="onClick">On Click</button>
 	</div>
 </section>
 
@@ -18,9 +18,9 @@
 	var options = {
 		name: 'main',
 		model: {
-			numbers: [1,2,3],
-			onClick: function () {
-				console.log(arguments);
+			onClick: function (e) {
+				console.log(e);
+				console.log(this);
 				window.alert('Original onClick function');
 			}
 		}
@@ -28,11 +28,11 @@
 
 	Swathe.controller(options, function (controller) {
 		setTimeout(function () {
-			controller.model.onClick = function () {
-				console.log(arguments);
+			controller.model.onClick = function (e) {
+				console.log(e);
+				console.log(this);
 				window.alert('New onClick function');
 			};
-			console.log(controller.model);
 		}, 3000);
 	});
 </script>

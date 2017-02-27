@@ -1,6 +1,8 @@
 
 export default {
-	GET: 2, SET: 3,
+	GET: 2,
+	SET: 3,
+	STRIP_HTML: />(.*?)$/,
 
 	// id: function () {
 	// 	return Math.random().toString(36).substr(2, 9);
@@ -33,6 +35,10 @@ export default {
 		}
 	},
 
+	// parseArguments: function () {
+	//
+	// },
+
 	ensureBoolean: function (value) {
 		if (typeof value === 'string') return value === 'true';
 		else return value;
@@ -49,8 +55,14 @@ export default {
 		});
 	},
 
-	toCamelCase: function (string) {
-		return string.replace(/-[a-z]/g, function (match) {
+	toCamelCase: function (data) {
+		if (data === null || data === undefined) {
+			throw new Error('toCamelCase: argument required');
+		} else if (data.constructor.name === 'Array') {
+			data = data.join('-');
+		}
+
+		return data.replace(/-[a-z]/g, function (match) {
 			return match[1].toUpperCase();
 		});
 	},
@@ -91,48 +103,39 @@ export default {
 	// },
 
 	forEachAttribute: function (element, reject, skip, accept, callback) {
-		var attributes = element.attributes;
-		var i = 0, results = [];
+		var i = 0, attributes = element.attributes, result = {};
 
 		for (i; i < attributes.length; i++) {
-			var result = {
-				value: attributes[i].value,
-				name: attributes[i].name,
-				attribute: attributes[i].name + '="' + attributes[i].value + '"'
-			};
+			result.value = attributes[i].value;
+			result.name = attributes[i].name;
+			result.attribute = attributes[i].name + '="' + attributes[i].value + '"';
 
 			if (reject && reject.test(result.attribute)) {
 				i += result.children.length;
 			} else if (skip && skip.test(result.attribute)) {
 				continue;
 			} else if (accept && accept.test(result.attribute)) {
-				results.push(result);
 				if (callback) callback(result);
 			}
 		}
-
-		return results;
 	},
 
 	forEachElement: function (element, reject, skip, accept, callback) {
 		var elements = element.getElementsByTagName('*');
-		var i = 0, results = [], string;
+		var i = 0, result = '', string  = '';
 
 		for (i; i < elements.length; i++) {
-			var result = elements[i];
-			string = result.outerHTML.replace(result.innerHTML, '');
+			result = elements[i];
+			string = result.outerHTML.replace(this.STRIP_HTML, '');
 
-			if (reject && reject.test(string)) {
+			if (reject !== null && reject.test(string)) {
 				i += result.children.length;
-			} else if (skip && skip.test(string)) {
+			} else if (skip !== null && skip.test(string)) {
 				continue;
-			} else if (accept && accept.test(string)) {
-				results.push(result);
+			} else if (accept !== null && accept.test(string)) {
 				if (callback) callback(result);
 			}
 		}
-
-		return results;
 	}
 
 };

@@ -33,7 +33,9 @@
 	eStyle.appendChild(nStyle);
 
 	var Utility = {
-		GET: 2, SET: 3,
+		GET: 2,
+		SET: 3,
+		STRIP_HTML: />(.*?)$/,
 
 		// id: function () {
 		// 	return Math.random().toString(36).substr(2, 9);
@@ -66,6 +68,10 @@
 			}
 		},
 
+		// parseArguments: function () {
+		//
+		// },
+
 		ensureBoolean: function (value) {
 			if (typeof value === 'string') return value === 'true';
 			else return value;
@@ -82,8 +88,14 @@
 			});
 		},
 
-		toCamelCase: function (string) {
-			return string.replace(/-[a-z]/g, function (match) {
+		toCamelCase: function (data) {
+			if (data === null || data === undefined) {
+				throw new Error('toCamelCase: argument required');
+			} else if (data.constructor.name === 'Array') {
+				data = data.join('-');
+			}
+
+			return data.replace(/-[a-z]/g, function (match) {
 				return match[1].toUpperCase();
 			});
 		},
@@ -124,48 +136,39 @@
 		// },
 
 		forEachAttribute: function (element, reject, skip, accept, callback) {
-			var attributes = element.attributes;
-			var i = 0, results = [];
+			var i = 0, attributes = element.attributes, result = {};
 
 			for (i; i < attributes.length; i++) {
-				var result = {
-					value: attributes[i].value,
-					name: attributes[i].name,
-					attribute: attributes[i].name + '="' + attributes[i].value + '"'
-				};
+				result.value = attributes[i].value;
+				result.name = attributes[i].name;
+				result.attribute = attributes[i].name + '="' + attributes[i].value + '"';
 
 				if (reject && reject.test(result.attribute)) {
 					i += result.children.length;
 				} else if (skip && skip.test(result.attribute)) {
 					continue;
 				} else if (accept && accept.test(result.attribute)) {
-					results.push(result);
 					if (callback) callback(result);
 				}
 			}
-
-			return results;
 		},
 
 		forEachElement: function (element, reject, skip, accept, callback) {
 			var elements = element.getElementsByTagName('*');
-			var i = 0, results = [], string;
+			var i = 0, result = '', string  = '';
 
 			for (i; i < elements.length; i++) {
-				var result = elements[i];
-				string = result.outerHTML.replace(result.innerHTML, '');
+				result = elements[i];
+				string = result.outerHTML.replace(this.STRIP_HTML, '');
 
-				if (reject && reject.test(string)) {
+				if (reject !== null && reject.test(string)) {
 					i += result.children.length;
-				} else if (skip && skip.test(string)) {
+				} else if (skip !== null && skip.test(string)) {
 					continue;
-				} else if (accept && accept.test(string)) {
-					results.push(result);
+				} else if (accept !== null && accept.test(string)) {
 					if (callback) callback(result);
 				}
 			}
-
-			return results;
 		}
 
 	};
@@ -297,7 +300,10 @@
 	function ViewInterface (data) {
 		this.view = data.view;
 
-		this.PREFIX = /(^(data-)?s-)/;
+		this.listeners = {};
+		this.inners = {};
+
+		this.PREFIX = /(data-)?s-/;
 		// this.BINDER_CMD = /(^data-s-)|(^s-)|((-|\.)(.*?)$)/g;
 		this.BINDER_CMD = /s-\w+/;
 		this.BINDER_OPT = /((^data-s-)|(^s-))(\w+(\.|-)?)/;
@@ -314,39 +320,21 @@
 		this.AT_SKIPS = /(s-value=)/;
 	}
 
-	ViewInterface.prototype.sOn = function (data) {
+	ViewInterface.prototype.on = function (data) {
 		var self = this;
+		var eventName = data.cmds[1];
+		var methodName = data.opts[data.opts.length-1];
 
 		if (typeof data.value !== 'function') return;
 
-		if (!data.element.swathe) {
-			data.element.swathe = {};
-		} else {
-			data.element.removeEventListener(data.binder.opt, data.element.swathe.originalEventListener);
-		}
-
-		data.element.swathe.originalEventListener = function (e) {
-			var parameters = data.adapter.opt.split(', ').map(function (parameter) { // TODO fix split on all commas /,(\s)?/
-				if (self.STRING.test(parameter)) {
-					return parameter.replace(/(')|(")|(`)/g, '');
-				} else if (self.NUMBER.test(parameter)) {
-					return Number(parameter);
-				} else if (self.BOOLEAN.test(parameter)) {
-					return parameter === 'true';
-				} else {
-					return self.ModelInterface.get(parameter);
-				}
-			});
-
-			parameters.push(e);
-			data.value.apply(self.ModelInterface.model, parameters);
-		};
-
-		data.element.addEventListener(data.binder.opt, data.element.swathe.originalEventListener);
+		data.element.removeEventListener(eventName, self.listeners[methodName], false);
+		self.listeners[methodName] = data.value.bind(self.ModelInterface.model);
+		data.element.addEventListener(eventName, self.listeners[methodName], false);
 	};
 
-	ViewInterface.prototype.sFor = function (data) {
+	ViewInterface.prototype.for = function (data) {
 		var self = this, originalInnerHtml;
+		var variableName = Utility.toCamelCase(data.cmds.slice(1));
 
 		if (!data.element.swathe) {
 			originalInnerHtml = data.element.innerHTML;
@@ -356,7 +344,9 @@
 			originalInnerHtml = data.element.swathe.originalInnerHTML;
 		}
 
-		var variable = new RegExp('="'+ data.binder.opt +'"', 'g');
+		// self.inners[]
+
+		var variable = new RegExp('="'+ variableName +'"', 'g');
 		var newInnerHtml = '';
 
 		if (data.value === null || data.value === undefined) {
@@ -371,7 +361,7 @@
 		self.update(data.element);
 	};
 
-	ViewInterface.prototype.sHtml = function (data) {
+	ViewInterface.prototype.html = function (data) {
 		var self = this;
 
 		if (/^</.test(data.value)) {
@@ -391,103 +381,86 @@
 		}
 	};
 
-	ViewInterface.prototype.sIf = function (data) {
-		data.element.hidden = !Utility.ensureBoolean(data.value);
-	};
+	ViewInterface.prototype.css = function (data) {
+		// var cssText = '';
 
-	ViewInterface.prototype.sEnable = function (data) {
-		data.element.disabled = !Utility.ensureBoolean(data.value);
-	};
-
-	ViewInterface.prototype.sDisable = function (data) {
-		data.element.disabled = Utility.ensureBoolean(data.value);
-	};
-
-	ViewInterface.prototype.sShow = function (data) {
-		data.element.hidden = !Utility.ensureBoolean(data.value);
-	};
-
-	ViewInterface.prototype.sHide = function (data) {
-		data.element.hidden = Utility.ensureBoolean(data.value);
-	};
-
-	ViewInterface.prototype.sCheck = function (data) {
-		data.element.checked = Utility.ensureBoolean(data.value);
-	};
-
-	ViewInterface.prototype.sUncheck = function (data) {
-		data.element.checked = !Utility.ensureBoolean(data.value);
-	};
-
-	ViewInterface.prototype.sClass = function (data) {
-		data.value = Utility.ensureBoolean(data.value);
-		data.element.classList.toggle(data.binder.opt, data.value);
-	};
-
-	ViewInterface.prototype.sText = function (data) {
-		data.element.innerText = Utility.ensureString(data.value);
-	};
-
-	ViewInterface.prototype.sCss = function (data) {
-		if (typeof data.value === 'string') {
-			data.element.style.cssText = data.value;
-		} else {
+		if (typeof data.value === 'object') {
 			for (var key in data.value) {
 				if (data.value.hasOwnProperty(key)) {
 					key = Utility.toDashCase(key);
+					// cssText += key + ':' + data.value[key] + ';';
 					data.element.style.cssText += key + ':' + data.value[key] + ';';
 				}
 			}
+		} else {
+			// cssText = data.value;
+			data.element.style.cssText = data.value;
 		}
+
+		// data.element.style.cssText = cssText;
 	};
 
-	// ViewInterface.prototype._style = function (data) {
-	// 	if (typeof data.value === 'string') {
-	// 		data.element.style[Utility.toCamelCase(data.binder.opt)] = data.value;
-	// 	} else {
-	// 		for (var key in data.value) {
-	// 			if (data.value.hasOwnProperty(key)) {
-	// 				key = Utility.toDashCase(key);
-	// 				data.element.style.cssText += key + ':' + data.value[key] + ';';
-	// 			}
-	// 		}
-	// 	}
+	// ViewInterface.prototype.value = function (data) {
+	// 	// if (data.element.value !== data.value)
+	// 	data.element.value = data.value;
 	// };
 
-	ViewInterface.prototype.sValue = function (data) {
-		if (data.element.value !== data.value) data.element.value = data.value;
+	ViewInterface.prototype.class = function (data) {
+		var className = data.cmds.slice(1).join('-');
+		data.value = Utility.ensureBoolean(data.value);
+		data.element.classList.toggle(className, data.value);
 	};
 
-	// ViewInterface.prototype.sSubmit = function (data) {
-	// 	console.log(data);
-	// };
+	ViewInterface.prototype.if = function (data) {
+		data.element.hidden = !Utility.ensureBoolean(data.value);
+	};
 
-	ViewInterface.prototype.sDefault = function (data) {
-		data.attribute.name = data.attribute.name.replace(this.PREFIX, '');
-		data.attribute.name = Utility.toCamelCase(data.attribute.name);
-		Utility.setByPath(data.element, data.attribute.name, data.value);
+	ViewInterface.prototype.enable = function (data) {
+		data.element.disabled = !Utility.ensureBoolean(data.value);
+	};
+
+	ViewInterface.prototype.disable = function (data) {
+		data.element.disabled = Utility.ensureBoolean(data.value);
+	};
+
+	ViewInterface.prototype.show = function (data) {
+		data.element.hidden = !Utility.ensureBoolean(data.value);
+	};
+
+	ViewInterface.prototype.hide = function (data) {
+		data.element.hidden = Utility.ensureBoolean(data.value);
+	};
+
+	ViewInterface.prototype.check = function (data) {
+		data.element.checked = Utility.ensureBoolean(data.value);
+	};
+
+	ViewInterface.prototype.uncheck = function (data) {
+		data.element.checked = !Utility.ensureBoolean(data.value);
+	};
+
+	ViewInterface.prototype.text = function (data) {
+		data.element.innerText = Utility.ensureString(data.value);
+	};
+
+	ViewInterface.prototype.default = function (data) {
+		var path = Utility.toCamelCase(data.cmds);
+		Utility.setByPath(data.element, path, data.value);
 	};
 
 	ViewInterface.prototype.switch = function (data) {
 		var self = this;
 
-		data.binder = {
-			cmd: Utility.toCamelCase(data.attribute.name.match(self.BINDER_CMD)[0]),
-			opt: data.attribute.name.replace(self.BINDER_OPT, '')
-		};
+		data.opts = data.attribute.value.split('.');
+		data.cmds = data.attribute.name.replace(self.PREFIX, '').split('-');
 
-		data.adapter = {
-			cmd: data.attribute.value.replace(self.ADAPTER_CMD, ''),
-			opt: data.attribute.value.replace(self.ADAPTER_OPT, '')
-		};
-
-		data.value = self.ModelInterface.get(data.adapter.cmd);
+		data.value = self.ModelInterface.get(data.attribute.value);
 		data.value = data.value === null || data.value === undefined ? data.attribute.value : data.value;
 
-		if (data.binder.cmd in self) {
-			self[data.binder.cmd](data);
+		if (data.cmds[0] in self) {
+			self[data.cmds[0]](data);
 		} else {
-			self.sDefault(data);
+			self.default(data);
 		}
 	};
 
@@ -498,7 +471,7 @@
 		pattern = pattern || self.ALL;
 
 		Utility.forEachElement(view, self.REJECTS, null, pattern, function (element) {
-			Utility.forEachAttribute(element, null, self.AT_SKIPS, self.ALL, function (attribute) {
+			Utility.forEachAttribute(element, null, self.AT_SKIPS, pattern, function (attribute) {
 				self.switch({ element: element, attribute: attribute });
 			});
 		});
@@ -511,10 +484,12 @@
 
 		self.update();
 
-		self.view.addEventListener('keyup', function (e) { //'change'
+		self.view.addEventListener('keyup', function (e) {
 			attributeValue = e.target.getAttribute('s-value') || e.target.getAttribute('data-s-value');
-			if (attributeValue) self.ModelInterface.set(attributeValue, e.target.value);
-			e.preventDefault();
+
+			if (attributeValue !== null && attributeValue !== undefined) {
+				self.ModelInterface.set(attributeValue, e.target.value);
+			}
 		}, false);
 
 		// self.view.addEventListener('submit', function (e) {
@@ -610,12 +585,9 @@
 
 		self.ViewInterface = ViewInterface;
 
-		// value is provided maybe usefull
-		function change (key) {
+		function change (key, value) {
 			key = Utility.getPathParent(key);
-			key = '(((s-)|(data-s-))(.*?)="' + key +'(.*?)")';
-			key = new RegExp(key);
-
+			key = new RegExp('(s-)(.*?)="' + key);
 			self.ViewInterface.update(null, key);
 		}
 

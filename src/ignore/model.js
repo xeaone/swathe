@@ -87,12 +87,9 @@ ModelInterface.prototype.setup = function (ViewInterface) {
 
 	self.ViewInterface = ViewInterface;
 
-	// value is provided maybe usefull
-	function change (key) {
+	function change (key, value) {
 		key = Utility.getPathParent(key);
-		key = '(((s-)|(data-s-))(.*?)="' + key +'(.*?)")';
-		key = new RegExp(key);
-
+		key = new RegExp('(s-)(.*?)="' + key);
 		self.ViewInterface.update(null, key);
 	}
 

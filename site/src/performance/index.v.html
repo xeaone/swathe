@@ -1,27 +1,46 @@
 <!-- { "title": "Performance" } -->
 
+<style>
+	.group {
+		margin: 4px;
+		padding: 4px;
+		border: solid 1px dimgray;
+	}
+	.group input {
+		padding: 4px;
+		display: block;
+		margin: 4px auto;
+	}
+	.group div {
+		margin: 4px;
+		padding: 4px;
+		display: inline-block;
+		background: lightgray;
+	}
+</style>
+
 <table>
 	<tr>
 		<th>All Elements</th>
-		<th>Linked Elements</th>
+		<th>Group Elements</th>
 	</tr>
 	<tr>
 		<td>5000</td>
-		<td>250</td>
+		<td>1000</td>
 	</tr>
 </table>
-<div class="container" s-controller="app"></div>
+
+<div class="container" s-controller="main"></div>
 
 <script>
-
-	console.log('started creating elements');
-	var model = {
-		placeholder: 'Type then press enter'
+	var options = {
+		name: 'main',
+		model: {
+			placeholder: 'Change Group'
+		}
 	};
 
-	var count = 0;
-	var current = 0;
-
+	console.log('started creating elements');
 	var container = document.querySelector('.container');
 	var group = document.createElement('div');
 	var input = document.createElement('input');
@@ -29,39 +48,41 @@
 
 	group.setAttribute('class', 'group');
 
-	for (var i = 0; i < 5000; i++) {
-		var groupClone = group.cloneNode();
-		var inputClone = input.cloneNode();
-		var divClone = div.cloneNode();
+	var totalAmount = 5000, groupAmount = totalAmount/5;
+	var i = 0, count = 0, current = 0, groupClone, inputClone, divClone;
 
-		if (count === 250) {
-			count = 0;
-			current = i;
-		} else {
-			count++;
+	for (i; i < totalAmount; i++) {
+		if (i !== 0) {
+			if (count === groupAmount) {
+				count = 0;
+				current = i;
+			} else {
+				count++;
+			}
 		}
 
-		model[current] = current;
+		options.model[current] = current;
 
-		inputClone.setAttribute('s-value', current);
-		inputClone.setAttribute('s-placeholder', 'placeholder');
-		divClone.setAttribute('s-inner-text', current);
+		if (count === 0) {
+			groupClone = group.cloneNode();
+			inputClone = input.cloneNode();
 
-		groupClone.appendChild(inputClone);
-		groupClone.appendChild(divClone);
-		container.appendChild(groupClone);
+			inputClone.setAttribute('s-value', current);
+			inputClone.setAttribute('s-placeholder', 'placeholder');
+			groupClone.appendChild(inputClone);
+			container.appendChild(groupClone);
+		} else {
+			groupClone = groupClone || group.cloneNode();
+
+			divClone = div.cloneNode();
+			divClone.setAttribute('s-text', current);
+			groupClone.appendChild(divClone);
+		}
 	}
-
-	var options = {
-		name: 'app',
-		model: model
-	};
 	console.log('ended creating elements');
 
 	console.time('controller');
-	Swathe.controller(options, function (controller) {
-		console.log(controller.model);
-	});
+	Swathe.controller(options, function (controller) {});
 	console.timeEnd('controller');
 
 </script>

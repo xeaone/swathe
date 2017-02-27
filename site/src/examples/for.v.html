@@ -5,11 +5,11 @@
 <section>
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<input type="text" s-value="iterable[0]">
-		<ul s-for-variable="iterable">
+		<input type="text" s-value="searchString">
+		<button s-on-click="onSearch(searchString, searchResults, searchArray)">Search</button>
+		<ul s-for-result="searchResults">
 			<li>
-				<span s-text="number"></span>
-				<span s-text="variable"></span>
+				<span s-text="result"></span>
 			</li>
 		</ul>
 	</code>
@@ -18,14 +18,13 @@
 	<div class="cooked" s-controller="main">
 
 		<input type="text" s-value="searchString">
+		<button s-on-click="onSearch()">Search</button>
 
-		<button s-on-click="onSearch(searchString, searchResults, searchArray)">Search</button>
-
-		<div s-for-result="searchResults">
+		<ul s-for-result="searchArray">
 			<li>
 				<span s-text="result"></span>
 			</li>
-		</div>
+		</ul>
 
 	</div>
 </section>
@@ -35,28 +34,26 @@
 		name: 'main',
 		model: {
 			searchString: '',
-			searchResults: [],
+			// searchResults: [],
 			searchArray: ['0', '1', '3', '2', '3'],
-			onSearch: function (searchString, searchResults, searchArray) {
+			onSearch: function () {
 				var Model = this;
-				Model.searchResults = Model.searchArray.filter(function (item) {
+				Model.searchArray = Model.searchArray.filter(function (item) {
 					return Model.searchString === item;
 				});
 			},
 
-			iterable: ['0', '1', '2', '3'],
-			pushOne: function (iterable) {
-				iterable.push(iterable.length.toString());
-			},
-			popOne: function (iterable) {
-				iterable.pop();
-			}
+			// iterable: ['0', '1', '2', '3'],
+			// pushOne: function (iterable) {
+			// 	iterable.push(iterable.length.toString());
+			// },
+			// popOne: function (iterable) {
+			// 	iterable.pop();
+			// }
 		}
 	};
 
 	Swathe.controller(options, function (controller) {
-		// controller.model.searchResults = controller.model.searchArray;
-
 		setTimeout(function () {
 			console.log(controller.model);
 		}, 3000);

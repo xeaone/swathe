@@ -173,12 +173,6 @@ footer p {
 .button:hover, button:hover, input[type="button"]:hover, input[type="submit"]:hover {
 	box-shadow: 0 6px 6px rgba(0,0,0,0.3);
 }
-.group {
-	margin: 4px;
-	padding: 4px;
-	display: inline-block;
-	background: lightgray;
-}
 .code {
 	padding: 0.1rem 0.5rem;
 	border-radius: 2px;
