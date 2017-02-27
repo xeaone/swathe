@@ -2,9 +2,9 @@
 export default {
 	GET: 2, SET: 3,
 
-	id: function () {
-		return Math.random().toString(36).substr(2, 9);
-	},
+	// id: function () {
+	// 	return Math.random().toString(36).substr(2, 9);
+	// },
 
 	interact: function (type, collection, path, value) {
 		var keys = this.getPathKeys(path);
@@ -31,6 +31,16 @@ export default {
 			temporary[keys[last]] = value;
 			return collection;
 		}
+	},
+
+	ensureBoolean: function (value) {
+		if (typeof value === 'string') return value === 'true';
+		else return value;
+	},
+
+	ensureString: function (value) {
+		if (typeof value === 'object') return JSON.stringify(value);
+		else return value.toString();
 	},
 
 	toCleanCase: function (string) {
@@ -72,15 +82,15 @@ export default {
 		DOM
 	*/
 
-	removeChildren: function (element) {
-		while (element.firstChild) {
-			element.removeChild(element.firstChild);
-		}
+	// removeChildren: function (element) {
+	// 	while (element.firstChild) {
+	// 		element.removeChild(element.firstChild);
+	// 	}
+	//
+	// 	return element;
+	// },
 
-		return element;
-	},
-
-	forEachAttribute: function (element, pattern, callback) {
+	forEachAttribute: function (element, reject, skip, accept, callback) {
 		var attributes = element.attributes;
 		var i = 0, results = [];
 
@@ -91,7 +101,11 @@ export default {
 				attribute: attributes[i].name + '="' + attributes[i].value + '"'
 			};
 
-			if (pattern.test(result.attribute)) {
+			if (reject && reject.test(result.attribute)) {
+				i += result.children.length;
+			} else if (skip && skip.test(result.attribute)) {
+				continue;
+			} else if (accept && accept.test(result.attribute)) {
 				results.push(result);
 				if (callback) callback(result);
 			}

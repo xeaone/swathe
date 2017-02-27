@@ -1,11 +1,23 @@
 <!-- { "title": "Performance" } -->
 
+<table>
+	<tr>
+		<th>All Elements</th>
+		<th>Linked Elements</th>
+	</tr>
+	<tr>
+		<td>5000</td>
+		<td>250</td>
+	</tr>
+</table>
 <div class="container" s-controller="app"></div>
 
 <script>
 
 	console.log('started creating elements');
-	var model = {};
+	var model = {
+		placeholder: 'Type then press enter'
+	};
 
 	var count = 0;
 	var current = 0;
@@ -17,12 +29,12 @@
 
 	group.setAttribute('class', 'group');
 
-	for (var i = 0; i < 9000; i++) {
+	for (var i = 0; i < 5000; i++) {
 		var groupClone = group.cloneNode();
 		var inputClone = input.cloneNode();
 		var divClone = div.cloneNode();
 
-		if (count === 300) {
+		if (count === 250) {
 			count = 0;
 			current = i;
 		} else {
@@ -32,6 +44,7 @@
 		model[current] = current;
 
 		inputClone.setAttribute('s-value', current);
+		inputClone.setAttribute('s-placeholder', 'placeholder');
 		divClone.setAttribute('s-inner-text', current);
 
 		groupClone.appendChild(inputClone);

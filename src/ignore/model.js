@@ -93,7 +93,7 @@ ModelInterface.prototype.setup = function (ViewInterface) {
 		key = '(((s-)|(data-s-))(.*?)="' + key +'(.*?)")';
 		key = new RegExp(key);
 
-		self.ViewInterface.update(key);
+		self.ViewInterface.update(null, key);
 	}
 
 	if (self.isProxy) {

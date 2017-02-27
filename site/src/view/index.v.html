@@ -3,11 +3,11 @@
 <h2>View Documentation</h2>
 
 <section>
-	<h3>Binders | Attribute Names</h3>
-	<p>
-		Attribute names or Binders are used for Swathe to detect elements to interact with. There are special Binders listed beneath which have special actions. You are not limited to these though you have full access to map directly to any JavaScript property on an Element.
-		The mapping pattern except for special Binders will convert <span class="code">-</span> or dashes to camel case and leave <span class="code">.</span> dots unchanged. For example <span class="code">s-this-style.background</span> is an acceptable syntax.
-	</p>
+	<h3>Attribute Names</h3>
+	<p>Attribute names are used for Swathe to detect elements to interact with. There are special Swathe attribute names listed at the bottom which have special actions. You are not limited to just these special attributes, you have full access to map directly to any JavaScript DOM property.</p>
+	<p>Since camel cased string are not an acceptable format for browsers the <span class="code">-</span> will be converted to camel case. And then mapped to a JavaScript DOM property.</p>
+	<p>Infinintly deep object paths are also allowed in attribute names for example <span class="code">s-style.background-color="blue"</span> will set the elements background color to blue.</p>
+	<!-- There is also a special attribute name prefix with style but this is not -->
 	<ul>
 		<li><span class="code">s-[*]</span> The primary prefix for attribute names.</li>
 		<li><span class="code">data-s-[*]</span> The secondary prefix for attribute names.</li>
@@ -15,19 +15,33 @@
 </section>
 
 <section>
-	<h3>Adapters | Attribute Values</h3>
+	<h3>Attribute Values</h3>
 	<p>
-		Attribute values or Adapters are used to access the Model. The attribute name <span class="code">s-text</span> could have a Adapter set to <span class="code">array.0</span>, <span class="code">array[0]</span>, this would then assign the value of the Adapter to the elements innerText.
+		Attribute values are used to access the Model and assign values to the view. An attribute name of <span class="code">s-text</span> could have the value of <span class="code">array[0]</span> this would then assign the value from the model to the inner text of the element.
 	</p>
+	<p>In most case if the attribute value is not found on the Model the value will attempt to convert to a Primitive JavaScript type.</p>
 	<ul>
-		<li><span class="code">.</span> Dot syntax can be used to access any property/array on the model.</li>
-		<li><span class="code">[]</span> Bracket syntax can also be used.</li>
+		<li><span class="code">.</span> Dot syntax can be used to access any property including arrays on the model.</li>
+		<li><span class="code">[]</span> Bracket syntax can also be used. But it will be converted to dot syntax.</li>
 	</ul>
 </section>
 
 <section>
-	<h3>Special Binders</h3>
+	<h3>Special Attribute Names</h3>
 	<ul>
+		<li><a href="examples/enable-disable.html">s-enable | s-disable</a></li>
+		<li><a href="examples/check-uncheck.html">s-check | s-uncheck</a></li>
+		<li><a href="examples/show-hide.html">s-show | s-hide</a></li>
+		<li><a href="examples/class.html">s-class-[class name]</a></li>
+		<li><a href="examples/for.html">s-for-[variable name]</a></li>
+		<li><a href="examples/on.html">s-on-[event name]</a></li>
+		<li><a href="examples/html.html">s-html</a></li>
+		<li><a href="examples/css.html">s-css</a></li>
+		<li>s-[path]</li>
+		<!-- <li><a href="examples/if.html">s-if</a></li> -->
+	</ul>
+
+	<!-- <ul>
 		<li><span class="code">s-if</span> Shows or hides the element if the Adapter is <span class="code">false || true</span> can be a path on the model or simple false or true.
 		<li><span class="code">s-class-[name]</span> Adds or removes the element if the Adapter is <span class="code">false || true</span> can be a path on the model or simple false or true.
 
@@ -57,5 +71,5 @@
 				<li><span class="code">index</span> The key or index of an array/iterable on the model.</li>
 			</ul>
 		</li>
-	</ul>
+	</ul> -->
 </section>

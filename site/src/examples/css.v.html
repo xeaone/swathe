@@ -1,0 +1,38 @@
+<!-- { "title": "Css" } -->
+
+<h2>Css</h2>
+
+<section>
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<div s-css="cso" s-text="cso"></div>
+		<div s-style.background-color="cso.background" s-text="cso.background"></div>
+		<input s-value="cso.background" s-placeholder="placeholder">
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<div s-css="cso" s-text="cso"></div>
+		<div s-style.background-color="cso.background" s-text="cso.background"></div>
+		<input s-value="cso.background" s-placeholder="placeholder">
+	</div>
+</section>
+
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			placeholder: "Enter Color Or Hex",
+			cso: {
+				color: 'white',
+				background: '#999999'
+			}
+		}
+	};
+
+	Swathe.controller(options, function (controller) {
+		setInterval(function () {
+			controller.model.cso.background = RandomHex();
+		}, 3000);
+	});
+</script>

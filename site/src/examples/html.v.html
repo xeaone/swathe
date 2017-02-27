@@ -5,10 +5,6 @@
 <section>
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		options.model.html = '<div>Hello World</div>';
-		options.model.url = '/include.html';
-	</code>
-	<code class="raw prettyprint">
 		<div s-html="html"></div>
 		<div s-html="url"></div>
 	</code>
@@ -24,9 +20,8 @@
 	var options = {
 		name: 'main',
 		model: {
-			f: false,
-			url: '/include.html',
-			html: '<p>Hello World</p>'
+			url: 'include.html',
+			html: '<p>This is an html string include.</p>'
 		}
 	};
 

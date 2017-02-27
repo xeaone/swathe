@@ -1,0 +1,34 @@
+<!-- { "title": "Enable | Disable" } -->
+
+<h2>Enable | Disable</h2>
+
+<section>
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<input s-disable="true" value="Is disabled">
+		<input s-disable="isFalse" value="Is not disabled">
+		<br>
+		<input s-enable="true" value="Is enabled" disabled="true">
+		<input s-enable="isFalse" value="Is not enabled">
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<input s-disable="true" value="Is disabled">
+		<input s-disable="isFalse" value="Is not disabled">
+		<br>
+		<input s-enable="true" value="Is enabled" disabled="true">
+		<input s-enable="isFalse" value="Is not enabled">
+	</div>
+</section>
+
+<script>
+	var options = {
+		name: 'main',
+		model: { isFalse: false }
+	};
+
+	Swathe.controller(options, function (controller) {
+		console.log(controller.model);
+	});
+</script>

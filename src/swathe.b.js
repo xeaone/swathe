@@ -4,13 +4,9 @@
 	author: alexander elias
 */
 
-// import Utility from './ignore/utility.js';
-
 import { eStyle } from './ignore/style.js';
 import ViewInterface from './ignore/view.js';
 import ModelInterface from './ignore/model.js';
-
-// HTMLElement.prototype.swathe = {};
 
 function Controller (data, callback) {
 	var self = this;
