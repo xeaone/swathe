@@ -28,7 +28,9 @@
 		model: { isFalse: false }
 	};
 
-	Swathe.controller(options, function (controller) {
-		console.log(controller.model);
+	Swathe.controller(options, function () {
+		var self = this;
+
+		console.log(self.model);
 	});
 </script>

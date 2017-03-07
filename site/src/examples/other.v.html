@@ -6,7 +6,7 @@
 
 	<section>
 		<h4>Input Disabled</h4>
-		<input type="text" s-disabled="isDisabled" value="Disabled">
+		<input type="text" s-disable="isDisabled" value="Disabled">
 	</section>
 
 	<section>
@@ -26,6 +26,11 @@
 		<h4>Sub Controller</h4>
 		<input type="text" s-value="text">
 		<div s-text="text">You should see this text becuase this controller is ignored.</div>
+
+		<form s-on-submit="log">
+			<input type="submit" value="Log">
+		</form>
+
 	</section>
 
 </div>
@@ -42,14 +47,22 @@
 				am: {
 					nested: 'www.google.com'
 				}
+			},
+			log: function () {
+				console.log('hello');
 			}
 		}
 	};
 
-	Swathe.controller(options, function (controller) {
+	Swathe.controller(options, function () {
+		var self = this;
+
 		setInterval(function () {
-			controller.model.count++;
+			self.model.count++;
 		}, 1000);
+		setTimeout(function () {
+			console.log(self.model);
+		}, 3000);
 	});
 
 </script>

@@ -2,14 +2,42 @@
 export default {
 	GET: 2,
 	SET: 3,
-	STRIP_HTML: />(.*?)$/,
+	prefix: /(data-)?s-/,
 
-	// id: function () {
-	// 	return Math.random().toString(36).substr(2, 9);
-	// },
+	uid: function () {
+		return Math.random().toString(36).substr(2, 9);
+	},
+
+	toCamelCase: function (data) {
+		if (data.constructor.name === 'Array') data = data.join('-');
+		return data.replace(/-[a-z]/g, function (match) {
+			return match[1].toUpperCase();
+		});
+	},
+
+	toDashCase: function (data) {
+		if (data.constructor.name === 'Array') data = data.join('');
+		return data.replace(/[A-Z]/g, function (match) {
+			return '-' + match.toLowerCase();
+		});
+	},
+
+	ensureBoolean: function (value) {
+		if (typeof value === 'string') return value === 'true';
+		else return value;
+	},
+
+	ensureString: function (value) {
+		if (typeof value === 'object') return JSON.stringify(value);
+		else return value.toString();
+	},
+
+	/*
+		object
+	*/
 
 	interact: function (type, collection, path, value) {
-		var keys = this.getPathKeys(path);
+		var keys = this.toCamelCase(path).split('.');
 		var last = keys.length - 1;
 		var temporary = collection;
 
@@ -35,53 +63,6 @@ export default {
 		}
 	},
 
-	// parseArguments: function () {
-	//
-	// },
-
-	ensureBoolean: function (value) {
-		if (typeof value === 'string') return value === 'true';
-		else return value;
-	},
-
-	ensureString: function (value) {
-		if (typeof value === 'object') return JSON.stringify(value);
-		else return value.toString();
-	},
-
-	toCleanCase: function (string) {
-		return string.replace(/(\[)|(\])/g, function (match) {
-			return match === '[' ? '.' : '';
-		});
-	},
-
-	toCamelCase: function (data) {
-		if (data === null || data === undefined) {
-			throw new Error('toCamelCase: argument required');
-		} else if (data.constructor.name === 'Array') {
-			data = data.join('-');
-		}
-
-		return data.replace(/-[a-z]/g, function (match) {
-			return match[1].toUpperCase();
-		});
-	},
-
-	toDashCase: function ( string ) {
-		return string.replace(/[A-Z]/g, function (match) {
-			return '-' + match.toLowerCase();
-		});
-	},
-
-	getPathKeys: function (string) {
-		return this.toCamelCase(this.toCleanCase(string)).split('.');
-	},
-
-	getPathParent: function (string) {
-		var parent = string.split('.').slice(0, -1).join('.');
-		return parent === '' ? string : parent;
-	},
-
 	getByPath: function (collection, path) {
 		return this.interact(this.GET, collection, path);
 	},
@@ -94,51 +75,91 @@ export default {
 		DOM
 	*/
 
-	// removeChildren: function (element) {
-	// 	while (element.firstChild) {
-	// 		element.removeChild(element.firstChild);
-	// 	}
-	//
-	// 	return element;
-	// },
+	glance: function (element) {
+		var attribute, glance = element.nodeName.toLowerCase();
 
-	forEachAttribute: function (element, reject, skip, accept, callback) {
-		var i = 0, attributes = element.attributes, result = {};
+		for (var i = 0, l = element.attributes.length; i < l; i++) {
+			attribute = element.attributes[i];
+			glance = glance + ' ' + attribute.name + '="' + attribute.value + '"';
+		}
+
+		return glance;
+	},
+
+	eachAttribute: function (attributes, pattern, callback) {
+		var i = 0, attribute = {};
 
 		for (i; i < attributes.length; i++) {
-			result.value = attributes[i].value;
-			result.name = attributes[i].name;
-			result.attribute = attributes[i].name + '="' + attributes[i].value + '"';
+			attribute = {
+				name: attributes[i].name,
+				value: attributes[i].value,
+				full: attributes[i].name + '="' + attributes[i].value + '"'
+			};
 
-			if (reject && reject.test(result.attribute)) {
-				i += result.children.length;
-			} else if (skip && skip.test(result.attribute)) {
-				continue;
-			} else if (accept && accept.test(result.attribute)) {
-				if (callback) callback(result);
+			if (pattern && pattern.test(attribute.full)) {
+				if (callback) callback(attribute);
 			}
 		}
 	},
 
-	forEachElement: function (element, reject, skip, accept, callback) {
-		var elements = element.getElementsByTagName('*');
-		var i = 0, result = '', string  = '';
+	eachElement: function (elements, reject, skip, accept, callback) {
+		var i = 0, element, glance;
 
 		for (i; i < elements.length; i++) {
-			result = elements[i];
-			string = result.outerHTML.replace(this.STRIP_HTML, '');
+			element = elements[i];
+			glance = this.glance(element);
 
-			if (reject !== null && reject.test(string)) {
-				i += result.children.length;
-			} else if (skip !== null && skip.test(string)) {
+			if (reject && reject.test(glance)) {
+				i += element.children.length;
+			} else if (skip && skip.test(glance)) {
 				continue;
-			} else if (accept !== null && accept.test(string)) {
-				if (callback) callback(result);
+			} else if (accept && accept.test(glance)) {
+				if (callback) i = callback(element, i) || i;
 			}
 		}
 	}
 
 };
+
+
+// eachParent: function (element, reject, accept) {
+// 	var child = element, parent = child.parentNode, glance;
+//
+// 	if (reject && typeof reject === 'string') reject = new RegExp(reject);
+// 	if (accept && typeof accept === 'string') accept = new RegExp(accept);
+//
+// 	while (parent) {
+// 		glance = this.glance(parent);
+//
+// 		if (reject && reject.test(glance)) {
+// 			return null;
+// 		} else if (accept && accept.test(glance)) {
+// 			return { parent: parent, child: child };
+// 		}
+//
+// 		child = parent;
+// 		parent = child.parentNode;
+// 	}
+// }
+
+// toCleanCase: function (string) {
+// 	return string.replace(/(\[)|(\])/g, function (match) {
+// 		return match === '[' ? '.' : '';
+// 	});
+// },
+
+// getPathKeys: function (string) {
+// 	return this.toCamelCase(this.toCleanCase(string)).split('.');
+// },
+
+// getPathParent: function (string) {
+// 	var parent = string.split('.').slice(0, -1).join('.');
+// 	return parent === '' ? string : parent;
+// },
+
+// stringifyElement: function (element) {
+// 	return element.outerHTML.replace(/>(.*?)$/, '').replace('<', '');
+// },
 
 // isVoid: function (value) {
 // 	return value === null || value === undefined;
@@ -164,4 +185,8 @@ export default {
 // 	}
 //
 // 	return iterable;
+// },
+
+// id: function () {
+// 	return Math.random().toString(36).substr(2, 9);
 // },

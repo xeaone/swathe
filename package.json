@@ -33,6 +33,7 @@
   "homepage": "https://github.com/AlexanderElias/swathe#readme",
   "dependencies": {
     "axa": "^1.0.5",
-    "erbium": "^1.4.6"
+    "erbium": "^1.4.6",
+    "obsr": "^1.0.3"
   }
 }

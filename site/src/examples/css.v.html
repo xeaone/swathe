@@ -30,9 +30,14 @@
 		}
 	};
 
-	Swathe.controller(options, function (controller) {
+	Swathe.controller(options, function () {
+		var self = this;
+
+		console.log(self.model);
+
 		setInterval(function () {
-			controller.model.cso.background = RandomHex();
-		}, 3000);
+			self.model.cso.background = RandomHex();
+			// self.model.cso = self.model.cso;
+		}, 1000);
 	});
 </script>

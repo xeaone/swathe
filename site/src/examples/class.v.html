@@ -32,9 +32,11 @@
 		}
 	};
 
-	Swathe.controller(options, function (controller) {
+	Swathe.controller(options, function () {
+		var self = this;
+
 		setInterval(function () {
-			controller.model.classname = !controller.model.classname;
-		}, 3000);
+			self.model.classname = !self.model.classname;
+		}, 1000);
 	});
 </script>

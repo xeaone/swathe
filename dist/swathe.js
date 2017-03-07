@@ -35,14 +35,42 @@
 	var Utility = {
 		GET: 2,
 		SET: 3,
-		STRIP_HTML: />(.*?)$/,
+		prefix: /(data-)?s-/,
 
-		// id: function () {
-		// 	return Math.random().toString(36).substr(2, 9);
-		// },
+		uid: function () {
+			return Math.random().toString(36).substr(2, 9);
+		},
+
+		toCamelCase: function (data) {
+			if (data.constructor.name === 'Array') data = data.join('-');
+			return data.replace(/-[a-z]/g, function (match) {
+				return match[1].toUpperCase();
+			});
+		},
+
+		toDashCase: function (data) {
+			if (data.constructor.name === 'Array') data = data.join('');
+			return data.replace(/[A-Z]/g, function (match) {
+				return '-' + match.toLowerCase();
+			});
+		},
+
+		ensureBoolean: function (value) {
+			if (typeof value === 'string') return value === 'true';
+			else return value;
+		},
+
+		ensureString: function (value) {
+			if (typeof value === 'object') return JSON.stringify(value);
+			else return value.toString();
+		},
+
+		/*
+			object
+		*/
 
 		interact: function (type, collection, path, value) {
-			var keys = this.getPathKeys(path);
+			var keys = this.toCamelCase(path).split('.');
 			var last = keys.length - 1;
 			var temporary = collection;
 
@@ -68,53 +96,6 @@
 			}
 		},
 
-		// parseArguments: function () {
-		//
-		// },
-
-		ensureBoolean: function (value) {
-			if (typeof value === 'string') return value === 'true';
-			else return value;
-		},
-
-		ensureString: function (value) {
-			if (typeof value === 'object') return JSON.stringify(value);
-			else return value.toString();
-		},
-
-		toCleanCase: function (string) {
-			return string.replace(/(\[)|(\])/g, function (match) {
-				return match === '[' ? '.' : '';
-			});
-		},
-
-		toCamelCase: function (data) {
-			if (data === null || data === undefined) {
-				throw new Error('toCamelCase: argument required');
-			} else if (data.constructor.name === 'Array') {
-				data = data.join('-');
-			}
-
-			return data.replace(/-[a-z]/g, function (match) {
-				return match[1].toUpperCase();
-			});
-		},
-
-		toDashCase: function ( string ) {
-			return string.replace(/[A-Z]/g, function (match) {
-				return '-' + match.toLowerCase();
-			});
-		},
-
-		getPathKeys: function (string) {
-			return this.toCamelCase(this.toCleanCase(string)).split('.');
-		},
-
-		getPathParent: function (string) {
-			var parent = string.split('.').slice(0, -1).join('.');
-			return parent === '' ? string : parent;
-		},
-
 		getByPath: function (collection, path) {
 			return this.interact(this.GET, collection, path);
 		},
@@ -127,51 +108,91 @@
 			DOM
 		*/
 
-		// removeChildren: function (element) {
-		// 	while (element.firstChild) {
-		// 		element.removeChild(element.firstChild);
-		// 	}
-		//
-		// 	return element;
-		// },
+		glance: function (element) {
+			var attribute, glance = element.nodeName.toLowerCase();
 
-		forEachAttribute: function (element, reject, skip, accept, callback) {
-			var i = 0, attributes = element.attributes, result = {};
+			for (var i = 0, l = element.attributes.length; i < l; i++) {
+				attribute = element.attributes[i];
+				glance = glance + ' ' + attribute.name + '="' + attribute.value + '"';
+			}
+
+			return glance;
+		},
+
+		eachAttribute: function (attributes, pattern, callback) {
+			var i = 0, attribute = {};
 
 			for (i; i < attributes.length; i++) {
-				result.value = attributes[i].value;
-				result.name = attributes[i].name;
-				result.attribute = attributes[i].name + '="' + attributes[i].value + '"';
+				attribute = {
+					name: attributes[i].name,
+					value: attributes[i].value,
+					full: attributes[i].name + '="' + attributes[i].value + '"'
+				};
 
-				if (reject && reject.test(result.attribute)) {
-					i += result.children.length;
-				} else if (skip && skip.test(result.attribute)) {
-					continue;
-				} else if (accept && accept.test(result.attribute)) {
-					if (callback) callback(result);
+				if (pattern && pattern.test(attribute.full)) {
+					if (callback) callback(attribute);
 				}
 			}
 		},
 
-		forEachElement: function (element, reject, skip, accept, callback) {
-			var elements = element.getElementsByTagName('*');
-			var i = 0, result = '', string  = '';
+		eachElement: function (elements, reject, skip, accept, callback) {
+			var i = 0, element, glance;
 
 			for (i; i < elements.length; i++) {
-				result = elements[i];
-				string = result.outerHTML.replace(this.STRIP_HTML, '');
+				element = elements[i];
+				glance = this.glance(element);
 
-				if (reject !== null && reject.test(string)) {
-					i += result.children.length;
-				} else if (skip !== null && skip.test(string)) {
+				if (reject && reject.test(glance)) {
+					i += element.children.length;
+				} else if (skip && skip.test(glance)) {
 					continue;
-				} else if (accept !== null && accept.test(string)) {
-					if (callback) callback(result);
+				} else if (accept && accept.test(glance)) {
+					if (callback) i = callback(element, i) || i;
 				}
 			}
 		}
 
 	};
+
+
+	// eachParent: function (element, reject, accept) {
+	// 	var child = element, parent = child.parentNode, glance;
+	//
+	// 	if (reject && typeof reject === 'string') reject = new RegExp(reject);
+	// 	if (accept && typeof accept === 'string') accept = new RegExp(accept);
+	//
+	// 	while (parent) {
+	// 		glance = this.glance(parent);
+	//
+	// 		if (reject && reject.test(glance)) {
+	// 			return null;
+	// 		} else if (accept && accept.test(glance)) {
+	// 			return { parent: parent, child: child };
+	// 		}
+	//
+	// 		child = parent;
+	// 		parent = child.parentNode;
+	// 	}
+	// }
+
+	// toCleanCase: function (string) {
+	// 	return string.replace(/(\[)|(\])/g, function (match) {
+	// 		return match === '[' ? '.' : '';
+	// 	});
+	// },
+
+	// getPathKeys: function (string) {
+	// 	return this.toCamelCase(this.toCleanCase(string)).split('.');
+	// },
+
+	// getPathParent: function (string) {
+	// 	var parent = string.split('.').slice(0, -1).join('.');
+	// 	return parent === '' ? string : parent;
+	// },
+
+	// stringifyElement: function (element) {
+	// 	return element.outerHTML.replace(/>(.*?)$/, '').replace('<', '');
+	// },
 
 	// isVoid: function (value) {
 	// 	return value === null || value === undefined;
@@ -197,6 +218,10 @@
 	// 	}
 	//
 	// 	return iterable;
+	// },
+
+	// id: function () {
+	// 	return Math.random().toString(36).substr(2, 9);
 	// },
 
 	/*
@@ -297,165 +322,148 @@
 		serialize: serialize
 	};
 
-	function ViewInterface (data) {
-		this.view = data.view;
+	function Component (element, model, view) {
+		this.view = view;
+		this.model = model;
+		this.element = element;
 
+		this.innerHTML;
 		this.listeners = {};
-		this.inners = {};
 
-		this.PREFIX = /(data-)?s-/;
-		// this.BINDER_CMD = /(^data-s-)|(^s-)|((-|\.)(.*?)$)/g;
-		this.BINDER_CMD = /s-\w+/;
-		this.BINDER_OPT = /((^data-s-)|(^s-))(\w+(\.|-)?)/;
-		this.ADAPTER_CMD = /\((.*?)$/;
-		this.ADAPTER_OPT = /(^(.*?)\()|(\)(.*?)$)/g;
-
-		this.NUMBER = /^\d{1,}$/;
-		this.STRING = /(^')|(^")|(^`)/;
-		this.BOOLEAN = /(^true$)|(^false$)/;
-
-		this.ALL = /(s-(.*?)=)/;
-		this.REJECTS = /(<iframe)|(<script)|(<style)|(<link)|(<object)|(s-controller=)/;
-
-		this.AT_SKIPS = /(s-value=)/;
+		this.SKIPS = /(s-value=)/;
+		this.ACCEPTS = /(s-(.*?)=)/;
+		this.REJECTS = /s-controller=/;
 	}
 
-	ViewInterface.prototype.on = function (data) {
+	Component.prototype.on = function (data) {
 		var self = this;
 		var eventName = data.cmds[1];
 		var methodName = data.opts[data.opts.length-1];
 
 		if (typeof data.value !== 'function') return;
 
-		data.element.removeEventListener(eventName, self.listeners[methodName], false);
-		self.listeners[methodName] = data.value.bind(self.ModelInterface.model);
-		data.element.addEventListener(eventName, self.listeners[methodName], false);
+		self.element.removeEventListener(eventName, self.listeners[methodName], false);
+
+		self.listeners[methodName] = function (e) {
+			e.preventDefault();
+			data.value.call(self.model.collection, e);
+		};
+
+		self.element.addEventListener(eventName, self.listeners[methodName], false);
 	};
 
-	ViewInterface.prototype.for = function (data) {
-		var self = this, originalInnerHtml;
-		var variableName = Utility.toCamelCase(data.cmds.slice(1));
+	// TODO improve perfomace
+	Component.prototype.for = function (data) {
+		var self = this;
 
-		if (!data.element.swathe) {
-			originalInnerHtml = data.element.innerHTML;
-			data.element.swathe = {};
-			data.element.swathe.originalInnerHTML = originalInnerHtml;
-		} else {
-			originalInnerHtml = data.element.swathe.originalInnerHTML;
+		if (!self.for_child) self.for_child = self.element.children[0];
+
+		var variable = data.cmds.slice(1);
+		var child = self.for_child.cloneNode(true);
+		var inner = '';
+
+		child = child.outerHTML;
+		variable = Utility.toCamelCase(variable);
+		variable = new RegExp('="'+ variable +'"', 'g');
+
+
+		for (var i = 0, l = data.value.length; i < l; i++) {
+			inner += child.replace(variable, '="' + data.binder.value + '.' + i.toString() + '"');
 		}
 
-		// self.inners[]
-
-		var variable = new RegExp('="'+ variableName +'"', 'g');
-		var newInnerHtml = '';
-
-		if (data.value === null || data.value === undefined) {
-			throw 's-for-[variable name] requires an iterable';
-		} else {
-			for (var i = 0, l = data.value.length; i < l; i++) {
-				newInnerHtml += originalInnerHtml.replace(variable, '=\"' + data.attribute.value + '[' + i + ']\"');
-			}
-		}
-
-		data.element.innerHTML = newInnerHtml;
-		self.update(data.element);
+		self.renderInnerHTML(inner, self.element);
 	};
 
-	ViewInterface.prototype.html = function (data) {
+	Component.prototype.html = function (data) {
 		var self = this;
 
 		if (/^</.test(data.value)) {
-			data.element.innerHTML = data.value;
-			self.update(data.element);
+			self.renderInnerHTML(data.value);
 		} else {
 			Axa.request({
 				action: data.value,
-				success: function (xhr) {
-					data.element.innerHTML = xhr.response;
-					self.update(data.element);
-				},
-				error: function (xhr) {
-					throw xhr;
-				}
+				success: function (xhr) { self.renderInnerHTML(xhr.response); },
+				error: function (xhr) { throw xhr.response; }
 			});
 		}
 	};
 
-	ViewInterface.prototype.css = function (data) {
-		// var cssText = '';
+	Component.prototype.css = function (data) {
+		var cssText = this.element.style.cssText;
 
 		if (typeof data.value === 'object') {
 			for (var key in data.value) {
 				if (data.value.hasOwnProperty(key)) {
 					key = Utility.toDashCase(key);
-					// cssText += key + ':' + data.value[key] + ';';
-					data.element.style.cssText += key + ':' + data.value[key] + ';';
+					cssText += key + ':' + data.value[key] + ';';
 				}
 			}
 		} else {
-			// cssText = data.value;
-			data.element.style.cssText = data.value;
+			cssText += data.value;
 		}
 
-		// data.element.style.cssText = cssText;
+		this.element.style.cssText = cssText;
 	};
 
-	// ViewInterface.prototype.value = function (data) {
-	// 	// if (data.element.value !== data.value)
-	// 	data.element.value = data.value;
-	// };
-
-	ViewInterface.prototype.class = function (data) {
+	Component.prototype.class = function (data) {
 		var className = data.cmds.slice(1).join('-');
 		data.value = Utility.ensureBoolean(data.value);
-		data.element.classList.toggle(className, data.value);
+		this.element.classList.toggle(className, data.value);
 	};
 
-	ViewInterface.prototype.if = function (data) {
-		data.element.hidden = !Utility.ensureBoolean(data.value);
+	Component.prototype.enable = function (data) {
+		this.element.disabled = !Utility.ensureBoolean(data.value);
 	};
 
-	ViewInterface.prototype.enable = function (data) {
-		data.element.disabled = !Utility.ensureBoolean(data.value);
+	Component.prototype.disable = function (data) {
+		this.element.disabled = Utility.ensureBoolean(data.value);
 	};
 
-	ViewInterface.prototype.disable = function (data) {
-		data.element.disabled = Utility.ensureBoolean(data.value);
+	Component.prototype.show = function (data) {
+		this.element.hidden = !Utility.ensureBoolean(data.value);
 	};
 
-	ViewInterface.prototype.show = function (data) {
-		data.element.hidden = !Utility.ensureBoolean(data.value);
+	Component.prototype.hide = function (data) {
+		this.element.hidden = Utility.ensureBoolean(data.value);
 	};
 
-	ViewInterface.prototype.hide = function (data) {
-		data.element.hidden = Utility.ensureBoolean(data.value);
+	Component.prototype.check = function (data) {
+		this.element.checked = Utility.ensureBoolean(data.value);
 	};
 
-	ViewInterface.prototype.check = function (data) {
-		data.element.checked = Utility.ensureBoolean(data.value);
+	Component.prototype.uncheck = function (data) {
+		this.element.checked = !Utility.ensureBoolean(data.value);
 	};
 
-	ViewInterface.prototype.uncheck = function (data) {
-		data.element.checked = !Utility.ensureBoolean(data.value);
+	Component.prototype.text = function (data) {
+		this.element.innerText = Utility.ensureString(data.value);
 	};
 
-	ViewInterface.prototype.text = function (data) {
-		data.element.innerText = Utility.ensureString(data.value);
-	};
-
-	ViewInterface.prototype.default = function (data) {
+	Component.prototype.default = function (data) {
 		var path = Utility.toCamelCase(data.cmds);
-		Utility.setByPath(data.element, path, data.value);
+		Utility.setByPath(this.element, path, data.value);
 	};
 
-	ViewInterface.prototype.switch = function (data) {
+	Component.prototype.renderInnerHTML = function (inner) {
 		var self = this;
 
-		data.opts = data.attribute.value.split('.');
-		data.cmds = data.attribute.name.replace(self.PREFIX, '').split('-');
+		self.element.innerHTML = inner;
+		self.view.addComponents(self.element, function (element) {
+			return new Component(element, self.model, self.view);
+		});
+	};
 
-		data.value = self.ModelInterface.get(data.attribute.value);
-		data.value = data.value === null || data.value === undefined ? data.attribute.value : data.value;
+	Component.prototype.render = function (binder) {
+		var self = this, data = {};
+
+		if (binder.name === 's-value') return;
+
+		data.opts = binder.value.split('.');
+		data.cmds = binder.name.replace(Utility.prefix, '').split('-');
+
+		data.value = self.model.get(binder.value);
+		data.value = data.value === null || data.value === undefined ? binder.value : data.value;
+		data.binder = binder;
 
 		if (data.cmds[0] in self) {
 			self[data.cmds[0]](data);
@@ -464,143 +472,276 @@
 		}
 	};
 
-	ViewInterface.prototype.update = function (view, pattern) {
+	Component.prototype.renderAll = function () {
 		var self = this;
 
-		view = view || self.view;
-		pattern = pattern || self.ALL;
-
-		Utility.forEachElement(view, self.REJECTS, null, pattern, function (element) {
-			Utility.forEachAttribute(element, null, self.AT_SKIPS, pattern, function (attribute) {
-				self.switch({ element: element, attribute: attribute });
-			});
+		Utility.eachAttribute(self.element.attributes, Utility.prefix, function (attribute) {
+			self.render(attribute);
 		});
 	};
 
-	ViewInterface.prototype.setup = function (ModelInterface) {
-		var self = this, attributeValue;
-
-		self.ModelInterface = ModelInterface;
-
-		self.update();
-
-		self.view.addEventListener('keyup', function (e) {
-			attributeValue = e.target.getAttribute('s-value') || e.target.getAttribute('data-s-value');
-
-			if (attributeValue !== null && attributeValue !== undefined) {
-				self.ModelInterface.set(attributeValue, e.target.value);
-			}
-		}, false);
-
-		// self.view.addEventListener('submit', function (e) {
-		// 	console.log(e);
-		// 	e.preventDefault();
-		// }, false);
-	};
-
-	function ModelInterface (data) {
-		this.model = data.model;
-		this.isProxy = Proxy ? true : false;
-	}
-
-	ModelInterface.prototype.proxy = function (object, callback, prefix) {
-		var self = this, value;
-
-		if (!prefix) prefix = '';
-
-		var handler = {
-			get: function (target, property) {
-				value = target[property];
-
-				if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
-					return self.proxy(value, callback, prefix + property + '.');
-				} else {
-					return value;
-				}
-			},
-			set: function (target, property, value) {
-				if (target[property] !== value) { // send change if value is different
-					target[property] = value;
-					if (callback) callback(prefix + property, value);
-				}
-
-				return true;
-			}
-		};
-
-		return new Proxy(object, handler);
-	};
-
-	ModelInterface.prototype.define = function (object, callback, prefix) {
-		var self = this, newObject = {}, properties = {};
-
-		var key = null;
-		var value = null;
-		var prefixObject = null;
-		var prefixVariable = null;
-
-		if (!prefix) prefix = '';
-
-		function handler (o, k, p) {
-			return {
-				enumerable: true,
-				configurable: true,
-				get: function () {
-					return o[k];
-				},
-				set: function (nv) {
-					if (nv !== o[k]) {
-						o[k] = nv;
-						if (callback) callback(p, nv);
-					}
-				}
-			};
-		}
-
-		for (key in object) {
-			value = object[key];
-			prefixObject = !prefix ? key : prefix + '.' + key;
-			prefixVariable = !prefix ? key : prefix + '.' + key;
-
-			if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
-				newObject[key] = self.define(value, callback, prefixObject);
-			} else {
-				properties[key] = handler(object, key, prefixVariable);
-			}
-		}
-
-		return Object.defineProperties(newObject, properties);
-	};
-
-	ModelInterface.prototype.get = function (path) {
-		return Utility.getByPath(this.model, path);
-	};
-
-	ModelInterface.prototype.set = function (path, data) {
-		Utility.setByPath(this.model, path, data);
-	};
-
-	ModelInterface.prototype.setup = function (ViewInterface) {
+	Component.prototype.renderByBinderValue = function (binderValue, modelValue) {
 		var self = this;
 
-		self.ViewInterface = ViewInterface;
+		Utility.eachAttribute(this.element.attributes, new RegExp(binderValue), function (attribute) {
+			self.render(attribute, modelValue);
+		});
+	};
 
-		function change (key, value) {
-			key = Utility.getPathParent(key);
-			key = new RegExp('(s-)(.*?)="' + key);
-			self.ViewInterface.update(null, key);
+	/*
+		@preserve
+		title: obsr
+		version: 1.0.3
+		license: mpl-2.0
+		author: alexander elias
+	*/
+
+	function Obsr () {}
+
+	Obsr.prototype.descriptor = function (k, v, c) {
+		return {
+			configurable: true,
+			enumerable: true,
+			get: function () {
+				return v;
+			},
+			set: function (nv) {
+				v = nv;
+				c(k, v);
+			}
+		};
+	};
+
+	Obsr.prototype.ins = function (observed, callback, prefix, key, value) {
+
+		if (value.constructor.name === 'Object' || value.constructor.name === 'Array') {
+			value = this.create(value, callback, prefix + key, true);
 		}
 
-		if (self.isProxy) {
-			self.model = self.proxy(self.model, change);
-		} else {
-			self.model = self.define(self.model, change);
+		if (observed.constructor.name === 'Array' && key == -1) {
+			key = 0;
+			observed.splice(key, 0, value);
+			observed = Object.defineProperty(observed, key, this.descriptor(prefix + key, value, callback));
+			key = observed.length-1;
+			value = observed[key];
 		}
+
+		observed = Object.defineProperty(observed, key, this.descriptor(prefix + key, value, callback));
+		if (callback) callback(prefix + key, value);
+	};
+
+	Obsr.prototype.del = function (observed, callback, prefix, key) {
+		if (observed.constructor.name === 'Object') {
+			delete observed[key];
+		} else if (observed.constructor.name === 'Array') {
+			var l = observed.length - 1;
+			observed.splice(key, 1);
+			key = l;
+		}
+
+		if (callback) callback(prefix + key, undefined);
+	};
+
+	Obsr.prototype.create = function (observable, callback, prefix, trigger) {
+		var observed, key, value, type;
+
+		if (!prefix) prefix = '';
+		else prefix += '.';
+
+		type = observable.constructor.name;
+		observed = type === 'Object' ? {} : [];
+
+		observed = Object.defineProperty(observed, 'ins', {
+			value: this.ins.bind(this, observed, callback, prefix)
+		});
+
+		observed = Object.defineProperty(observed, 'del', {
+			value: this.del.bind(this, observed, callback, prefix)
+		});
+
+		for (key in observable) {
+			value = observable[key];
+			type = value.constructor.name;
+
+			if (type === 'Object' || type === 'Array') value = this.create(value, callback, prefix + key);
+			observed = Object.defineProperty(observed, key, this.descriptor(prefix + key, value, callback));
+			if (trigger && callback) callback(prefix + key, value);
+		}
+
+		return observed;
+	};
+
+	var obsr = function (observable, callback) {
+		return new Obsr().create(observable, callback);
+	};
+
+	function Model (collection) {
+		this.collection = collection;
+		// this.isProxy = Proxy ? true : false;
+	}
+
+	// Model.prototype.proxy = function (object, callback, prefix) {
+	// 	var self = this, value;
+	//
+	// 	if (!prefix) prefix = '';
+	//
+	// 	var handler = {
+	// 		get: function (target, property) {
+	// 			value = target[property];
+	//
+	// 			if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
+	// 				return self.proxy(value, callback, prefix + property + '.');
+	// 			} else {
+	// 				return value;
+	// 			}
+	// 		},
+	// 		set: function (target, property, value) {
+	// 			if (target[property] !== value) { // send change if value is different
+	// 				target[property] = value;
+	// 				if (callback) callback(prefix + property, value);
+	// 			}
+	//
+	// 			return true;
+	// 		}
+	// 	};
+	//
+	// 	return new Proxy(object, handler);
+	// };
+
+	// Model.prototype.define = function (object, callback, prefix) {
+	// 	var self = this, newObject = {}, properties = {};
+	//
+	// 	var key = null;
+	// 	var value = null;
+	// 	var prefixObject = null;
+	// 	var prefixVariable = null;
+	//
+	// 	if (!prefix) prefix = '';
+	//
+	// 	function handler (o, k, p) {
+	// 		return {
+	// 			enumerable: true,
+	// 			configurable: true,
+	// 			get: function () {
+	// 				return o[k];
+	// 			},
+	// 			set: function (nv) {
+	// 				if (nv !== o[k]) {
+	// 					o[k] = nv;
+	// 					if (callback) callback(p, nv);
+	// 				}
+	// 			}
+	// 		};
+	// 	}
+	//
+	// 	for (key in object) {
+	// 		value = object[key];
+	// 		prefixObject = !prefix ? key : prefix + '.' + key;
+	// 		prefixVariable = !prefix ? key : prefix + '.' + key;
+	//
+	// 		if (value !== null && value !== undefined && (value.constructor.name === 'Object' || value.constructor.name === 'Array')) {
+	// 			newObject[key] = self.define(value, callback, prefixObject);
+	// 		} else {
+	// 			properties[key] = handler(object, key, prefixVariable);
+	// 		}
+	// 	}
+	//
+	// 	return Object.defineProperties(newObject, properties);
+	// };
+
+	Model.prototype.get = function (path) {
+		return Utility.getByPath(this.collection, path);
+	};
+
+	Model.prototype.set = function (path, data) {
+		Utility.setByPath(this.collection, path, data);
+	};
+
+	Model.prototype.setup = function (callback) {
+		this.collection = obsr(this.collection, callback);
+		// if (this.isProxy) {
+		// 	this.collection = this.proxy(this.collection, callback);
+		// } else {
+			// this.collection = this.define(this.collection, callback);
+		// }
+	};
+
+	/*
+		ids: Component Binder Data Base
+			{Binder Value} > {ID} > [Binder Names]
+
+		components: Component Identification Data Base
+			{Identification} > {Component}
+	*/
+
+	function View () {
+		this.ids = {};
+		this.components = {};
+		this.accepts = /(s-(.*?)=)/;
+		this.rejects = /(s-controller=)|(iframe)|(object)|(script)/;
+	}
+
+	View.prototype.setComponent= function (id, component) {
+		this.components[id] = component;
+	};
+
+	View.prototype.getComponent = function (id) {
+		return this.components[id];
+	};
+
+	View.prototype.setId = function (id, value) {
+		if (!this.ids[value]) this.ids[value] = [id];
+		else this.ids[value].push(id);
+	};
+
+	View.prototype.getIds = function (value) {
+		return this.ids[value];
+	};
+
+	View.prototype.setIds = function (id, element) {
+		for (var i = 0, l = element.attributes.length, attribute; i < l; i++) {
+			attribute = element.attributes[i];
+
+			if (Utility.prefix.test(attribute.name)) {
+				if (!this.ids[attribute.value]) this.ids[attribute.value] = [];
+				this.ids[attribute.value].push(id);
+				if (attribute.name === 's-css') console.log(attribute);
+			}
+		}
+	};
+
+	View.prototype.updateComponents = function (binderValue, modelValue) {
+		var ids = this.getIds(binderValue), component, id;
+
+		for (var i = 0, l = ids.length; i < l; i++) {
+			id = ids[i];
+			component = this.getComponent(id);
+			component.renderByBinderValue(binderValue, modelValue);
+		}
+	};
+
+	View.prototype.addComponents = function (element, callback) {
+		var self = this, component, id;
+		var elements = element.getElementsByTagName('*');
+
+		Utility.eachElement(elements, self.rejects, null, self.accepts, function (element, index) {
+			id = Utility.uid();
+			element.id = id;
+
+			component = callback(element);
+			component.renderAll();
+			self.setIds(id, element);
+			self.setComponent(id, component);
+
+			if (/s-for-(.*?)=/.test(Utility.glance(element))) return index++;
+
+		});
 	};
 
 	/*
 		title: swathe
 		version: 1.2.0
+		license: mpl-2.0
 		author: alexander elias
 	*/
 
@@ -612,37 +753,52 @@
 		self.query = '[s-controller="' + self.name + '"], [data-s-controller="' + self.name + '"]';
 
 		self.model = data.model;
-		self.view = self.doc.querySelector(self.query);
+		self.scope = self.doc.querySelector(self.query);
 
-		self.ModelInterface = new ModelInterface({
-			model: self.model
+		self.Model = new Model(self.model);
+		self.View = new View();
+
+		self.Model.setup(function (path, value) {
+			if (!isNaN(path.split('.').slice(-1))) {
+				path = path.split('.').slice(0, -1).join('.');
+			}
+
+			self.View.updateComponents(path, value);
 		});
 
-		self.ViewInterface = new ViewInterface({
-			view: self.view
+		self.View.addComponents(self.scope, function (element) {
+			return new Component(element, self.Model, self.View);
 		});
 
-		self.ModelInterface.setup(self.ViewInterface);
-		self.ViewInterface.setup(self.ModelInterface);
+		self.scope.addEventListener('keyup', function (e) {
+			var component = self.View.getComponent(e.target.id);
+			var value = component.element.getAttribute('s-value') || component.element.getAttribute('data-s-value');
+			if (value) self.Model.set(value, component.element.value);
+		}, false);
 
-		self.model = self.ModelInterface.model;
-		self.view = self.ViewInterface.view;
-
-		if (callback) callback(self);
-
-		// window.addEventListener('DOMContentLoaded', function () {
-		// 	self.viewdb = {};
-		// 	var elements = self.view.getElementsByTagName('*');
-		// 	for (var i = 0, l = elements.length; i < l; i++) {
-		// 		var id = Utility.id();
-		// 		elements[i].id = id;
-		// 		self.viewdb[id] = { element: elements[i] };
+		// self.scope.addEventListener('submit', function (e) {
+		// 	if (self.View.get(e.target.id)) {
+		// 		var value = e.target.getAttribute('s-value') || e.target.getAttribute('data-s-value');
+		// 		self.Model.set(value, e.target.value);
 		// 	}
-		// 	console.log(self.viewdb);
-		// });
+		// 	e.preventDefault();
+		// }, false);
+
+		self.model = self.Model.collection;
+
+		if (callback) return callback.call(this);
 	}
 
-	var Swathe = {
+	window.addEventListener('DOMContentLoaded', function () {
+		document.head.appendChild(eStyle);
+		// for (var name in window.Swathe.controllers) {
+		// 	if (window.Swathe.controllers.hasOwnProperty(name)) {
+		// 		window.Swathe.controllers[name].view.classList.toggle('s-show-true');
+		// 	}
+		// }
+	});
+
+	var swathe_b = {
 		controllers: {},
 		controller: function (data, callback) {
 			if (!data.name) throw new Error('Controller - name parameter required');
@@ -654,15 +810,6 @@
 		}
 	};
 
-	window.addEventListener('DOMContentLoaded', function () {
-		document.head.appendChild(eStyle);
-		// for (var name in window.Swathe.controllers) {
-		// 	if (window.Swathe.controllers.hasOwnProperty(name)) {
-		// 		window.Swathe.controllers[name].view.classList.toggle('s-show-true');
-		// 	}
-		// }
-	});
-
-	return Swathe;
+	return swathe_b;
 
 })));

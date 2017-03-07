@@ -121,8 +121,12 @@ footer p {
 .nav-list-main {
 	background: whitesmoke;
 }
+.nav-bar .active {
+	background: rgba(0,0,0,.1);
+}
 .nav-list-sub {
 	background: whitesmoke;
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 .primary-f {
 	color: darkorange;

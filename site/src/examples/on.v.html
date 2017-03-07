@@ -26,9 +26,11 @@
 		}
 	};
 
-	Swathe.controller(options, function (controller) {
+	Swathe.controller(options, function () {
+		var self = this;
+
 		setTimeout(function () {
-			controller.model.onClick = function (e) {
+			self.model.onClick = function (e) {
 				console.log(e);
 				console.log(this);
 				window.alert('New onClick function');
