@@ -1,18 +1,17 @@
 # Swathe #
 **Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small**
 
-**NEW VERSION 2.0.0 see website for changes**
+**the documentation is a little out of date please see the examples on the website it is the most current**
 
-Swathe is a smart 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see for your self. Contributions suggestions welcome and appreciated! 2 Way data binding can be costly thus only elements with value properties are bi-directionally watched using the Input Event.
+Swathe is a smart 2 way data binding library. It is extremely small and extremely powerful. Try it out and you will see for your self. Contributions suggestions welcome and appreciated!
 
-**Website under construction**
 
 ## Size ##
 Approximately 1.7KB gzipped (4.3KB uncompressed)
 
 
 ## Performance ##
-Performance seems to be extremely good. Running Chrome with **1,000** bi-directional elements changing simultaneously and a total of **10,000** elements being controlled by Swathe there is no apparent UI lag. If you want to check it out for your self pull up the example directory and view the performance html document.
+Performance seems to be extremely good. Running Chrome with **1,000** elements changing simultaneously and over **5,000** elements being controlled by Swathe there is no apparent UI lag. Check out the [performance page](https://alexanderelias.github.io/swathe/performance/).
 
 
 ## Compatibility ##
@@ -74,13 +73,19 @@ setTimeout(function () {
 ## Model ##
 ### Swathe ###
 **Properties**
+- `doc` The default `document` for each controller.
+	- `document` **default**
+- `prefix` The default prefix for the attribute names
+	- `s-` **default**
+- `rejects` String of rejected elements or attributes it is converted to RegExp.
+	- `iframe|object|script` **default**
 - `controllers` Object containing a list of controllers.
-- `controller` Object to interact with the controller.
+- `controller` Returns a new controller.
 
 ### controller ###
 **Parameters**
 - `name`  A controller name. **Required**
-- `model` A observed object. It is best to define all properties that will be observed at this point. **Required**
+- `model` A observed object. It is best to define all properties that will be observed at this point.
 - `callback` A callback for the controller with the instance of the controller passed as a parameter.
 
 **Returns**
@@ -89,7 +94,6 @@ setTimeout(function () {
 **Properties**
 - `name`
 - `model` The observed object.
-- `view` Object containing a reference to DOM elements.
 
 ### controllers ###
 **Returns**
@@ -105,26 +109,18 @@ Attribute names are used for Swathe to detect elements to interact with. These n
 ### Attribute Values ###
 Attribute values are used to access and register an element's property to it's Model. The attribute name `s-inner-text` could have a value set to `array.0`.
 
-- `.`: Dot syntax can be used to access any property on the model.
-- `[]` Bracket syntax can even be used to access array values.
+- `.`: Dot syntax can be used to access any nested property on the model including arrays.
 
 ### Special Attributes ###
 - `s-text` Maps to `innerText`
 - `s-html` Maps to `innerHtml`
-
-- `s-style-[property]` Maps to `style.color`
-
 - `s-css` Maps to `cssText`
-	- `value` The JavaScript `cssText` property accepts a string of css any model variables can also be used by pre-appending the variable name with a `$`.
-
-- `s-event-[event]` Sames as `s-on-[event]`
-- `s-on-[event]` This is the event attribute it is used instead of `addEventListener`. Example `s-on-click="say('hello')"`.
-	- Function parameters can be `Model Variables`, `String`, and `Number`. Numbers are parsed to an actual integer.
-
-- `s-for-[variable]` A for of loop. Example `s-for-variable="iterable"`.
-	- `for` Clones the first child element.
-	- `variable` The value for the children elements to use.
-	- `iterable` The path to an array/iterable on the model.
+- `s-css-[style name]` Same as `Element.style[style name]`
+- `s-on-[event name]` This is the event attribute it is used instead of `addEventListener`. Example `s-on-click="say"`. If an event is added the original is removed.
+- `s-each-[variable]` A for of loop. Example `s-each-variable="iterable"`.
+	- `each` Clones the first child element.
+	- `variable` The value for each variable it is the same as `iterable[i]`.
+	- `iterable` The path to an array on the model. (objects not supported yet)
 
 
 ## License ##

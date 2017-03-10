@@ -6,15 +6,16 @@
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<title>If  | Swathe</title>
+	<title>Show | Hide  | Swathe</title>
 
 	<base href="https://alexanderelias.github.io/swathe/">
 	<!-- <base href="/"> -->
 
 	<link rel="stylesheet" href="assets/index.css">
 	<script src="assets/nav-bar.js"></script>
-	<script src="assets/swathe.js"></script>
 	<script src="assets/index.js"></script>
+
+	<script src="swathe.js"></script>
 
 	<link rel="stylesheet" href="assets/prettify-desert-theme.css" async>
 	<script src="assets/prettify.js" async></script>
@@ -27,19 +28,22 @@
 				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
 			</a>
 		</div>
-		<div class="title secondary-f">If</div>
+		<div class="title secondary-f">Show | Hide</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
 					<a>Examples</a>
 					<ul>
+						<li><a href="examples/form.html">Form</a></li>
 						<li><a href="examples/class.html">Class</a></li>
-						<li><a href="examples/for.html">For</a></li>
+						<li><a href="examples/css.html">Css</a></li>
+						<li><a href="examples/each.html">Each</a></li>
 						<li><a href="examples/html.html">Html</a></li>
-						<li><a href="examples/if.html">If</a></li>
 						<li><a href="examples/on.html">On</a></li>
 						<li><a href="examples/other.html">Other</a></li>
-						<li><a href="examples/style.html">Style</a></li>
+						<li><a href="examples/enable-disable.html">Enable | Disable</a></li>
+						<li><a href="examples/show-hide.html">Show | Hide</a></li>
+						<li><a href="examples/read-write.html">Read | Write</a></li>
 					</ul>
 				</li>
 				<li><a href="view">View Documentation</a></li>
@@ -52,19 +56,23 @@
 	<main>
 		
 
-<h2>If</h2>
+<h2>Show | Hide</h2>
 
 <section>
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<div s-if="true">true</div>
-		<div s-if="isFalse">isFalse</div>
+		<input type="text" s-read="isTrue" value="Can only read">
+		<input type="text" s-read="isFalse" value="Can read and write">
+		<input type="text" s-write="isTrue" value="Can write">
+		<input type="text" s-write="isFalse" value="Can not write">
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
-		<div s-if="true">true</div>
-		<div s-if="isFalse">isFalse</div>
+		<input type="text" s-read="isTrue" value="Can only read">
+		<input type="text" s-read="isFalse" value="Can read and write">
+		<input type="text" s-write="isTrue" value="Can write">
+		<input type="text" s-write="isFalse" value="Can not write">
 	</div>
 </section>
 
@@ -73,11 +81,12 @@
 		name: 'main',
 		model: {
 			isFalse: false,
+			isTrue: true
 		}
 	};
 
-	Swathe.controller(options, function (controller) {
-		console.log(controller.model);
+	Swathe.controller(options, function () {
+		console.log(this.model);
 	});
 </script>
 

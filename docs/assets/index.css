@@ -28,6 +28,9 @@ main {
 	margin: auto;
 	max-width: 1000px;
 }
+label {
+	color: white;
+}
 a {
 	cursor: pointer;
 	color: darkorange;
@@ -71,6 +74,9 @@ section {
 	box-shadow: 0 3px 3px rgba(0,0,0,0.3);*/
 }
 ul {
+	padding: 0.5rem;
+	display: inline-block;
+	vertical-align: middle;
 	list-style-position: inside;
 }
 li ul {
@@ -83,8 +89,9 @@ input, textarea {
 	border: none;
 	outline: none;
 	max-width: 100%;
-	padding: 0.5rem;
+	padding: 0.4rem;
 	background: whitesmoke;
+	box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.6);
 }
 nav {
 	text-align: center;
@@ -105,6 +112,9 @@ nav a {
 footer p {
 	text-align: center;
 }
+[disabled] {
+	background: #bbb;
+}
 .nav-bar {
 	color: darkorange;
 }
@@ -114,8 +124,12 @@ footer p {
 .nav-list-main {
 	background: whitesmoke;
 }
+.nav-list-main > .active {
+	background: rgba(0,0,0,.1);
+}
 .nav-list-sub {
 	background: whitesmoke;
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 .primary-f {
 	color: darkorange;
@@ -155,22 +169,16 @@ footer p {
 }
  .button, button, input[type="button"], input[type="submit"] {
 	border: none;
-	display: block;
 	cursor: pointer;
 	color: whitesmoke;
 	margin: 1rem auto;
 	padding: 1rem 2rem;
+	display: inline-block;
 	background: darkorange;
 	box-shadow: 0 3px 3px rgba(0,0,0,0.3);
 }
 .button:hover, button:hover, input[type="button"]:hover, input[type="submit"]:hover {
 	box-shadow: 0 6px 6px rgba(0,0,0,0.3);
-}
-.group {
-	margin: 4px;
-	padding: 4px;
-	display: inline-block;
-	background: lightgray;
 }
 .code {
 	padding: 0.1rem 0.5rem;
@@ -188,7 +196,7 @@ footer p {
 	white-space: pre;
 	overflow-x: auto;
 }
-.cooked, .cooked div, .cooked p {
+.cooked, .cooked div, .cooked p, .cooked span {
 	color: whitesmoke;
 }
 .cooked {

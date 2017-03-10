@@ -5,17 +5,17 @@
 <section>
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<div s-hide="true">Is Hidden</div>
+		<div s-hide="isTrue">Is Hidden</div>
 		<div s-hide="isFalse">Is not hidden</div>
-		<div s-show="true">Is shown</div>
+		<div s-show="isTrue">Is shown</div>
 		<div s-show="isFalse">Is not shown</div>
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
-		<div s-hide="true">Is Hidden</div>
+		<div s-hide="isTrue">Is Hidden</div>
 		<div s-hide="isFalse">Is not hidden</div>
-		<div s-show="true">Is shown</div>
+		<div s-show="isTrue">Is shown</div>
 		<div s-show="isFalse">Is not shown</div>
 	</div>
 </section>
@@ -23,11 +23,13 @@
 <script>
 	var options = {
 		name: 'main',
-		model: { isFalse: false }
+		model: {
+			isFalse: false,
+			isTrue: true
+		}
 	};
 
 	Swathe.controller(options, function () {
-		var self = this;
-		console.log(self.model);
+		console.log(this.model);
 	});
 </script>

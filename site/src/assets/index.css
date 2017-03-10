@@ -28,6 +28,9 @@ main {
 	margin: auto;
 	max-width: 1000px;
 }
+label {
+	color: white;
+}
 a {
 	cursor: pointer;
 	color: darkorange;
@@ -121,7 +124,7 @@ footer p {
 .nav-list-main {
 	background: whitesmoke;
 }
-.nav-bar .active {
+.nav-list-main > .active {
 	background: rgba(0,0,0,.1);
 }
 .nav-list-sub {

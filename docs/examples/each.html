@@ -6,7 +6,7 @@
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<title>On  | Swathe</title>
+	<title>Each  | Swathe</title>
 
 	<base href="https://alexanderelias.github.io/swathe/">
 	<!-- <base href="/"> -->
@@ -28,7 +28,7 @@
 				<span class="secondary-f">S</span><span class="primary-f">wathe</span>
 			</a>
 		</div>
-		<div class="title secondary-f">On</div>
+		<div class="title secondary-f">Each</div>
 		<nav class="nav-bar">
 			<ul>
 				<li>
@@ -56,17 +56,31 @@
 	<main>
 		
 
-<h2>On</h2>
+<h2>Each</h2>
 
 <section>
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<button s-on-click="onClick">On Click</button>
+		<ul s-each-result="searchArray">
+			<li>
+				<span s-text="result"></span>
+			</li>
+		</ul>
+		<button s-on-click="pop">Pop</button>
+		<button s-on-click="push">Push</button>
+		<button s-on-click="shift">Shift</button>
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
-		<button s-on-click="onClick">On Click</button>
+		<ul s-each-result="searchArray">
+			<li>
+				<span s-text="result"></span>
+			</li>
+		</ul>
+		<button s-on-click="pop">Pop</button>
+		<button s-on-click="push">Push</button>
+		<button s-on-click="shift">Shift</button>
 	</div>
 </section>
 
@@ -74,25 +88,21 @@
 	var options = {
 		name: 'main',
 		model: {
-			onClick: function (e) {
-				console.log(e);
-				console.log(this);
-				window.alert('Original onClick function');
-
+			searchArray: ['zero', 'one', 'two', 'three', 'four'],
+			shift: function () {
+				this.searchArray.del(0);
+			},
+			pop: function () {
+				this.searchArray.del(this.searchArray.length-1);
+			},
+			push: function () {
+				this.searchArray.ins(this.searchArray.length, this.searchArray.length);
 			}
 		}
 	};
 
 	Swathe.controller(options, function () {
-		var self = this;
-
-		setTimeout(function () {
-			self.model.onClick = function (e) {
-				console.log(e);
-				console.log(this);
-				window.alert('New onClick function');
-			};
-		}, 3000);
+		// this.model.searchResults = this.model.searchArray;
 	});
 </script>
 

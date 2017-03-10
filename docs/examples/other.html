@@ -13,8 +13,9 @@
 
 	<link rel="stylesheet" href="assets/index.css">
 	<script src="assets/nav-bar.js"></script>
-	<script src="assets/swathe.js"></script>
 	<script src="assets/index.js"></script>
+
+	<script src="swathe.js"></script>
 
 	<link rel="stylesheet" href="assets/prettify-desert-theme.css" async>
 	<script src="assets/prettify.js" async></script>
@@ -33,13 +34,16 @@
 				<li>
 					<a>Examples</a>
 					<ul>
+						<li><a href="examples/form.html">Form</a></li>
 						<li><a href="examples/class.html">Class</a></li>
-						<li><a href="examples/for.html">For</a></li>
+						<li><a href="examples/css.html">Css</a></li>
+						<li><a href="examples/each.html">Each</a></li>
 						<li><a href="examples/html.html">Html</a></li>
-						<li><a href="examples/if.html">If</a></li>
 						<li><a href="examples/on.html">On</a></li>
 						<li><a href="examples/other.html">Other</a></li>
-						<li><a href="examples/style.html">Style</a></li>
+						<li><a href="examples/enable-disable.html">Enable | Disable</a></li>
+						<li><a href="examples/show-hide.html">Show | Hide</a></li>
+						<li><a href="examples/read-write.html">Read | Write</a></li>
 					</ul>
 				</li>
 				<li><a href="view">View Documentation</a></li>
@@ -58,7 +62,7 @@
 
 	<section>
 		<h4>Input Disabled</h4>
-		<input type="text" s-value="link" s-disabled="isDisabled">
+		<input type="text" s-disable="isDisabled" value="Disabled">
 	</section>
 
 	<section>
@@ -66,7 +70,7 @@
 		<div>
 			<a s-href="i.am.nested" s-text="i.am.nested" target="_blank">Link</a>
 		</div>
-		<input type="text" s-value="i.am.nested">
+		<input type="text" s-value="i.am.nested" s-placeholder="i.am.nested">
 	</section>
 
 	<section>
@@ -78,6 +82,9 @@
 		<h4>Sub Controller</h4>
 		<input type="text" s-value="text">
 		<div s-text="text">You should see this text becuase this controller is ignored.</div>
+		<form s-on-submit="log">
+			<input type="submit" value="Log">
+		</form>
 	</section>
 
 </div>
@@ -94,14 +101,22 @@
 				am: {
 					nested: 'www.google.com'
 				}
+			},
+			log: function () {
+				console.log('hello');
 			}
 		}
 	};
 
-	Swathe.controller(options, function (controller) {
+	Swathe.controller(options, function () {
+		var self = this;
+
 		setInterval(function () {
-			controller.model.count++;
+			self.model.count++;
 		}, 1000);
+		setTimeout(function () {
+			console.log(self.model);
+		}, 3000);
 	});
 
 </script>

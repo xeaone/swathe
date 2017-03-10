@@ -13,8 +13,9 @@
 
 	<link rel="stylesheet" href="assets/index.css">
 	<script src="assets/nav-bar.js"></script>
-	<script src="assets/swathe.js"></script>
 	<script src="assets/index.js"></script>
+
+	<script src="swathe.js"></script>
 
 	<link rel="stylesheet" href="assets/prettify-desert-theme.css" async>
 	<script src="assets/prettify.js" async></script>
@@ -33,13 +34,16 @@
 				<li>
 					<a>Examples</a>
 					<ul>
+						<li><a href="examples/form.html">Form</a></li>
 						<li><a href="examples/class.html">Class</a></li>
-						<li><a href="examples/for.html">For</a></li>
+						<li><a href="examples/css.html">Css</a></li>
+						<li><a href="examples/each.html">Each</a></li>
 						<li><a href="examples/html.html">Html</a></li>
-						<li><a href="examples/if.html">If</a></li>
 						<li><a href="examples/on.html">On</a></li>
 						<li><a href="examples/other.html">Other</a></li>
-						<li><a href="examples/style.html">Style</a></li>
+						<li><a href="examples/enable-disable.html">Enable | Disable</a></li>
+						<li><a href="examples/show-hide.html">Show | Hide</a></li>
+						<li><a href="examples/read-write.html">Read | Write</a></li>
 					</ul>
 				</li>
 				<li><a href="view">View Documentation</a></li>
@@ -52,16 +56,47 @@
 	<main>
 		
 
-<div class="container" s-controller="app"></div>
+<style>
+	.group {
+		margin: 4px;
+		padding: 4px;
+		border: solid 1px dimgray;
+	}
+	.group input {
+		padding: 4px;
+		display: block;
+		margin: 4px auto;
+	}
+	.group div {
+		margin: 4px;
+		padding: 4px;
+		display: inline-block;
+		background: lightgray;
+	}
+</style>
+
+<table>
+	<tr>
+		<th>All Elements</th>
+		<th>Group Elements</th>
+	</tr>
+	<tr>
+		<td>5000</td>
+		<td>1000</td>
+	</tr>
+</table>
+
+<div class="container" s-controller="main"></div>
 
 <script>
+	var options = {
+		name: 'main',
+		model: {
+			placeholder: 'Change Group'
+		}
+	};
 
 	console.log('started creating elements');
-	var model = {};
-
-	var count = 0;
-	var current = 0;
-
 	var container = document.querySelector('.container');
 	var group = document.createElement('div');
 	var input = document.createElement('input');
@@ -69,38 +104,41 @@
 
 	group.setAttribute('class', 'group');
 
-	for (var i = 0; i < 9000; i++) {
-		var groupClone = group.cloneNode();
-		var inputClone = input.cloneNode();
-		var divClone = div.cloneNode();
+	var totalAmount = 5000, groupAmount = totalAmount/5;
+	var i = 0, count = 0, current = 0, groupClone, inputClone, divClone;
 
-		if (count === 300) {
-			count = 0;
-			current = i;
-		} else {
-			count++;
+	for (i; i < totalAmount; i++) {
+		if (i !== 0) {
+			if (count === groupAmount) {
+				count = 0;
+				current = i;
+			} else {
+				count++;
+			}
 		}
 
-		model[current] = current;
+		options.model[current] = current;
 
-		inputClone.setAttribute('s-value', current);
-		divClone.setAttribute('s-inner-text', current);
+		if (count === 0) {
+			groupClone = group.cloneNode();
+			inputClone = input.cloneNode();
 
-		groupClone.appendChild(inputClone);
-		groupClone.appendChild(divClone);
-		container.appendChild(groupClone);
+			inputClone.setAttribute('s-value', current);
+			inputClone.setAttribute('s-placeholder', 'placeholder');
+			groupClone.appendChild(inputClone);
+			container.appendChild(groupClone);
+		} else {
+			groupClone = groupClone || group.cloneNode();
+
+			divClone = div.cloneNode();
+			divClone.setAttribute('s-text', current);
+			groupClone.appendChild(divClone);
+		}
 	}
-
-	var options = {
-		name: 'app',
-		model: model
-	};
 	console.log('ended creating elements');
 
 	console.time('controller');
-	Swathe.controller(options, function (controller) {
-		console.log(controller.model);
-	});
+	Swathe.controller(options);
 	console.timeEnd('controller');
 
 </script>

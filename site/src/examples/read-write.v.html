@@ -1,0 +1,35 @@
+<!-- { "title": "Show | Hide" } -->
+
+<h2>Show | Hide</h2>
+
+<section>
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<input type="text" s-read="isTrue" value="Can only read">
+		<input type="text" s-read="isFalse" value="Can read and write">
+		<input type="text" s-write="isTrue" value="Can write">
+		<input type="text" s-write="isFalse" value="Can not write">
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<input type="text" s-read="isTrue" value="Can only read">
+		<input type="text" s-read="isFalse" value="Can read and write">
+		<input type="text" s-write="isTrue" value="Can write">
+		<input type="text" s-write="isFalse" value="Can not write">
+	</div>
+</section>
+
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			isFalse: false,
+			isTrue: true
+		}
+	};
+
+	Swathe.controller(options, function () {
+		console.log(this.model);
+	});
+</script>

@@ -5,16 +5,16 @@
 <section>
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
-		<div s-css="cso" s-text="cso"></div>
-		<div s-style.background-color="cso.background" s-text="cso.background"></div>
-		<input s-value="cso.background" s-placeholder="placeholder">
+		<div s-css="css.string" s-text="css.string"></div>
+		<div s-css-background-color="css.background" s-css-color="css.color" s-text="css.background"></div>
+		<input s-value="css.background" s-placeholder="placeholder">
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
-		<div s-css="cso" s-text="cso"></div>
-		<div s-style.background-color="cso.background" s-text="cso.background"></div>
-		<input s-value="cso.background" s-placeholder="placeholder">
+		<div s-css="css.string" s-text="css.string"></div>
+		<div s-css-background-color="css.background" s-css-color="css.color" s-text="css.background"></div>
+		<input s-value="css.background" s-placeholder="placeholder">
 	</div>
 </section>
 
@@ -23,9 +23,10 @@
 		name: 'main',
 		model: {
 			placeholder: "Enter Color Or Hex",
-			cso: {
-				color: 'white',
-				background: '#999999'
+			css: {
+				color: '#000',
+				background: '#999',
+				string: 'background: #999'
 			}
 		}
 	};
@@ -33,11 +34,10 @@
 	Swathe.controller(options, function () {
 		var self = this;
 
-		console.log(self.model);
-
 		setInterval(function () {
-			self.model.cso.background = RandomHex();
-			// self.model.cso = self.model.cso;
+			self.model.css.background = RandomHex();
+			self.model.css.color = RandomHex();
+			self.model.css.string = 'background: ' + RandomHex();
 		}, 1000);
 	});
 </script>

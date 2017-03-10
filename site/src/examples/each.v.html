@@ -1,0 +1,51 @@
+<!-- { "title": "Each" } -->
+
+<h2>Each</h2>
+
+<section>
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<ul s-each-result="searchArray">
+			<li>
+				<span s-text="result"></span>
+			</li>
+		</ul>
+		<button s-on-click="pop">Pop</button>
+		<button s-on-click="push">Push</button>
+		<button s-on-click="shift">Shift</button>
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+		<ul s-each-result="searchArray">
+			<li>
+				<span s-text="result"></span>
+			</li>
+		</ul>
+		<button s-on-click="pop">Pop</button>
+		<button s-on-click="push">Push</button>
+		<button s-on-click="shift">Shift</button>
+	</div>
+</section>
+
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			searchArray: ['zero', 'one', 'two', 'three', 'four'],
+			shift: function () {
+				this.searchArray.del(0);
+			},
+			pop: function () {
+				this.searchArray.del(this.searchArray.length-1);
+			},
+			push: function () {
+				this.searchArray.ins(this.searchArray.length, this.searchArray.length);
+			}
+		}
+	};
+
+	Swathe.controller(options, function () {
+		// this.model.searchResults = this.model.searchArray;
+	});
+</script>

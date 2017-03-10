@@ -6,13 +6,11 @@
 	<h4>Raw</h4>
 	<code class="raw prettyprint">
 		<div s-html="html"></div>
-		<div s-html="url"></div>
 	</code>
 
 	<h4>Cooked</h4>
 	<div class="cooked" s-controller="main">
 		<div s-html="html"></div>
-		<div s-html="url"></div>
 	</div>
 </section>
 
@@ -20,12 +18,11 @@
 	var options = {
 		name: 'main',
 		model: {
-			url: 'include.html',
 			html: '<p>This is an html string include.</p>'
 		}
 	};
 
 	Swathe.controller(options, function () {
-		var self = this;
+		console.log(this.model);
 	});
 </script>

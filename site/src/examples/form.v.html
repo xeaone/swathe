@@ -1,0 +1,144 @@
+<!-- { "title": "Form" } -->
+
+<style>
+	form > input, form > select, form > textarea {
+		display: block;
+	}
+	form > label+input, form > label+select, form > label+textarea {
+		display: inline-block;
+	}
+	form > div {
+		margin: 16px auto;
+	}
+	form {
+		padding: 8px;
+		border: solid 1px whitesmoke;
+	}
+</style>
+
+<h2>Form</h2>
+
+<section>
+	<p>Radio buttons and select elements need more work.</p>
+
+	<h4>Raw</h4>
+	<code class="raw prettyprint">
+		<form>
+			<div s-text="text"></div>
+			<input type="text" s-value="text" placeholder="text">
+			<br>
+
+			<label>Checkbox: <span s-text="checkbox"></span></label>
+			<input type="checkbox" s-value="checkbox">
+			<br>
+
+			<label for="female">Female</label>
+			<input type="radio" name="gender" s-value="radio">
+			<label for="male">Male</label>
+			<input type="radio" name="gender" s-value="radio">
+			<br>
+
+			<div>Date: <span s-text="date"></span></div>
+			<input type="date" s-value="date | friendlyDate">
+			<br>
+
+			<div s-text="number"></div>
+			<input type="number" s-value="number" placeholder="number">
+			<br>
+
+			<div s-text="select"></div>
+			<select s-value="select" s-selected="selected">
+				<option s-value="options.0">Blue</option>
+				<option s-value="options.1">Red</option>
+			</select>
+			<br>
+
+			<div s-text="select"></div>
+			<select s-value="mSelect" multiple>
+				<option s-value="options.0">Blue</option>
+				<option s-value="options.1">Red</option>
+			</select>
+			<br>
+
+			<div s-text="textarea"></div>
+			<textarea s-value="textarea" placeholder="textarea"></textarea>
+		</form>
+	</code>
+
+	<h4>Cooked</h4>
+	<div class="cooked" s-controller="main">
+
+		<form>
+			<div s-text="text"></div>
+			<input type="text" s-value="text" placeholder="text">
+			<br>
+
+			<label>Checkbox: <span s-text="checkbox"></span></label>
+			<input type="checkbox" s-value="checkbox">
+			<br>
+
+			<label for="female">Female</label>
+			<input type="radio" name="gender" s-value="radio">
+			<label for="male">Male</label>
+			<input type="radio" name="gender" s-value="radio">
+			<br>
+
+			<div>Date: <span s-text="date"></span></div>
+			<input type="date" s-value="date | friendlyDate">
+			<br>
+
+			<div s-text="number"></div>
+			<input type="number" s-value="number" placeholder="number">
+			<br>
+
+			<div s-text="select"></div>
+			<select s-value="select" s-selected="selected">
+				<option s-value="options.0">Blue</option>
+				<option s-value="options.1">Red</option>
+			</select>
+			<br>
+
+			<div s-text="select"></div>
+			<select s-value="mSelect" multiple>
+				<option s-value="options.0">Blue</option>
+				<option s-value="options.1">Red</option>
+			</select>
+			<br>
+
+			<div s-text="textarea"></div>
+			<textarea s-value="textarea" placeholder="textarea"></textarea>
+		</form>
+
+	</div>
+</section>
+
+<script>
+	var options = {
+		name: 'main',
+		model: {
+			number: 0,
+			text: '',
+
+			checkbox: true,
+			radio: false,
+
+			date: '',
+
+			selected: 1,
+			select: '',
+			mSelect: [],
+			options: [ 'opt0', 'opt1' ],
+
+			textarea: 'textarea'
+		},
+		modifiers: {
+			friendlyDate: function () {
+				return this.replace(/-/g, '/');
+			}
+		}
+	};
+
+	Swathe.controller(options, function () {
+		var self = this;
+	});
+</script>

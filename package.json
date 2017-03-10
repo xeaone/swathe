@@ -5,8 +5,9 @@
   "main": "dist/swathe.js",
   "module": "src/swathe.b.m.js",
   "scripts": {
-    "build": "rm -r docs/* && muleify pack site/src docs/.",
-    "dev": "muleify pack src dist && cp dist/swathe.js site/src/assets/. &&  muleify serve site/src site/dist"
+	"swathe": "muleify pack src dist -m",
+    "site": "rm -r docs/* && muleify pack site/src docs/.",
+    "dev": "muleify pack src dist && cp dist/swathe.js site/src/. &&  muleify serve site/src site/dist"
   },
   "repository": {
     "type": "git",
@@ -32,7 +33,6 @@
   },
   "homepage": "https://github.com/AlexanderElias/swathe#readme",
   "dependencies": {
-    "axa": "^1.0.5",
     "erbium": "^1.4.6",
     "obsr": "^1.0.3"
   }
