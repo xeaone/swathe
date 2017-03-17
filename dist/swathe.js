@@ -159,11 +159,12 @@
 
 		child = child.outerHTML;
 		variable = Utility.toCamelCase(variable);
-		variable = new RegExp('="'+ variable +'"', 'g');
-
+		variable = new RegExp('="'+ variable, 'g');
+		// variable = new RegExp('="'+ variable +'"', 'g');
 
 		for (var i = 0, l = data.value.length; i < l; i++) {
-			inner += child.replace(variable, '="' + data.attribute.value + '.' + i.toString() + '"');
+			inner += child.replace(variable, '="' + data.attribute.value + '.' + i.toString());
+			// inner += child.replace(variable, '="' + data.attribute.value + '.' + i.toString() + '"');
 		}
 
 		self.element.innerHTML = inner;
@@ -401,7 +402,7 @@
 	/*
 		@preserve
 		title: swathe
-		version: 2.0.1
+		version: 2.0.2
 		license: mpl-2.0
 		author: alexander elias
 	*/

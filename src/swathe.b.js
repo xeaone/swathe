@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: swathe
-	version: 2.0.1
+	version: 2.0.2
 	license: mpl-2.0
 	author: alexander elias
 */
