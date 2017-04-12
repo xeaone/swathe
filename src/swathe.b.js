@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: swathe
-	version: 2.0.3
+	version: 2.0.4
 	license: mpl-2.0
 	author: alexander elias
 */
@@ -9,6 +9,7 @@
 import Component from './component.i.js';
 import Utility from './utility.i.js';
 import Obsr from 'obsr';
+import Axa from 'axa';
 
 function Controller (data, callback) {
 	this.callback = callback;
@@ -79,6 +80,7 @@ Controller.prototype.setup = function () {
 
 export default {
 	prefix: 's',
+	ajax: Axa,
 	doc: document,
 	controllers: {},
 	rejects: 'iframe|object|script',

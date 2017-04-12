@@ -1,11 +1,11 @@
 {
   "name": "swathe",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small",
   "main": "dist/swathe.js",
   "module": "src/swathe.b.m.js",
   "scripts": {
-	"swathe": "muleify pack src dist && muleify pack src/swathe.b.js dist/swathe.min.js -m",
+    "swathe": "muleify pack src dist && muleify pack src/swathe.b.js dist/swathe.min.js -m",
     "site": "rm -r docs/* && muleify pack site/src docs/.",
     "dev": "muleify pack src dist && cp dist/swathe.js site/src/. &&  muleify serve site/src site/dist"
   },
@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/AlexanderElias/swathe#readme",
   "dependencies": {
+    "axa": "^1.0.5",
     "erbium": "^1.4.6",
     "obsr": "^1.0.3"
   }
