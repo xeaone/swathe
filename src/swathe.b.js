@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: swathe
-	version: 2.0.4
+	version: 2.0.5
 	license: mpl-2.0
 	author: alexander elias
 */
@@ -80,9 +80,9 @@ Controller.prototype.setup = function () {
 
 export default {
 	prefix: 's',
-	ajax: Axa,
 	doc: document,
 	controllers: {},
+	ajax: Axa.request,
 	rejects: 'iframe|object|script',
 	controller: function (data, callback) {
 		if (!data.name) throw new Error('Controller - name parameter required');
