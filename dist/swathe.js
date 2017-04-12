@@ -160,11 +160,9 @@
 		child = child.outerHTML;
 		variable = Utility.toCamelCase(variable);
 		variable = new RegExp('="'+ variable, 'g');
-		// variable = new RegExp('="'+ variable +'"', 'g');
 
 		for (var i = 0, l = data.value.length; i < l; i++) {
 			inner += child.replace(variable, '="' + data.attribute.value + '.' + i.toString());
-			// inner += child.replace(variable, '="' + data.attribute.value + '.' + i.toString() + '"');
 		}
 
 		self.element.innerHTML = inner;
@@ -402,7 +400,7 @@
 	/*
 		@preserve
 		title: swathe
-		version: 2.0.2
+		version: 2.0.3
 		license: mpl-2.0
 		author: alexander elias
 	*/
@@ -481,7 +479,7 @@
 		rejects: 'iframe|object|script',
 		controller: function (data, callback) {
 			if (!data.name) throw new Error('Controller - name parameter required');
-			if (data.name in this.controllers) throw new Error('Controller - name ' + data.name + ' exists');
+			// if (data.name in this.controllers) throw new Error('Controller - name ' + data.name + ' exists');
 
 			data.doc = data.doc || this.doc;
 			data.prefix = data.prefix || this.prefix;

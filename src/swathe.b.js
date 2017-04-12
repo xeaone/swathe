@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: swathe
-	version: 2.0.2
+	version: 2.0.3
 	license: mpl-2.0
 	author: alexander elias
 */
@@ -84,7 +84,7 @@ export default {
 	rejects: 'iframe|object|script',
 	controller: function (data, callback) {
 		if (!data.name) throw new Error('Controller - name parameter required');
-		if (data.name in this.controllers) throw new Error('Controller - name ' + data.name + ' exists');
+		// if (data.name in this.controllers) throw new Error('Controller - name ' + data.name + ' exists');
 
 		data.doc = data.doc || this.doc;
 		data.prefix = data.prefix || this.prefix;
