@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: swathe
-	version: 2.0.5
+	version: 2.0.7
 	license: mpl-2.0
 	author: alexander elias
 */
@@ -12,7 +12,6 @@ import Obsr from 'obsr';
 import Axa from 'axa';
 
 function Controller (data, callback) {
-	this.callback = callback;
 	this.doc = data.doc;
 	this.name = data.name;
 	this.view = data.view || {};
@@ -36,6 +35,8 @@ function Controller (data, callback) {
 
 	this.scope = data.doc.querySelector(this.query);
 	if (!this.scope) throw new Error('missing attribute s-controller ' + data.name);
+
+	if (callback) callback.call(this);
 }
 
 Controller.prototype.insert = function (elements) {
@@ -53,7 +54,7 @@ Controller.prototype.insert = function (elements) {
 	});
 };
 
-Controller.prototype.setup = function () {
+Controller.prototype.render = function () {
 	var self = this;
 
 	self.model = Obsr(self.model, function (path) {
@@ -75,7 +76,6 @@ Controller.prototype.setup = function () {
 	});
 
 	self.insert(self.scope.getElementsByTagName('*'));
-	if (self.callback) self.callback.call(this);
 };
 
 export default {
@@ -86,15 +86,13 @@ export default {
 	rejects: 'iframe|object|script',
 	controller: function (data, callback) {
 		if (!data.name) throw new Error('Controller - name parameter required');
-		// if (data.name in this.controllers) throw new Error('Controller - name ' + data.name + ' exists');
 
 		data.doc = data.doc || this.doc;
 		data.prefix = data.prefix || this.prefix;
 		data.rejects = data.rejects || this.rejects;
 
-		var controller = new Controller(data, callback);
-		controller.setup();
-		this.controllers[data.name] = controller;
-		return controller;
+		this.controllers[data.name] = new Controller(data, callback);
+		if (!callback) this.controllers[data.name].render();
+		return this.controllers[data.name];
 	}
 };

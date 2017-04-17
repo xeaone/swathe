@@ -1,6 +1,6 @@
 {
   "name": "swathe",
-  "version": "2.0.5",
+  "version": "2.0.7",
   "description": "Swathe - Data Binding | No Dirty Checks | No Virtual DOM | Powerful | Small",
   "main": "dist/swathe.js",
   "module": "src/swathe.b.m.js",
